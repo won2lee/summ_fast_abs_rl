@@ -5,7 +5,106 @@ from torch.nn import init
 
 from .util import reorder_sequence, reorder_lstm_states
 
+#####################################################
+if parallel => tokenize 단계에서 반영 
 
+class parallel(nn.Module):
+    def __init__(self, context_dim, state_dim, input_dim, bias=True):
+        super().__init__()
+        self.raw_emb_size = 
+        self.embed_size = 
+        self.sub_en_coder= nn.LSTM(self.raw_emb_size, self.embed_size)  #(embed_size, self.hidden_size)
+        self.en_gate = nn.Linear(self.raw_emb_size, self.embed_size, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+        self.sub_en_projection = nn.Linear(self.raw_emb_size, self.embed_size, bias=False)    #(self.hidden_size, self.hidden_size, bias=False) 
+
+    def get_sents_lenth(source,seq_lens):
+        sbol = [1,2,3,pad]
+        if type(source[0]) is not list:
+            source = [source]
+
+        #    ^  p  가  _ 계속 _ 오른 다 _  .
+        #    0         3     5       8    [10]       <=XX
+        #    3         2     3       2               <=XX  XX_len = 4
+        #    2         1     2       1               <=XX_subracted
+
+
+        #source_lengths = [len(s) for s in source]
+        #XX = [list(chain(*[[i,i+1] for i,k in enumerate(s) if k in sbol[0]])) for s in source]
+        XXi= [[i for i,k in enumerate(s) if k in sbol] for s in source]
+        XXi = [XXi[i] + [seq_lens[i]] for i in range(len(XXi))]   #len(XX): Batch size
+        #to_sub = [[i for i,x in enumerate(xx) if x in to_add[j]] for j, xx in enumerate(XX)]
+        XX = [[s[i]-s[i-1] for i in range(len(s)) if i>0] for s in XXi]     # index to interval lenth(어절의 길이)
+        if len([s for s in XX if s==1]) > 0:
+            print("There is 'empty word segment' !!!") 
+        XX_len = [len(s) for s in XX]    # 문장의 어절 갯수
+        XX_subtracted = [[x-1 if x>0 else 0 for x in xx ] for xx in XX]
+        return XX_len, XX, XX_subtracted
+
+    def parallel_encode(source,emb_sequence, seq_lens,embedding=None): #slang_is_tlang=False):
+
+        if type(source[0]) is not list:
+           source = [source]       
+
+        source_lengths, Z, Z_sub = get_sents_lenth(source,seq_lens) # Z:각 sentence 내의 각 어절의 길이로 구성  list[list]
+        #s_len = seq_lens #[len(s) for s in source]  # 원래의 문장 길이
+        Z_len = [len(s) for s in Z]    # 문장의 어절 갯수
+
+
+        def 
+        max_Z = max(chain(*Z))  # 최대로 긴 어절
+        
+        
+        max_l = max(seq_lens)           
+        XX =  [s+[max_l-seq_lens[i]] if max_l>seq_lens[i] else s for i,s in enumerate(Z)] # total(interval lenth) to be source lenth 
+        
+        #src_padded = source # ? self.vocab.vocs.to_input_tensor(source, device=self.device)  
+
+        X = list(chain(*[torch.split(sss,XX[i])[:Z_len[i]] for i,sss in enumerate(
+            torch.split(source,1,-1))]))     #각 문장(batch)으로 자른 뒤 문장내 어절 단위로 자른다 
+
+        X = pad_sequence(X).squeeze(-1)
+
+        #if lang =='en':
+        #    cap_id, len_X = get_X_cap(source, self.sbol)
+
+        #X_embed = (embedding(sequence) if embedding is not None else sequence)    
+        #X_embed = self.model_embeddings.vocabs(X)
+        X_embed = embedding(X)
+
+        out,(last_h1,last_c1) = self.sub_en_coder(X_embed)
+        #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
+        X_proj = self.sub_en_projection(X_embed[1:])
+        X_gate = torch.sigmoid(self.en_gate(X_embed[1:]))
+
+
+        X_way = self.dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
+
+        #문장단위로 자르고 어절 단위로 자른 뒤 각 어절의 길이만 남기고 나머지는 버린 후 연결 (cat) 하여 문장으로 재구성         
+        X_input = [torch.cat([ss[:Z_sub[i][j]]for j,ss in enumerate(
+          torch.split(sss,1,1))],0) for i,sss in enumerate(torch.split(X_way,Z_len,1))]
+        
+        # 재구성된 문장의 길이가 다르기 때문에 패딩
+
+        if encode:
+            emb_sequence = pad_sequence(X_input).squeeze(-2)
+            seq_lens = [sum([wl for wl in s]) for s in Z_sub]
+            
+            return emb_sequence, seq_lens
+            
+        else:
+            emb_sequence = pad_sequence(X_input).squeeze(-2)[:-1]
+            XO = [torch.tensor(x) for x in Z]
+            XO = torch.tensor(pad_sequence(XO)).to(self.device) #,device = self.device) #<=[:-1]
+            
+            return emb_sequence, XO
+
+
+
+def parallel_f(sequence, emb_seq, seq_l):
+decoding 단계에서도 반영
+
+
+#####################################################
 def lstm_encoder(sequence, lstm,
                  seq_lens=None, init_states=None, embedding=None):
     """ functional LSTM encoder (sequence is [b, t]/[b, t, d],
@@ -13,8 +112,17 @@ def lstm_encoder(sequence, lstm,
     batch_size = sequence.size(0)
     if not lstm.batch_first:
         sequence = sequence.transpose(0, 1)
-        emb_sequence = (embedding(sequence) if embedding is not None
-                        else sequence)
+    emb_sequence = (embedding(sequence) if embedding is not None else sequence)
+    # indent 하지 않은 것이 옳을 듯
+    
+
+    ##########################################################
+    # parallel(emb_sequence, sequence)
+    if parallel:
+        emb_sequence, seq_lens = parallel_f(sequence,emb_sequence, seq_lens)
+    ##########################################################
+
+
     if seq_lens:
         assert batch_size == len(seq_lens)
         sort_ind = sorted(range(len(seq_lens)),
