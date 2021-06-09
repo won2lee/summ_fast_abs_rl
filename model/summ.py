@@ -144,6 +144,25 @@ class AttentionalLSTMDecoder(object):
         self._attn_w = attn_w
         self._projection = projection
 
+
+    def __call__(self, attention, init_states, target,parallel=False):
+
+        # if parallel:
+        #     target, XO = parallel_encode(target,[],embedding,tgt=True)
+            
+        max_len = target.size(1)
+        states = init_states
+        logits = []
+
+        for i in range(max_len):
+            tok = target[:, i:i+1]
+            logit, states, _ = self._step(tok, states, attention,parallel)
+            logits.append(logit)
+        logit = torch.stack(logits, dim=1)
+        return logit
+
+
+
     def __call__(self, attention, init_states, target):
         max_len = target.size(1)
         states = init_states

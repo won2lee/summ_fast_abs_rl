@@ -177,12 +177,28 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         super().__init__(*args, **kwargs)
         self._copy = copy
 
-    def _step(self, tok, states, attention):
+    def _step(self, tok, states, attention,parallel=False):
         prev_states, prev_out = states
+
         lstm_in = torch.cat(
             [self._embedding(tok).squeeze(1), prev_out],
             dim=1
         )
+
+        # #####################################################################
+        # if parallel==False:
+        #     tok = self._embedding(tok)
+
+        # # lstm_in = torch.cat(
+        # #     [self._embedding(tok).squeeze(1), prev_out],
+        # #     dim=1
+        # # )
+        # lstm_in = torch.cat(
+        #     [tok.squeeze(1), prev_out],
+        #     dim=1
+        # )
+        # ######################################################################
+
         states = self._lstm(lstm_in, prev_states)
         lstm_out = states[0][-1]
         query = torch.mm(lstm_out, self._attn_w)
