@@ -34,7 +34,6 @@ class _CopyLinear(nn.Module):
             output = output + self._b.unsqueeze(0)
         return output
 
-
 class CopySumm(Seq2SeqSumm):
     def __init__(self, vocab_size, emb_dim,
                  n_hidden, bidirectional, n_layer, dropout=0.0):
@@ -43,17 +42,17 @@ class CopySumm(Seq2SeqSumm):
         self._copy = _CopyLinear(n_hidden, n_hidden, 2*emb_dim)
         self._decoder = CopyLSTMDecoder(
             self._copy, self._embedding, self._dec_lstm,
-            self._attn_wq, self._projection
-        )
+            self._attn_wq, self._projection, emb_dim
+        )  #emb_dim 추가 
 
     def forward(self, article, art_lens, abstract, extend_art, extend_vsize):
-        attention, init_dec_states = self.encode(article, art_lens)
+        attention, init_dec_states, art_lens = self.encode(article, art_lens) ####### add art_lens in return 
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
-        logit = self._decoder(
+        logit,XO = self._decoder(
             (attention, mask, extend_art, extend_vsize),
             init_dec_states, abstract
         )
-        return logit
+        return logit, XO
 
     def batch_decode(self, article, art_lens, extend_art, extend_vsize,
                      go, eos, unk, max_len):
@@ -176,41 +175,44 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
     def __init__(self, copy, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._copy = copy
+        self.copy_projection = nn.Linear(3*emb_dim,emb_dim, bias=False)
+        self.target_ox_projection = nn.Linear(2*emb_dim, 3, bias=False)
 
     def _step(self, tok, states, attention,parallel=False):
         prev_states, prev_out = states
 
-        lstm_in = torch.cat(
-            [self._embedding(tok).squeeze(1), prev_out],
-            dim=1
-        )
-
-        # #####################################################################
-        # if parallel==False:
-        #     tok = self._embedding(tok)
-
-        # # lstm_in = torch.cat(
-        # #     [self._embedding(tok).squeeze(1), prev_out],
-        # #     dim=1
-        # # )
         # lstm_in = torch.cat(
-        #     [tok.squeeze(1), prev_out],
+        #     [self._embedding(tok).squeeze(1), prev_out],
         #     dim=1
         # )
-        # ######################################################################
+
+        #####################################################################
+        if parallel==False:
+            tok = self._embedding(tok)
+
+        # lstm_in = torch.cat(
+        #     [self._embedding(tok).squeeze(1), prev_out],
+        #     dim=1
+        # )
+        lstm_in = torch.cat(
+            [tok.squeeze(1), prev_out],
+            dim=1
+        )
+        ######################################################################
 
         states = self._lstm(lstm_in, prev_states)
         lstm_out = states[0][-1]
         query = torch.mm(lstm_out, self._attn_w)
         attention, attn_mask, extend_src, extend_vsize = attention
         context, score = step_attention(
-            query, attention, attention, attn_mask)
+            query, attention, attention, attn_mask
+            )
         dec_out = self._projection(torch.cat([lstm_out, context], dim=1))
 
         # extend generation prob to extended vocabulary
         gen_prob = self._compute_gen_prob(dec_out, extend_vsize)
         # compute the probabilty of each copying
-        copy_prob = torch.sigmoid(self._copy(context, states[0][-1], lstm_in))
+        copy_prob = torch.sigmoid(self._copy(context, states[0][-1], lstm_in))  #self._copy(context, states[0][-1], lstm_in))
         # add the copy prob to existing vocab distribution
         lp = torch.log(
             ((-copy_prob + 1) * gen_prob
@@ -219,7 +221,15 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
                 index=extend_src.expand_as(score),
                 src=score * copy_prob
         ) + 1e-8)  # numerical stability for log
-        return lp, (states, dec_out), score
+
+        if parallel:
+            lp2 = self.target_ox_projection(torch.cat(
+                dec_out, 
+                self.copy_projection(torch.cat(context, states[0][-1], lstm_in))
+                ))
+        else:
+            lp2 = None
+        return (lp, lp2), (states, dec_out), score
 
 
     def topk_step(self, tok, states, attention, k):

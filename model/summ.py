@@ -76,10 +76,10 @@ class Seq2SeqSumm(nn.Module):
             self._init_enc_h.unsqueeze(1).expand(*size),
             self._init_enc_c.unsqueeze(1).expand(*size)
         )
-        enc_art, final_states = lstm_encoder(
+        enc_art, final_states, art_lens = lstm_encoder(
             article, self._enc_lstm, art_lens,
             init_enc_states, self._embedding
-        )
+        )   ################################################################# art_lens 추가 
         if self._enc_lstm.bidirectional:
             h, c = final_states
             final_states = (
@@ -95,7 +95,7 @@ class Seq2SeqSumm(nn.Module):
         init_attn_out = self._projection(torch.cat(
             [init_h[-1], sequence_mean(attention, art_lens, dim=1)], dim=1
         ))
-        return attention, (init_dec_states, init_attn_out)
+        return attention, (init_dec_states, init_attn_out), art_lens  # art_lens 추가 
 
     def batch_decode(self, article, art_lens, go, eos, max_len):
         """ greedy decode support batching"""
@@ -144,11 +144,13 @@ class AttentionalLSTMDecoder(object):
         self._attn_w = attn_w
         self._projection = projection
 
+        self.target_ox_projection = nn.Linear(enc_out_dim, 3, bias=False)
+
 
     def __call__(self, attention, init_states, target,parallel=False):
 
-        # if parallel:
-        #     target, XO = parallel_encode(target,[],embedding,tgt=True)
+        if parallel:
+            target, XO = parallel_encode(target,[],embedding,tgt=True)
             
         max_len = target.size(1)
         states = init_states
@@ -156,23 +158,27 @@ class AttentionalLSTMDecoder(object):
 
         for i in range(max_len):
             tok = target[:, i:i+1]
-            logit, states, _ = self._step(tok, states, attention,parallel)
+            logit, states, _ = self._step(tok, states, attention, parallel)
             logits.append(logit)
+
+        if parallel:
+            logits = list(unzip(logits))
+            logit = [torch.stack(logits, dim=1) for lgt in logits]
+            return logit, XO
+
         logit = torch.stack(logits, dim=1)
-        return logit
+        return logit, None
 
-
-
-    def __call__(self, attention, init_states, target):
-        max_len = target.size(1)
-        states = init_states
-        logits = []
-        for i in range(max_len):
-            tok = target[:, i:i+1]
-            logit, states, _ = self._step(tok, states, attention)
-            logits.append(logit)
-        logit = torch.stack(logits, dim=1)
-        return logit
+    # def __call__(self, attention, init_states, target):
+    #     max_len = target.size(1)
+    #     states = init_states
+    #     logits = []
+    #     for i in range(max_len):
+    #         tok = target[:, i:i+1]
+    #         logit, states, _ = self._step(tok, states, attention)
+    #         logits.append(logit)
+    #     logit = torch.stack(logits, dim=1)
+    #     return logit
 
     def _step(self, tok, states, attention):
         prev_states, prev_out = states
