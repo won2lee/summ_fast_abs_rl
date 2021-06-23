@@ -1,0 +1,45 @@
+{
+    "article": [
+        "_ ( _ cnn _ ) _ -- _ the _ head _ of _ the _ anglican _ church _ express ed _ regret _ saturday _ for _ comment s _ he _ made _ about _ the _ irish _ catholic _ church _ , _ which _ includ ed _ saying _ that _ the _ irish _ catholic _ church _ has _ lost _ \" _ all _ credibility _ \" _ follow ing _ the _ abuse _ scandal _ , _ his _ press _ office _ said _ .",
+        "_ in _ an _ interview _ to _ be _ broadcast _ monday _ , _ archbishop _ rowan _ william s _ called _ the _ issue _ \" _ a _ colossal _ corporate _ trauma _ \" _ for _ the _ catholic _ church _ , _ especially _ in _ ireland _ .",
+        "_ \" _ an _ institution _ so _ deeply _ bound _ in _ to _ the _ life _ of _ society _ sudden ly _ becoming _ -- _ sudden ly _ losing _ all _ credibility _ , _ \" _ said _ william s _ , _ the _ head _ of _ the _ church _ of _ england _ . _ \" _ that _ ' _ s _ not _ just _ a _ problem _ for _ the _ church _ , _ it _ ' _ s _ a _ problem _ for _ everybody _ in _ ireland _ , _ i _ think _ . _ \"",
+        "_ dia r mui d _ martin _ , _ the _ archbishop _ of _ dublin _ , _ said _ he _ was _ \" _ stunned _ \" _ and _ \" _ discourag ed _ \" _ by _ william s _ ' _ remarks _ .",
+        "_ pope _ ' _ s _ preach er _ compar es _ abuse _ fury _ to _ anti-semitism _ .",
+        "_ later _ saturday _ , _ william s _ and _ martin _ spoke _ by _ telephone _ and _ the _ archbishop _ of _ canterbury _ express ed _ regret _ that _ the _ comment s _ were _ made _ , _ lambeth _ palace _ ' _ s _ press _ office _ told _ cnn _ .",
+        "_ \" _ the _ church _ itself _ continue s _ to _ work _ tireless ly _ to _ tackle _ the _ issue _ of _ abuse _ , _ \" _ the _ office _ said _ . _ it _ was _ not _ immediate ly _ clear _ how _ martin _ respond ed _ .",
+        "_ william s _ made _ the _ comment s _ about _ the _ irish _ catholic _ church _ on _ the _ bbc _ radio _ program _ \" _ start _ the _ week _ , _ \" _ airing _ monday _ , _ as _ part _ of _ a _ general _ discussion _ about _ religion _ .",
+        "_ ireland _ has _ been _ rock ed _ by _ a _ series _ of _ child _ abuse _ report s _ , _ both _ physical _ and _ sexual _ , _ by _ catholic _ clergy _ going _ back _ at _ least _ seven _ decade s _ .",
+        "_ in _ his _ state ment _ saturday _ , _ martin _ said _ that _ he _ has _ addressed _ the _ report s _ .",
+        "_ \" _ as _ archbishop _ of _ dublin _ , _ i _ have _ been _ more _ than _ forthright _ in _ addressing _ the _ failure s _ of _ the _ catholic _ church _ in _ ireland _ , _ \" _ martin _ said _ in _ a _ state ment _ . _ \" _ i _ still _ shudder _ when _ i _ think _ of _ the _ harm _ that _ was _ cause d _ to _ abuse d _ children _ . _ i _ recognis e _ that _ their _ church _ fail ed _ them _ . _ \"",
+        "_ however _ , _ martin _ added _ that _ priest s _ and _ parent s _ are _ work ing _ to _ renew _ the _ irish _ catholic _ church _ and _ remain _ committed _ to _ the _ faith _ .",
+        "_ \" _ archbishop _ william s _ ' _ comment s _ will _ be _ for _ them _ immense ly _ disheartening _ and _ will _ challenge _ their _ faith _ even _ further _ , _ \" _ martin _ said _ . _ \" _ those _ work ing _ for _ renewal _ in _ the _ catholic _ church _ in _ ireland _ did _ not _ need _ this _ comment _ on _ this _ east er _ weekend _ and _ do _ not _ deserve _ it _ . _ \"",
+        "_ a _ recent _ irish _ government _ - _ back ed _ report _ found _ the _ archdiocese _ of _ dublin _ and _ other _ irish _ catholic _ church _ authorities _ cover ed _ up _ abuse _ by _ priest s _ from _ 19 75 _ to _ 20 04 _ , _ and _ that _ child _ sexual _ abuse _ was _ widespread _ then _ .",
+        "_ two _ irish _ bishop s _ have _ resign ed _ over _ the _ scandal _ , _ and _ pope _ benedict _ xvi _ issue d _ a _ pastoral _ letter _ to _ the _ irish _ church _ last _ month _ saying _ he _ was _ deeply _ sorry _ for _ the _ abuse _ .",
+        "_ in _ his _ letter _ , _ the _ pope _ said _ \" _ misplac ed _ concern _ \" _ for _ the _ catholic _ church _ ' _ s _ reputation _ and _ the _ avoidance _ of _ scandal _ contribut ed _ to _ the _ problem s _ .",
+        "_ william s _ said _ that _ has _ been _ a _ lesson _ for _ the _ anglican _ church _ as _ well _ .",
+        "_ \" _ i _ guess _ that _ for _ an _ awful _ lot _ of _ christian _ institution s _ , _ until _ fairly _ recent ly _ , _ the _ default _ setting _ would _ be _ , _ ' _ we _ ' _ ve _ got _ to _ try _ and _ hang _ on _ to _ the _ institution _ ' _ s _ credibility _ , _ ' _ \" _ william s _ told _ the _ bbc _ . _ \" _ we _ ' _ ve _ learn ed _ that _ that _ is _ damag ing _ , _ it _ ' _ s _ wrong _ , _ it _ ' _ s _ dishonest _ , _ and _ it _ require s _ that _ very _ hard _ recognition _ which _ ought _ to _ be _ ... _ natural _ for _ the _ christian _ church _ , _ based _ as _ it _ is _ on _ repentance _ and _ honesty _ .",
+        "_ \" _ we _ ' _ ve _ had _ to _ learn _ , _ well _ , _ honesty _ and _ truthful ness _ are _ the _ only _ way _ in _ which _ we _ can _ surviv e _ in _ any _ way _ as _ an _ institution _ . _ \"",
+        "_ the _ pope _ plan s _ to _ visit _ england _ and _ scotland _ in _ september _ , _ but _ william s _ said _ that _ will _ not _ be _ a _ \" _ big _ deal _ \" _ for _ the _ church _ of _ england _ .",
+        "_ \" _ the _ pope _ will _ be _ coming _ here _ to _ lambeth _ palace _ , _ \" _ william s _ told _ the _ bbc _ , _ referring _ to _ the _ archbishop _ ' _ s _ historic _ london _ residence _ . _ \" _ we _ ' _ ll _ have _ the _ bishop s _ together _ to _ meet _ him _ . _ i _ ' _ m _ concern ed _ that _ he _ has _ a _ chance _ to _ say _ what _ he _ want s _ to _ say _ in _ and _ to _ british _ society _ , _ that _ we _ welcome _ him _ as _ a _ value d _ partner _ , _ and _ that _ ' _ s _ about _ it _ . _ \"",
+        "_ it _ will _ be _ the _ pope _ ' _ s _ first _ state _ visit _ to _ the _ unit ed _ kingdom _ , _ according _ to _ the _ british _ foreign _ office _ . _ a _ 19 82 _ trip _ by _ pope _ john _ paul _ ii _ was _ official ly _ a _ pastoral _ visit _ .",
+        "_ relations _ between _ the _ anglican _ and _ catholic _ church es _ have _ been _ strain ed _ follow ing _ the _ vatican _ ' _ s _ outreach _ to _ disaffected _ anglican s _ last _ year _ . _ the _ plan _ would _ enabl e _ group s _ of _ anglican s _ to _ become _ catholic _ and _ recogniz e _ the _ pope _ as _ their _ leader _ , _ yet _ have _ parishes _ that _ retain _ anglican _ rite s _ , _ vatican _ official s _ said _ .",
+        "_ some _ observ ers _ said _ the _ vatican _ ' _ s _ move _ would _ shatter _ more _ than _ 40 _ year s _ of _ effort s _ to _ reconcile _ the _ two _ church es _ .",
+        "_ the _ move _ came _ 4 75 _ year s _ after _ king _ henry _ viii _ broke _ from _ rome _ and _ creat ed _ the _ church _ of _ england _ , _ the _ forerunner _ of _ the _ anglican _ commun ion _ ."
+    ],
+    "abstract": [
+        "_ new _ : _ archbishop _ rowan _ william s _ apologiz es _ for _ saying _ irish _ catholic _ church _ as _ lost _ \" _ all _ credibility _ \" _ in _ scandal _ .",
+        "_ recent _ irish _ government _ - _ back ed _ report _ found _ catholic _ church _ cover ed _ up _ abuse _ by _ priest s _ .",
+        "_ two _ irish _ bishop s _ have _ resign ed _ over _ the _ scandal _ and _ pope _ has _ apologiz ed _ ."
+    ],
+    "id": "7e8f053da79b34348c09324d17cf5b608203057b",
+    "extracted": [
+        0,
+        13,
+        14
+    ],
+    "score": [
+        0.6,
+        1.0,
+        0.8461538461538461
+    ]
+}

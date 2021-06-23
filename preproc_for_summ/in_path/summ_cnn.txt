@@ -1,0 +1,45 @@
+{
+    "article": [
+        "( cnn ) -- the head of the anglican church expressed regret saturday for comments he made about the irish catholic church , which included saying that the irish catholic church has lost \" all credibility \" following the abuse scandal , his press office said .",
+        "in an interview to be broadcast monday , archbishop rowan williams called the issue \" a colossal corporate trauma \" for the catholic church , especially in ireland .",
+        "\" an institution so deeply bound in to the life of society suddenly becoming -- suddenly losing all credibility , \" said williams , the head of the church of england . \" that 's not just a problem for the church , it 's a problem for everybody in ireland , i think . \"",
+        "diarmuid martin , the archbishop of dublin , said he was \" stunned \" and \" discouraged \" by williams ' remarks .",
+        "pope 's preacher compares abuse fury to anti-semitism .",
+        "later saturday , williams and martin spoke by telephone and the archbishop of canterbury expressed regret that the comments were made , lambeth palace 's press office told cnn .",
+        "\" the church itself continues to work tirelessly to tackle the issue of abuse , \" the office said . it was not immediately clear how martin responded .",
+        "williams made the comments about the irish catholic church on the bbc radio program \" start the week , \" airing monday , as part of a general discussion about religion .",
+        "ireland has been rocked by a series of child abuse reports , both physical and sexual , by catholic clergy going back at least seven decades .",
+        "in his statement saturday , martin said that he has addressed the reports .",
+        "\" as archbishop of dublin , i have been more than forthright in addressing the failures of the catholic church in ireland , \" martin said in a statement . \" i still shudder when i think of the harm that was caused to abused children . i recognise that their church failed them . \"",
+        "however , martin added that priests and parents are working to renew the irish catholic church and remain committed to the faith .",
+        "\" archbishop williams ' comments will be for them immensely disheartening and will challenge their faith even further , \" martin said . \" those working for renewal in the catholic church in ireland did not need this comment on this easter weekend and do not deserve it . \"",
+        "a recent irish government - backed report found the archdiocese of dublin and other irish catholic church authorities covered up abuse by priests from 1975 to 2004 , and that child sexual abuse was widespread then .",
+        "two irish bishops have resigned over the scandal , and pope benedict xvi issued a pastoral letter to the irish church last month saying he was deeply sorry for the abuse .",
+        "in his letter , the pope said \" misplaced concern \" for the catholic church 's reputation and the avoidance of scandal contributed to the problems .",
+        "williams said that has been a lesson for the anglican church as well .",
+        "\" i guess that for an awful lot of christian institutions , until fairly recently , the default setting would be , ' we 've got to try and hang on to the institution 's credibility , ' \" williams told the bbc . \" we 've learned that that is damaging , it 's wrong , it 's dishonest , and it requires that very hard recognition which ought to be ... natural for the christian church , based as it is on repentance and honesty .",
+        "\" we 've had to learn , well , honesty and truthfulness are the only way in which we can survive in any way as an institution . \"",
+        "the pope plans to visit england and scotland in september , but williams said that will not be a \" big deal \" for the church of england .",
+        "\" the pope will be coming here to lambeth palace , \" williams told the bbc , referring to the archbishop 's historic london residence . \" we 'll have the bishops together to meet him . i 'm concerned that he has a chance to say what he wants to say in and to british society , that we welcome him as a valued partner , and that 's about it . \"",
+        "it will be the pope 's first state visit to the united kingdom , according to the british foreign office . a 1982 trip by pope john paul ii was officially a pastoral visit .",
+        "relations between the anglican and catholic churches have been strained following the vatican 's outreach to disaffected anglicans last year . the plan would enable groups of anglicans to become catholic and recognize the pope as their leader , yet have parishes that retain anglican rites , vatican officials said .",
+        "some observers said the vatican 's move would shatter more than 40 years of efforts to reconcile the two churches .",
+        "the move came 475 years after king henry viii broke from rome and created the church of england , the forerunner of the anglican communion ."
+    ],
+    "abstract": [
+        "new : archbishop rowan williams apologizes for saying irish catholic church as lost \" all credibility \" in scandal .",
+        "recent irish government - backed report found catholic church covered up abuse by priests .",
+        "two irish bishops have resigned over the scandal and pope has apologized ."
+    ],
+    "id": "7e8f053da79b34348c09324d17cf5b608203057b",
+    "extracted": [
+        0,
+        13,
+        14
+    ],
+    "score": [
+        0.6,
+        1.0,
+        0.8461538461538461
+    ]
+}
