@@ -76,13 +76,15 @@ def fast_preproc(in_path,out_path, lang):
     en_vocs = pre_en()
     preproc = preProc(lang, to_start, pre_ko, preproc_en, en_vocs)
     
-    for fi in f_list:
+    for i,fi in enumerate(f_list):
         with open(fi) as f:
             js = json.loads(f.read())
         for k in ["article", "abstract"]:
             js[k] = preproc(sanitize_input(None, js[k]))
-        with open(join(out_path, fi.split('/')[1]),"w") as f:
-            json.dump(js,f,indent=4)   
+        with open(join(out_path, fi.split('/')[-1]),"w") as f:
+            json.dump(js,f,indent=4) 
+        if i%10000==0:
+            print(f"{i}th file was done") 
 
 def main_proc(args):
     
