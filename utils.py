@@ -21,6 +21,7 @@ PAD = 0
 UNK = 1
 START = 2
 END = 3
+
 def make_vocab(wc, vocab_size):
     word2id, id2word = {}, {}
     word2id['<pad>'] = PAD

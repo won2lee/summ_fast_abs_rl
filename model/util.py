@@ -74,3 +74,38 @@ def reorder_lstm_states(lstm_states, order):
                      lstm_states[1].index_select(index=order, dim=1))
 
     return sorted_states
+
+def get_sents_lenth(source, seq_lens, tgt = False):
+
+    if type(source[0]) is not list:
+        source = [source]
+    sbol = {'_':1, '^':2, '`':3}
+
+    if seq_lens=[]:
+        seq_lens = [len([k for k in s if k!=0]) for s in source]
+    #src_len = [len(s) for s in source]     
+    
+    #   _<s>^  p  가  _ 계속 _ 오른 다 _  .  _ </s>
+    #   1 0 2  0  0  1  0  1  0  0  1  0  1  0
+    XO = [[sbol[k] if k in sbol.keys() else 0 for k in s[:seq_lens[i]]] for i,s in enumerate(source) ]
+    #   1 0 2  0  0  1  0  1  0  0  1  0  1  0       <= XO
+    #   0   2        5     7        10   12   [14]   <= XX1
+    #     1       4     6        9    11    13       <= XX_R
+    #   2,  3,       2,    3,       2     2          <= XX      sum(XX) == len(s)
+    #   1 0 1  0  0  1  0  1  0  0  1 0   1  0
+    #   1   2  0     1     1  0     1     1          <= XO (0~3 사이의 값)
+    #   1,  2,       1,    2,       1     1          <= X_sub   sum(X_sub) == len(XO)
+    XXi = [[i for i,v in enumerate(s) if v!=0]+[len(s)] for s in XO]    # XX1
+    #XX_R = [[k-1 for k in s[1:]] for s in XX]
+    XX = [[s[i]-s[i-1] for i in range(1,len(s))] for s in XXi]     # index to interval lenth(어절의 길이)
+    #XO = [ for i,k in enumerate(s) if k>0 or (k==0 and s[i+1] ==0]for s in XO]}
+    XX_subtracted = [[k-1 if k>0 else 0 for k in s ] for s in XX]
+
+    if tgt:
+        XX_R = [[k-1 for k in s[1:]] for s in XXi]
+        XO = [[k for i,k in enumerate(s) if i not in XX_R[j]] for j,s in enumerate(XO)]
+        return XX, XO, XX_subtracted  #, XK  # XX: Cutter, XO: lookup target list
+ 
+    else:
+        XX_len = [len(s) for s in XX] 
+        return XX_len, XX, XX_subtracted

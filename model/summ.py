@@ -5,7 +5,8 @@ from torch.nn import init
 from .rnn import lstm_encoder
 from .rnn import MultiLayerLSTMCells
 from .attention import step_attention
-from .util import sequence_mean, len_mask
+from .util import sequence_mean, len_mask, get_sents_lenth
+from torch.nn.utils.rnn import pad_sequence #,pad_packed_sequence, pack_padded_sequence
 
 
 INIT = 1e-2
@@ -59,6 +60,15 @@ class Seq2SeqSumm(nn.Module):
             self._embedding, self._dec_lstm,
             self._attn_wq, self._projection
         )
+
+        self.sub_coder= nn.LSTM(self.raw_emb_size, self.embed_size)  #(embed_size, self.hidden_size)
+        self.sub_gate = nn.Linear(self.raw_emb_size, self.embed_size, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+        self.sub_projection = nn.Linear(self.raw_emb_size, self.embed_size, bias=False) 
+        self.sub_dropout = nn.Dropout(p=self.dropout_rate)
+
+        self.target_ox_projection = nn.Linear(enc_out_dim, 3, bias=False)
+        self.copy_projection = nn.Linear(3*emb_dim,emb_dim, bias=False)
+
 
     def forward(self, article, art_lens, abstract):
         attention, init_dec_states = self.encode(article, art_lens)
@@ -135,22 +145,83 @@ class Seq2SeqSumm(nn.Module):
         assert self._embedding.weight.size() == embedding.size()
         self._embedding.weight.data.copy_(embedding)
 
+    @staticmethod
+    def parallel_encode(self, source,seq_lens,embedding,tgt=False): #slang_is_tlang=False):
+
+        if type(source[0]) is not tensor or type(source[0]) is not list:
+           source = [source]       
+
+        if tgt:
+            Z, XO, Z_sub = get_sents_lenth(source,seq_lens,tgt)
+        else:
+            source_lengths, Z, Z_sub = get_sents_lenth(source,seq_lens) # Z:각 sentence 내의 각 어절의 길이로 구성  list[list]
+        #s_len = seq_lens #[len(s) for s in source]  # 원래의 문장 길이
+        Z_len = [len(s) for s in Z]    # 문장의 어절 갯수
+
+        max_Z = max(chain(*Z))  # 최대로 긴 어절
+        
+        
+        max_l = max(seq_lens)           
+        XX =  [s+[max_l-seq_lens[i]] if max_l>seq_lens[i] else s for i,s in enumerate(Z)] # total(interval lenth) to be source lenth 
+        
+        #src_padded = source # ? self.vocab.vocs.to_input_tensor(source, device=self.device)  
+
+        X = list(chain(*[torch.split(sss,XX[i])[:Z_len[i]] for i,sss in enumerate(
+            torch.split(source,1,-1))]))     #각 문장(batch)으로 자른 뒤 문장내 어절 단위로 자른다 
+
+        X = pad_sequence(X).squeeze(-1)
+
+        #if lang =='en':
+        #    cap_id, len_X = get_X_cap(source, self.sbol)
+
+        #X_embed = (embedding(sequence) if embedding is not None else sequence)    
+        #X_embed = self.model_embeddings.vocabs(X)
+        X_embed = embedding(X)
+
+        out,(last_h1,last_c1) = self.sub_en_coder(X_embed)
+        #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
+        X_proj = self.sub_en_projection(X_embed[1:])
+        X_gate = torch.sigmoid(self.en_gate(X_embed[1:]))
+
+
+        X_way = self.dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
+
+        #문장단위로 자르고 어절 단위로 자른 뒤 각 어절의 길이만 남기고 나머지는 버린 후 연결 (cat) 하여 문장으로 재구성         
+        X_input = [torch.cat([ss[:Z_sub[i][j]]for j,ss in enumerate(
+          torch.split(sss,1,1))],0) for i,sss in enumerate(torch.split(X_way,Z_len,1))]
+        
+        # 재구성된 문장의 길이가 다르기 때문에 패딩
+            
+        if tgt:
+            emb_sequence = pad_sequence(X_input).squeeze(-2)[:-1]
+            XO = [torch.tensor(x) for x in XO]
+            XO = torch.tensor(pad_sequence(XO)).to(self.device) #,device = self.device) #<=[:-1]
+            
+            return emb_sequence, XO
+
+        else:
+            emb_sequence = pad_sequence(X_input).squeeze(-2)
+            seq_lens = [sum([wl for wl in s]) for s in Z_sub]
+            
+            return emb_sequence, seq_lens
+
 
 class AttentionalLSTMDecoder(object):
-    def __init__(self, embedding, lstm, attn_w, projection):
+    def __init__(self, embedding, lstm, attn_w, projection, target_ox=None, copy_proj=None):
         super().__init__()
         self._embedding = embedding
         self._lstm = lstm
         self._attn_w = attn_w
         self._projection = projection
 
-        self.target_ox_projection = nn.Linear(enc_out_dim, 3, bias=False)
+        self.target_ox_projection = target_ox 
+        self.copy_projection = copy_proj
 
 
     def __call__(self, attention, init_states, target,parallel=False):
 
         if parallel:
-            target, XO = parallel_encode(target,[],embedding,tgt=True)
+            target, XO = Seq2SeqSumm.parallel_encode(target,[],embedding,tgt=True)
             
         max_len = target.size(1)
         states = init_states

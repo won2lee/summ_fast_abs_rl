@@ -50,7 +50,8 @@ class CopySumm(Seq2SeqSumm):
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
         logit,XO = self._decoder(
             (attention, mask, extend_art, extend_vsize),
-            init_dec_states, abstract
+            init_dec_states, abstract,
+            self.target_ox_projection, self.copy_projection
         )
         return logit, XO
 
@@ -175,8 +176,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
     def __init__(self, copy, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._copy = copy
-        self.copy_projection = nn.Linear(3*emb_dim,emb_dim, bias=False)
-        self.target_ox_projection = nn.Linear(2*emb_dim, 3, bias=False)
+
 
     def _step(self, tok, states, attention,parallel=False):
         prev_states, prev_out = states
