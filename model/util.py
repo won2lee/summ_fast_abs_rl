@@ -77,9 +77,9 @@ def reorder_lstm_states(lstm_states, order):
 
 def get_sents_lenth(source, seq_lens, tgt = False):
 
-    if type(source[0]) is not list:
+    if type(source[0]) is not tensor or type(source[0]) is not list:
         source = [source]
-    sbol = {'_':1, '^':2, '`':3}
+    sbol = [4,5,6]
 
     if seq_lens=[]:
         seq_lens = [len([k for k in s if k!=0]) for s in source]
@@ -87,7 +87,7 @@ def get_sents_lenth(source, seq_lens, tgt = False):
     
     #   _<s>^  p  가  _ 계속 _ 오른 다 _  .  _ </s>
     #   1 0 2  0  0  1  0  1  0  0  1  0  1  0
-    XO = [[sbol[k] if k in sbol.keys() else 0 for k in s[:seq_lens[i]]] for i,s in enumerate(source) ]
+    XO = [[k if k in sbol else 0 for k in s[:seq_lens[i]]] for i,s in enumerate(source) ]
     #   1 0 2  0  0  1  0  1  0  0  1  0  1  0       <= XO
     #   0   2        5     7        10   12   [14]   <= XX1
     #     1       4     6        9    11    13       <= XX_R

@@ -22,13 +22,23 @@ UNK = 1
 START = 2
 END = 3
 
+SPC = 4 #space
+TTL = 5 #title
+CAP = 6 #capital
+
 def make_vocab(wc, vocab_size):
     word2id, id2word = {}, {}
     word2id['<pad>'] = PAD
     word2id['<unk>'] = UNK
     word2id['<start>'] = START
     word2id['<end>'] = END
-    for i, (w, _) in enumerate(wc.most_common(vocab_size), 4):
+
+    word2id['_'] = SPC
+    word2id['^'] = TTL
+    word2id['`'] = CAP
+
+
+    for i, (w, _) in enumerate(wc.most_common(vocab_size), 7):
         word2id[w] = i
     return word2id
 

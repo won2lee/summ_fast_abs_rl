@@ -21,7 +21,7 @@ class Seq2SeqSumm(nn.Module):
         # can initialize with pretrained word vectors
         self._embedding = nn.Embedding(vocab_size, emb_dim, padding_idx=0)
         self._enc_lstm = nn.LSTM(
-            emb_dim, n_hidden, n_layer,
+            n_hidden if parallel else emb_dim, n_hidden, n_layer,
             bidirectional=bidirectional, dropout=dropout
         )
         # initial encoder LSTM states are learned parameters
@@ -37,7 +37,7 @@ class Seq2SeqSumm(nn.Module):
 
         # vanillat lstm / LNlstm
         self._dec_lstm = MultiLayerLSTMCells(
-            2*emb_dim, n_hidden, n_layer, dropout=dropout
+            n_hidden+emb_dim if parallel else 2*emb_dim, n_hidden, n_layer, dropout=dropout
         )
         # project encoder final states to decoder initial states
         enc_out_dim = n_hidden * (2 if bidirectional else 1)
@@ -61,13 +61,13 @@ class Seq2SeqSumm(nn.Module):
             self._attn_wq, self._projection
         )
 
-        self.sub_coder= nn.LSTM(self.raw_emb_size, self.embed_size)  #(embed_size, self.hidden_size)
-        self.sub_gate = nn.Linear(self.raw_emb_size, self.embed_size, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
-        self.sub_projection = nn.Linear(self.raw_emb_size, self.embed_size, bias=False) 
-        self.sub_dropout = nn.Dropout(p=self.dropout_rate)
+        self.sub_coder= nn.LSTM(emb_dim, n_hidden)  #(embed_size, self.hidden_size)
+        self.sub_gate = nn.Linear(emb_dim, n_hidden, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+        self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
+        self.sub_dropout = nn.Dropout(p=0.2)
 
-        self.target_ox_projection = nn.Linear(enc_out_dim, 3, bias=False)
-        self.copy_projection = nn.Linear(3*emb_dim,emb_dim, bias=False)
+        self.target_ox_projection = nn.Linear(emb_dim, 3, bias=False)
+        self.copy_projection = nn.Linear(3*emb_dim, emb_dim, bias=False)
 
 
     def forward(self, article, art_lens, abstract):
@@ -178,13 +178,13 @@ class Seq2SeqSumm(nn.Module):
         #X_embed = self.model_embeddings.vocabs(X)
         X_embed = embedding(X)
 
-        out,(last_h1,last_c1) = self.sub_en_coder(X_embed)
+        out,(last_h1,last_c1) = self.sub_coder(X_embed)
         #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
-        X_proj = self.sub_en_projection(X_embed[1:])
-        X_gate = torch.sigmoid(self.en_gate(X_embed[1:]))
+        X_proj = self.sub_projection(X_embed[1:])
+        X_gate = torch.sigmoid(self.sub_gate(X_embed[1:]))
 
 
-        X_way = self.dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
+        X_way = self.sub_dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
 
         #문장단위로 자르고 어절 단위로 자른 뒤 각 어절의 길이만 남기고 나머지는 버린 후 연결 (cat) 하여 문장으로 재구성         
         X_input = [torch.cat([ss[:Z_sub[i][j]]for j,ss in enumerate(

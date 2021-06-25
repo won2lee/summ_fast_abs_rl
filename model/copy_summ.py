@@ -227,6 +227,10 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
                 dec_out, 
                 self.copy_projection(torch.cat(context, states[0][-1], lstm_in))
                 ))
+            lp2 = self.target_ox_projection(
+                (-copy_prob + 1) * dec_out 
+                + copy_prob * self.copy_projection(torch.cat(context, states[0][-1], lstm_in))
+                )
         else:
             lp2 = None
         return (lp, lp2), (states, dec_out), score
