@@ -40,10 +40,17 @@ class CopySumm(Seq2SeqSumm):
         super().__init__(vocab_size, emb_dim,
                          n_hidden, bidirectional, n_layer, dropout)
         self._copy = _CopyLinear(n_hidden, n_hidden, 2*emb_dim)
-        self._decoder = CopyLSTMDecoder(
-            self._copy, self._embedding, self._dec_lstm,
-            self._attn_wq, self._projection, emb_dim
-        )  #emb_dim 추가 
+        if self.parallel:
+            self._decoder = CopyLSTMDecoder(
+                self._copy, self._embedding, self._dec_lstm,
+                self._attn_wq, self._projection,
+                self.parallel, self.target_ox_projection, self.copy_projection
+            )
+        else:
+            self._decoder = CopyLSTMDecoder(
+                self._copy, self._embedding, self._dec_lstm,
+                self._attn_wq, self._projection
+            )  #emb_dim 추가하지 않음 
 
     def forward(self, article, art_lens, abstract, extend_art, extend_vsize):
         attention, init_dec_states, art_lens = self.encode(article, art_lens) ####### add art_lens in return 

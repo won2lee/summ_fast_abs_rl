@@ -51,13 +51,14 @@ class MatchDataset(CnnDmDataset):
 
 
 def configure_net(vocab_size, emb_dim,
-                  n_hidden, bidirectional, n_layer):
+                  n_hidden, bidirectional, n_layer, parallel):
     net_args = {}
     net_args['vocab_size']    = vocab_size
     net_args['emb_dim']       = emb_dim
     net_args['n_hidden']      = n_hidden
     net_args['bidirectional'] = bidirectional
     net_args['n_layer']       = n_layer
+    net_args['parallel']      = parallel
 
     net = CopySumm(**net_args)
     return net, net_args
@@ -81,8 +82,8 @@ def configure_training(opt, lr, clip_grad, lr_decay, batch_size):
 
     return criterion, train_params
 
-def build_batchers(word2id, cuda, debug):
-    prepro = prepro_fn(args.max_art, args.max_abs)
+def build_batchers(word2id, cuda, debug, parallel):
+    prepro = prepro_fn(args.max_art, args.max_abs, parallel=parallel)
     def sort_key(sample):
         src, target = sample
         return (len(target), len(src))
@@ -114,18 +115,19 @@ def main(args):
     # batcher
     with open(join(DATA_DIR, 'vocab_cnt.pkl'), 'rb') as f:
         wc = pkl.load(f, encoding="bytes") 
+    parallel = args.parallel
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(word2id,
-                                                args.cuda, args.debug)
+                                                args.cuda, args.debug, parallel)
 
     # make net
     net, net_args = configure_net(len(word2id), args.emb_dim,
-                                  args.n_hidden, args.bi, args.n_layer)
+                                  args.n_hidden, args.bi, args.n_layer, parallel)
     if args.w2v:
         # NOTE: the pretrained embedding having the same dimension
         #       as args.emb_dim should already be trained
         embedding, _ = make_embedding(
-            {i: w for w, i in word2id.items()}, args.w2v)
+            {i: w for w, i in word2id.items()}, args.pretrained if args.pretrained else args.w2v)
         net.set_embedding(embedding)
 
     # configure training setting
@@ -215,6 +217,9 @@ if __name__ == '__main__':
                         help='disable GPU training')
     parser.add_argument('--parallel', action='store_true',
                         help='enable sub lstm')
+    parser.add_argument('--pretrained', action='store',
+                        help='use pretrained-in-nmt embed')
+
     args = parser.parse_args()
     args.bi = not args.no_bi
     args.cuda = torch.cuda.is_available() and not args.no_cuda

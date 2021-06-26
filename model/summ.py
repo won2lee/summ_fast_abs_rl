@@ -14,7 +14,7 @@ INIT = 1e-2
 
 class Seq2SeqSumm(nn.Module):
     def __init__(self, vocab_size, emb_dim,
-                 n_hidden, bidirectional, n_layer, dropout=0.0):
+                 n_hidden, bidirectional, n_layer, parallel, dropout=0.0):
         super().__init__()
         # embedding weight parameter is shared between encoder, decoder,
         # and used as final projection layer to vocab logit
@@ -60,14 +60,15 @@ class Seq2SeqSumm(nn.Module):
             self._embedding, self._dec_lstm,
             self._attn_wq, self._projection
         )
+        self.parallel = parallel
+        if parallel:
+            self.sub_coder= nn.LSTM(emb_dim, n_hidden)  #(embed_size, self.hidden_size)
+            self.sub_gate = nn.Linear(emb_dim, n_hidden, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+            self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
+            self.sub_dropout = nn.Dropout(p=0.2)
 
-        self.sub_coder= nn.LSTM(emb_dim, n_hidden)  #(embed_size, self.hidden_size)
-        self.sub_gate = nn.Linear(emb_dim, n_hidden, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
-        self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
-        self.sub_dropout = nn.Dropout(p=0.2)
-
-        self.target_ox_projection = nn.Linear(emb_dim, 3, bias=False)
-        self.copy_projection = nn.Linear(3*emb_dim, emb_dim, bias=False)
+            self.target_ox_projection = nn.Linear(emb_dim, 3, bias=False)
+            self.copy_projection = nn.Linear(3*emb_dim, emb_dim, bias=False)
 
 
     def forward(self, article, art_lens, abstract):
@@ -88,7 +89,8 @@ class Seq2SeqSumm(nn.Module):
         )
         enc_art, final_states, art_lens = lstm_encoder(
             article, self._enc_lstm, art_lens,
-            init_enc_states, self._embedding
+            init_enc_states, self._embedding,
+            parallel=self.parallel
         )   ################################################################# art_lens 추가 
         if self._enc_lstm.bidirectional:
             h, c = final_states
@@ -207,15 +209,17 @@ class Seq2SeqSumm(nn.Module):
 
 
 class AttentionalLSTMDecoder(object):
-    def __init__(self, embedding, lstm, attn_w, projection, target_ox=None, copy_proj=None):
+    def __init__(self, embedding, lstm, attn_w, projection, parallel=False, target_ox=None, copy_proj=None):
         super().__init__()
         self._embedding = embedding
         self._lstm = lstm
         self._attn_w = attn_w
         self._projection = projection
-
-        self.target_ox_projection = target_ox 
-        self.copy_projection = copy_proj
+        
+        self.parallel = parallel
+        if parallel:
+            self.target_ox_projection = target_ox 
+            self.copy_projection = copy_proj
 
 
     def __call__(self, attention, init_states, target,parallel=False):

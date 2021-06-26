@@ -30,18 +30,21 @@ def coll_fn_extract(data):
     return batch
 
 @curry
-def tokenize(max_len, texts):
-    return [t.lower().split()[:max_len] for t in texts]
+def tokenize(max_len, texts, parallel=False):
+    if parallel:
+        return [t.split()[:max_len] for t in texts]
+    else:
+        return [t.lower().split()[:max_len] for t in texts]
 
 def conver2id(unk, word2id, words_list):
     word2id = defaultdict(lambda: unk, word2id)
     return [[word2id[w] for w in words] for words in words_list]
 
 @curry
-def prepro_fn(max_src_len, max_tgt_len, batch):
+def prepro_fn(max_src_len, max_tgt_len, batch, parallel=False):
     sources, targets = batch
-    sources = tokenize(max_src_len, sources)
-    targets = tokenize(max_tgt_len, targets)
+    sources = tokenize(max_src_len, sources, parallel=parallel)
+    targets = tokenize(max_tgt_len, targets, parallel=parallel)
     batch = list(zip(sources, targets))
     return batch
 
