@@ -123,11 +123,19 @@ def main(args):
     # make net
     net, net_args = configure_net(len(word2id), args.emb_dim,
                                   args.n_hidden, args.bi, args.n_layer, parallel)
-    if args.w2v:
-        # NOTE: the pretrained embedding having the same dimension
-        #       as args.emb_dim should already be trained
-        embedding, _ = make_embedding(
-            {i: w for w, i in word2id.items()}, args.pretrained if args.pretrained else args.w2v)
+    if args.w2v or args.pretrained:
+        if args.w2v:
+            # NOTE: the pretrained embedding having the same dimension
+            #       as args.emb_dim should already be trained
+            embedding, _ = make_embedding(
+                {i: w for w, i in word2id.items()}, args.w2v)
+        else:
+            pre_trained = torch.load(args.pretrained)
+            embedding, _ = make_embedding_from_pretrained(
+                {i: w for w, i in word2id.items()}, pre_trained)
+            if parallel:
+                net = apply_sub_module_weight_from_pretrained(net,pre_trained)
+
         net.set_embedding(embedding)
 
     # configure training setting

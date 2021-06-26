@@ -65,3 +65,42 @@ def make_embedding(id2word, w2v_file, initializer=None):
             else:
                 oovs.append(i)
     return embedding, oovs
+
+def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
+    #attrs = basename(w2v_file).split('.')  #word2vec.{dim}d.{vsize}k.bin
+    
+    w2v = pre_trained['voc']
+    vocab_size = len(id2word)
+    voc_embed = pre_trained['model_embeddings.vocabs.weight']
+    emb_dim = voc_embed.size(-1)
+    embedding = nn.Embedding(vocab_size, emb_dim).weight
+    if initializer is not None:
+        initializer(embedding)
+
+    oovs = []
+    with torch.no_grad():
+        for i in range(len(id2word)):
+            # NOTE: id2word can be list or dict
+            if i == START:
+                embedding[i, :] = torch.Tensor(voc_embed[w2v['<s>']])
+            elif i == END:
+                embedding[i, :] = torch.Tensor(voc_embed[w2v[r'<\s>']])
+            elif id2word[i] in w2v:
+                embedding[i, :] = torch.Tensor(voc_embed[w2v[id2word[i]]])
+            else:
+                oovs.append(i)
+    return embedding, oovs 
+
+def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en'):
+    import re
+    #keys() = {'en':pre_trained['en'].keys(), 'ko':pre_trained['ko'].keys()}
+    p = re.compile("_(en|ko)_")
+    q = re.compile("^(?!(sub)).*?_")
+
+    m_keys ={}
+    m_keys = {q.sub('sub_',p.sub('_',k)):k for k in pre_trained[lang].keys()}
+
+    with torch.no_grad():
+        for k,v in m_keys:
+            globals()['net.'+k] = pre_trained[lang][v]
+    return net
