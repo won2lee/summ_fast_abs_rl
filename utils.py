@@ -71,7 +71,8 @@ def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
     
     w2v = pre_trained['voc']
     vocab_size = len(id2word)
-    voc_embed = pre_trained['model_embeddings.vocabs.weight']
+    #print(f"pre_keys : {pre_trained.keys()}")
+    voc_embed = pre_trained['emb']['model_embeddings.vocabs.weight']
     emb_dim = voc_embed.size(-1)
     embedding = nn.Embedding(vocab_size, emb_dim).weight
     if initializer is not None:
@@ -84,7 +85,7 @@ def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
             if i == START:
                 embedding[i, :] = torch.Tensor(voc_embed[w2v['<s>']])
             elif i == END:
-                embedding[i, :] = torch.Tensor(voc_embed[w2v[r'<\s>']])
+                embedding[i, :] = torch.Tensor(voc_embed[w2v[r'</s>']])
             elif id2word[i] in w2v:
                 embedding[i, :] = torch.Tensor(voc_embed[w2v[id2word[i]]])
             else:

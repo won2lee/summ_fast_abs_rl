@@ -5,7 +5,7 @@ from torch.nn import init
 
 from .util import reorder_sequence, reorder_lstm_states
 
-from .summ import Seq2SeqSumm
+from model.summ
 
 #####################################################
 #if parallel => tokenize 단계에서 반영 
@@ -162,7 +162,7 @@ from .summ import Seq2SeqSumm
 
 #####################################################
 def lstm_encoder(sequence, lstm,
-                 seq_lens=None, init_states=None, embedding=None):
+                 seq_lens=None, init_states=None, embedding=None, parallel=False):
     """ functional LSTM encoder (sequence is [b, t]/[b, t, d],
     lstm should be rolled lstm)"""
     batch_size = sequence.size(0)
@@ -176,7 +176,7 @@ def lstm_encoder(sequence, lstm,
     # parallel(emb_sequence, sequence)
     # parallel = False
     if parallel:
-        emb_sequence, seq_lens = Seq2SeqSumm.parallel_encode(sequence,seq_lens, embedding)
+        emb_sequence, seq_lens = summ.Seq2SeqSumm.parallel_encode(sequence,seq_lens, embedding)
     else:
         emb_sequence = (embedding(sequence) if embedding is not None else sequence)
     art_lens = seq_lens # 바뀐 seq lens 를 전달하기 위해

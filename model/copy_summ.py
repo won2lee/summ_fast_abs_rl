@@ -36,7 +36,7 @@ class _CopyLinear(nn.Module):
 
 class CopySumm(Seq2SeqSumm):
     def __init__(self, vocab_size, emb_dim,
-                 n_hidden, bidirectional, n_layer, dropout=0.0):
+                 n_hidden, bidirectional, n_layer, parallel, dropout=0.0):
         super().__init__(vocab_size, emb_dim,
                          n_hidden, bidirectional, n_layer, dropout)
         self._copy = _CopyLinear(n_hidden, n_hidden, 2*emb_dim)

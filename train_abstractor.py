@@ -24,7 +24,7 @@ from data.batcher import convert_batch_copy, batchify_fn_copy
 from data.batcher import BucketedGenerater
 
 from utils import PAD, UNK, START, END
-from utils import make_vocab, make_embedding
+from utils import make_vocab, make_embedding, make_embedding_from_pretrained
 
 # NOTE: bucket size too large may sacrifice randomness,
 #       to low may increase # of PAD tokens

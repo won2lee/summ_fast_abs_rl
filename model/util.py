@@ -81,7 +81,7 @@ def get_sents_lenth(source, seq_lens, tgt = False):
         source = [source]
     sbol = [4,5,6]
 
-    if seq_lens=[]:
+    if seq_lens==[]:
         seq_lens = [len([k for k in s if k!=0]) for s in source]
     #src_len = [len(s) for s in source]     
     
