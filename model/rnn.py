@@ -5,7 +5,7 @@ from torch.nn import init
 
 from .util import reorder_sequence, reorder_lstm_states
 
-from model.summ
+import model.summ as summ
 
 #####################################################
 #if parallel => tokenize 단계에서 반영 

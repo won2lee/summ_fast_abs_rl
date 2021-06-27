@@ -100,8 +100,9 @@ def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en'):
 
     m_keys ={}
     m_keys = {q.sub('sub_',p.sub('_',k)):k for k in pre_trained[lang].keys()}
+    print(f"m_keys:{m_keys}")
 
     with torch.no_grad():
-        for k,v in m_keys:
+        for k,v in m_keys.items():
             globals()['net.'+k] = pre_trained[lang][v]
     return net

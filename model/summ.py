@@ -67,8 +67,8 @@ class Seq2SeqSumm(nn.Module):
             self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
             self.sub_dropout = nn.Dropout(p=0.2)
 
-            self.target_ox_projection = nn.Linear(emb_dim, 3, bias=False)
-            self.copy_projection = nn.Linear(3*emb_dim, emb_dim, bias=False)
+        self.target_ox_projection = nn.Linear(emb_dim, 3, bias=False)
+        self.copy_projection = nn.Linear(3*emb_dim, emb_dim, bias=False)
 
 
     def forward(self, article, art_lens, abstract):
@@ -148,7 +148,7 @@ class Seq2SeqSumm(nn.Module):
         self._embedding.weight.data.copy_(embedding)
 
     @staticmethod
-    def parallel_encode(self, source,seq_lens,embedding,tgt=False): #slang_is_tlang=False):
+    def parallel_encode(source,seq_lens,embedding,tgt=False): #slang_is_tlang=False):
 
         if type(source[0]) is not tensor or type(source[0]) is not list:
            source = [source]       
