@@ -256,6 +256,7 @@ class BucketedGenerater(object):
             i = 0
             while True:
                 for batch in self._loader:
+                    print("one batch was loaded")
                     yield from get_batches(self._prepro(batch))
                 if self._single_run:
                     break

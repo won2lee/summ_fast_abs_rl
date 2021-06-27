@@ -92,8 +92,11 @@ class BasicPipeline(object):
     def train_step(self):
         # forward pass of model
         self._net.train()
+        print("start train_step")
         fw_args, bw_args = next(self._batches)
+        print("got one batch")
         net_out, XO = self._net(*fw_args)
+        print("one copy_summ process was done")
 
         # get logs and output for logging, backward
         log_dict = {}

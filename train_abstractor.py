@@ -28,7 +28,7 @@ from utils import make_vocab, make_embedding, make_embedding_from_pretrained
 
 # NOTE: bucket size too large may sacrifice randomness,
 #       to low may increase # of PAD tokens
-BUCKET_SIZE = 6400
+BUCKET_SIZE = 64 #00
 
 try:
     DATA_DIR = os.environ['DATA']
