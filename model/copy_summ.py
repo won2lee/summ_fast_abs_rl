@@ -209,7 +209,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
             dim=1
         )
         ######################################################################
-
+        print(f"lstm_in:{[tt.size() for tt in lstm_in]}, prev_states :{[tt.size() for tt in prev_states]}")
         states = self._lstm(lstm_in, prev_states)
         lstm_out = states[0][-1]
         query = torch.mm(lstm_out, self._attn_w)

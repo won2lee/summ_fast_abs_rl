@@ -68,8 +68,8 @@ class Seq2SeqSumm(nn.Module):
             self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
             self.sub_dropout = nn.Dropout(p=0.2)
 
-        self.target_ox_projection = nn.Linear(emb_dim, 3, bias=False)
-        self.copy_projection = nn.Linear(3*emb_dim, emb_dim, bias=False)
+            self.target_ox_projection = nn.Linear(emb_dim, 3, bias=False)
+            self.copy_projection = nn.Linear(3*emb_dim, emb_dim, bias=False)
 
 
     def forward(self, article, art_lens, abstract):
@@ -229,7 +229,7 @@ class Seq2SeqSumm(nn.Module):
 
 
 class AttentionalLSTMDecoder(object):
-    def __init__(self, embedding, lstm, attn_w, projection, parallel=False, target_ox=None, copy_proj=None):
+    def __init__(self, embedding, lstm, attn_w, projection, parallel=False, sub_module=None, target_ox=None, copy_proj=None):
         super().__init__()
         self._embedding = embedding
         self._lstm = lstm
@@ -238,15 +238,20 @@ class AttentionalLSTMDecoder(object):
         
         self.parallel = parallel
         if parallel:
+            self.sub_coder = sub_module[0], 
+            self.sub_gate = sub_module[1], 
+            self.sub_projection = sub_module[2], 
+            self.sub_dropout = sub_module[3]
             self.target_ox_projection = target_ox 
             self.copy_projection = copy_proj
 
 
-    def __call__(self, attention, init_states, target,parallel=False):
+    def __call__(self, attention, init_states, target, parallel=False):
 
         if parallel:
             target, XO = Seq2SeqSumm.parallel_encode(target,[],embedding,
                 sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout), tgt=True)
+            target = target.transpose(0,1)
             
         max_len = target.size(1)
         states = init_states
