@@ -91,7 +91,8 @@ class Seq2SeqSumm(nn.Module):
         enc_art, final_states, art_lens = lstm_encoder(
             article, self._enc_lstm, art_lens,
             init_enc_states, self._embedding,
-            parallel=self.parallel
+            parallel=self.parallel, 
+            sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout) if self.parallel else None
         )   ################################################################# art_lens 추가 
         if self._enc_lstm.bidirectional:
             h, c = final_states
@@ -149,7 +150,7 @@ class Seq2SeqSumm(nn.Module):
         self._embedding.weight.data.copy_(embedding)
 
     @staticmethod
-    def parallel_encode(source,seq_lens,embedding,tgt=False): #slang_is_tlang=False):
+    def parallel_encode(source,seq_lens,embedding,sub_module,tgt=False): #slang_is_tlang=False):
 
         if type(source[0]) is not torch.Tensor and type(source[0]) is not list:
            source = [source]       
@@ -169,10 +170,21 @@ class Seq2SeqSumm(nn.Module):
         
         #src_padded = source # ? self.vocab.vocs.to_input_tensor(source, device=self.device)  
 
-        X = list(chain(*[torch.split(sss,XX[i])[:Z_len[i]] for i,sss in enumerate(
-            torch.split(source,1,-1))]))     #각 문장(batch)으로 자른 뒤 문장내 어절 단위로 자른다 
+        print(f"source.size : {source.size()}")
 
-        X = pad_sequence(X).squeeze(-1)
+        """
+        for i,sss in enumerate(torch.split(source,1,0)):
+            print(f"len of sss : {len(sss)}, size of sss: {sss.size()}")
+            print(sum(XX[i]), len(XX[i]), Z_len[i])
+            print(torch.split(sss,XX[i], -1)[:Z_len[i]])
+        """
+
+        X = list(chain(*[torch.split(sss.squeeze(0),XX[i])[:Z_len[i]] for i,sss in enumerate(
+            torch.split(source,1,0))]))     #각 문장(batch)으로 자른 뒤 문장내 어절 단위로 자른다 
+        print(f"X[:4]: {[x.size() for x in X[:4]]}")    
+        print(f"pad_seqed_size: {pad_sequence(X).size()}")
+        X = pad_sequence(X, batch_first=False)  #.squeeze(-1)
+        
 
         #if lang =='en':
         #    cap_id, len_X = get_X_cap(source, self.sbol)
@@ -181,13 +193,21 @@ class Seq2SeqSumm(nn.Module):
         #X_embed = self.model_embeddings.vocabs(X)
         X_embed = embedding(X)
 
-        out,(last_h1,last_c1) = self.sub_coder(X_embed)
+        sub_coder = sub_module[0]
+        sub_gate =sub_module[1]
+        sub_projection =sub_module[2]
+        sub_dropout = sub_module[3]
+
+
+
+
+        out,(last_h1,last_c1) = sub_coder(X_embed)
         #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
-        X_proj = self.sub_projection(X_embed[1:])
-        X_gate = torch.sigmoid(self.sub_gate(X_embed[1:]))
+        X_proj = sub_projection(X_embed[1:])
+        X_gate = torch.sigmoid(sub_gate(X_embed[1:]))
 
 
-        X_way = self.sub_dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
+        X_way = sub_dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
 
         #문장단위로 자르고 어절 단위로 자른 뒤 각 어절의 길이만 남기고 나머지는 버린 후 연결 (cat) 하여 문장으로 재구성         
         X_input = [torch.cat([ss[:Z_sub[i][j]]for j,ss in enumerate(
@@ -226,7 +246,8 @@ class AttentionalLSTMDecoder(object):
     def __call__(self, attention, init_states, target,parallel=False):
 
         if parallel:
-            target, XO = Seq2SeqSumm.parallel_encode(target,[],embedding,tgt=True)
+            target, XO = Seq2SeqSumm.parallel_encode(target,[],embedding,
+                sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout), tgt=True)
             
         max_len = target.size(1)
         states = init_states

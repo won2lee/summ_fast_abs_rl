@@ -162,7 +162,7 @@ import model.summ as summ
 
 #####################################################
 def lstm_encoder(sequence, lstm,
-                 seq_lens=None, init_states=None, embedding=None, parallel=False):
+                 seq_lens=None, init_states=None, embedding=None, parallel=False, sub_module=None):
     """ functional LSTM encoder (sequence is [b, t]/[b, t, d],
     lstm should be rolled lstm)"""
     batch_size = sequence.size(0)
@@ -177,7 +177,7 @@ def lstm_encoder(sequence, lstm,
     # parallel(emb_sequence, sequence)
     # parallel = False
     if parallel:
-        emb_sequence, seq_lens = summ.Seq2SeqSumm.parallel_encode(sequence,seq_lens, embedding)
+        emb_sequence, seq_lens = summ.Seq2SeqSumm.parallel_encode(sequence,seq_lens, embedding, sub_module)
     else:
         emb_sequence = (embedding(sequence) if embedding is not None else sequence)
     art_lens = seq_lens # 바뀐 seq lens 를 전달하기 위해

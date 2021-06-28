@@ -91,8 +91,8 @@ def get_sents_lenth(source, seq_lens, tgt = False):
     
     #   _<s>^  p  가  _ 계속 _ 오른 다 _  .  _ </s>
     #   1 0 2  0  0  1  0  1  0  0  1  0  1  0
-    for i,s in enumerate(source):
-        print(f"k :{[k for k in s[:seq_lens[i]]]}")
+    #for i,s in enumerate(source):
+    #    print(f"k :{[k for k in s[:seq_lens[i]]]}")
 
 
     iXO = [[k.item() if k.item() in sbol else 0 for k in s[:seq_lens[i]]] for i,s in enumerate(source) ]
