@@ -166,8 +166,9 @@ def lstm_encoder(sequence, lstm,
     """ functional LSTM encoder (sequence is [b, t]/[b, t, d],
     lstm should be rolled lstm)"""
     batch_size = sequence.size(0)
-    if not lstm.batch_first:
-        sequence = sequence.transpose(0, 1)
+    print(f"seq_size:{sequence.size()}")
+    #if not lstm.batch_first:
+    #    sequence = sequence.transpose(0, 1)
     # emb_sequence = (embedding(sequence) if embedding is not None else sequence)
     # indent 하지 않은 것이 옳을 듯
     
@@ -181,7 +182,8 @@ def lstm_encoder(sequence, lstm,
         emb_sequence = (embedding(sequence) if embedding is not None else sequence)
     art_lens = seq_lens # 바뀐 seq lens 를 전달하기 위해
     ##########################################################
-
+    if not lstm.batch_first:
+        emb_sequence = emb_sequence.transpose(0, 1)
 
     if seq_lens:
         assert batch_size == len(seq_lens)

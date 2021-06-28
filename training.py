@@ -95,6 +95,7 @@ class BasicPipeline(object):
         print("start train_step")
         fw_args, bw_args = next(self._batches)
         print("got one batch")
+        print(f"fw_args.size : {[fw_args[i].size() if type(fw_args[i]) is torch.Tensor else len(fw_args[i]) for i in range(4)]}")
         net_out, XO = self._net(*fw_args)
         print("one copy_summ process was done")
 

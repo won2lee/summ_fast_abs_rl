@@ -77,17 +77,25 @@ def reorder_lstm_states(lstm_states, order):
 
 def get_sents_lenth(source, seq_lens, tgt = False):
 
-    if type(source[0]) is not tensor or type(source[0]) is not list:
+    if type(source[0]) is not torch.Tensor and type(source[0]) is not list:
         source = [source]
+
+    if type(source[0]) is list:
+        print(f"source_len : {len(source)}")
+        print(f"source_size() : {source[0].size()}")
     sbol = [4,5,6]
 
-    if seq_lens==[]:
-        seq_lens = [len([k for k in s if k!=0]) for s in source]
+    # if seq_lens==[]:
+    #     seq_lens = [len([k for k in s if k!=0]) for s in source]
     #src_len = [len(s) for s in source]     
     
     #   _<s>^  p  가  _ 계속 _ 오른 다 _  .  _ </s>
     #   1 0 2  0  0  1  0  1  0  0  1  0  1  0
-    XO = [[k if k in sbol else 0 for k in s[:seq_lens[i]]] for i,s in enumerate(source) ]
+    for i,s in enumerate(source):
+        print(f"k :{[k for k in s[:seq_lens[i]]]}")
+
+
+    iXO = [[k.item() if k.item() in sbol else 0 for k in s[:seq_lens[i]]] for i,s in enumerate(source) ]
     #   1 0 2  0  0  1  0  1  0  0  1  0  1  0       <= XO
     #   0   2        5     7        10   12   [14]   <= XX1
     #     1       4     6        9    11    13       <= XX_R
@@ -95,7 +103,7 @@ def get_sents_lenth(source, seq_lens, tgt = False):
     #   1 0 1  0  0  1  0  1  0  0  1 0   1  0
     #   1   2  0     1     1  0     1     1          <= XO (0~3 사이의 값)
     #   1,  2,       1,    2,       1     1          <= X_sub   sum(X_sub) == len(XO)
-    XXi = [[i for i,v in enumerate(s) if v!=0]+[len(s)] for s in XO]    # XX1
+    XXi = [[i for i,v in enumerate(s) if v!=0]+[len(s)] for s in iXO]    # XX1
     #XX_R = [[k-1 for k in s[1:]] for s in XX]
     XX = [[s[i]-s[i-1] for i in range(1,len(s))] for s in XXi]     # index to interval lenth(어절의 길이)
     #XO = [ for i,k in enumerate(s) if k>0 or (k==0 and s[i+1] ==0]for s in XO]}
@@ -103,8 +111,8 @@ def get_sents_lenth(source, seq_lens, tgt = False):
 
     if tgt:
         XX_R = [[k-1 for k in s[1:]] for s in XXi]
-        XO = [[k for i,k in enumerate(s) if i not in XX_R[j]] for j,s in enumerate(XO)]
-        return XX, XO, XX_subtracted  #, XK  # XX: Cutter, XO: lookup target list
+        iXO = [[k for i,k in enumerate(s) if i not in XX_R[j]] for j,s in enumerate(iXO)]
+        return XX, iXO, XX_subtracted  #, XK  # XX: Cutter, XO: lookup target list
  
     else:
         XX_len = [len(s) for s in XX] 

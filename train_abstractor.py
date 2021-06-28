@@ -24,7 +24,9 @@ from data.batcher import convert_batch_copy, batchify_fn_copy
 from data.batcher import BucketedGenerater
 
 from utils import PAD, UNK, START, END
-from utils import make_vocab, make_embedding, make_embedding_from_pretrained, apply_sub_module_weight_from_pretrained
+from utils import (make_vocab, make_embedding, 
+                   make_embedding_from_pretrained, 
+                   apply_sub_module_weight_from_pretrained)
 
 # NOTE: bucket size too large may sacrifice randomness,
 #       to low may increase # of PAD tokens
@@ -115,7 +117,7 @@ def main(args):
     # batcher
     with open(join(DATA_DIR, 'vocab_cnt.pkl'), 'rb') as f:
         wc = pkl.load(f, encoding="bytes") 
-    parallel = True
+    parallel = args.parallel
     print(f"main.parallel : {parallel}")
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(word2id,

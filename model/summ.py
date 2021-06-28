@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import init
+from itertools import chain
 
 from .rnn import lstm_encoder
 from .rnn import MultiLayerLSTMCells
@@ -150,7 +151,7 @@ class Seq2SeqSumm(nn.Module):
     @staticmethod
     def parallel_encode(source,seq_lens,embedding,tgt=False): #slang_is_tlang=False):
 
-        if type(source[0]) is not tensor or type(source[0]) is not list:
+        if type(source[0]) is not torch.Tensor and type(source[0]) is not list:
            source = [source]       
 
         if tgt:
