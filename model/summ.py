@@ -183,7 +183,8 @@ class Seq2SeqSumm(nn.Module):
             torch.split(source,1,0))]))     #각 문장(batch)으로 자른 뒤 문장내 어절 단위로 자른다 
         print(f"X[:4]: {[x.size() for x in X[:4]]}")    
         print(f"pad_seqed_size: {pad_sequence(X).size()}")
-        X = pad_sequence(X, batch_first=False)  #.squeeze(-1)
+        #X = pad_sequence(X)  #.squeeze(-1)
+        X = pad_sequence(X) 
         
 
         #if lang =='en':
@@ -198,9 +199,6 @@ class Seq2SeqSumm(nn.Module):
         sub_projection =sub_module[2]
         sub_dropout = sub_module[3]
 
-
-
-
         out,(last_h1,last_c1) = sub_coder(X_embed)
         #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
         X_proj = sub_projection(X_embed[1:])
@@ -210,15 +208,16 @@ class Seq2SeqSumm(nn.Module):
         X_way = sub_dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
 
         #문장단위로 자르고 어절 단위로 자른 뒤 각 어절의 길이만 남기고 나머지는 버린 후 연결 (cat) 하여 문장으로 재구성         
-        X_input = [torch.cat([ss[:Z_sub[i][j]]for j,ss in enumerate(
+        X_input = [torch.cat([ss[:Z_sub[i][j]] for j,ss in enumerate(
           torch.split(sss,1,1))],0) for i,sss in enumerate(torch.split(X_way,Z_len,1))]
+        print(f"X-input[0].size() : {X_input[0].size()}")
         
         # 재구성된 문장의 길이가 다르기 때문에 패딩
             
         if tgt:
             emb_sequence = pad_sequence(X_input).squeeze(-2)[:-1]
             XO = [torch.tensor(x) for x in XO]
-            XO = torch.tensor(pad_sequence(XO)).to(self.device) #,device = self.device) #<=[:-1]
+            XO = torch.tensor(pad_sequence(XO)) #.to(self.device) #,device = self.device) #<=[:-1]
             
             return emb_sequence, XO
 

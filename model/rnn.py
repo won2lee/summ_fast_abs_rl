@@ -180,9 +180,11 @@ def lstm_encoder(sequence, lstm,
         emb_sequence, seq_lens = summ.Seq2SeqSumm.parallel_encode(sequence,seq_lens, embedding, sub_module)
     else:
         emb_sequence = (embedding(sequence) if embedding is not None else sequence)
+        emb_sequence = emb_sequence.transpose(0, 1)
+
     art_lens = seq_lens # 바뀐 seq lens 를 전달하기 위해
     ##########################################################
-    if not lstm.batch_first:
+    if lstm.batch_first:
         emb_sequence = emb_sequence.transpose(0, 1)
 
     if seq_lens:
