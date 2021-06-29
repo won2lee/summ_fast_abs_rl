@@ -140,18 +140,23 @@ def batchify_fn(pad, start, end, data, cuda=True):
 
 
 @curry
-def batchify_fn_copy(pad, start, end, data, cuda=True, parallel=parallel):
+def batchify_fn_copy(pad, start, end, data, cuda=True, parallel=None):
     sources, ext_srcs, tar_ins, targets = tuple(map(list, unzip(data)))
 
     src_lens = [len(src) for src in sources]
     sources = [src for src in sources]
     ext_srcs = [ext for ext in ext_srcs]
 
-    tar_ins = [[start] + tgt for tgt in tar_ins]
-    tgt_lens = [len(tgt) for tgt in tar_ins]
-    targets = [tgt + [end] for tgt in targets]
     if parallel:
+        tar_ins = [[4,start] + tgt for tgt in tar_ins]
+        targets = [tgt + [4,end] for tgt in targets]
         targets = [[w for w in tgt if w not in [4,5,6]] for tgt in targets]
+        ext_srcs = [[w for w in src if w not in [4,5,6]] for src in ext_srcs]
+    else:
+        tar_ins = [[start] + tgt for tgt in tar_ins]
+        targets = [tgt + [end] for tgt in targets]
+
+    tgt_lens = [len(tgt) for tgt in tar_ins]
 
     source = pad_batch_tensorize(sources, pad, cuda)
     tar_in = pad_batch_tensorize(tar_ins, pad, cuda)

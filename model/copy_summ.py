@@ -227,19 +227,21 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         copy_prob = torch.sigmoid(self._copy(context, states[0][-1], lstm_in))  #self._copy(context, states[0][-1], lstm_in))
         # add the copy prob to existing vocab distribution
         print(f"context ; {(len(context),context[0].size()) if type(context) is list else context.size()}")
+        print(f"states[0][-1] ; {(len(states[0][-1]),states[0][-1][0].size()) if type(states[0][-1]) is list else states[0][-1].size()}")
+        print(f"lstm_in ; {(len(lstm_in),lstm_in[0].size()) if type(lstm_in) is list else lstm_in.size()}")
         print(f"score ; {(len(score),score[0].size()) if type(score) is list else score.size()}")
         print(f"dec_out ; {(len(dec_out),dec_out[0].size()) if type(dec_out) is list else dec_out.size()}")
         print(f"gen_prob ; {(len(gen_prob),gen_prob[0].size()) if type(gen_prob) is list else gen_prob.size()}")
         print(f"copy_prob ; {(len(copy_prob),copy_prob[0].size()) if type(copy_prob) is list else copy_prob.size()}")
         print(f"extend_src ; {(len(extend_src),extend_src[0].size()) if type(extend_src) is list else extend_src.size()}")
-        
+        """
         context ; torch.Size([32, 256])
-        score ; torch.Size([32, 57])
+        score ; torch.Size([32, 46])
         dec_out ; torch.Size([32, 128])
-        gen_prob ; torch.Size([32, 30535])
+        gen_prob ; torch.Size([32, 30550])
         copy_prob ; torch.Size([32, 1])
-        extend_src ; torch.Size([32, 100])
-
+        extend_src ; torch.Size([32, 86])
+        """
         lp = torch.log(
             ((-copy_prob + 1) * gen_prob
             ).scatter_add(
@@ -249,13 +251,13 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         ) + 1e-8)  # numerical stability for log
 
         if self.parallel:
-            lp2 = self.target_ox_projection(torch.cat(
+            lp2 = self.target_ox_projection(torch.cat((
                 dec_out, 
-                self.copy_projection(torch.cat(context, states[0][-1], lstm_in))
-                ))
+                self.copy_projection(torch.cat((context, states[0][-1]),-1))
+                ),-1))
             lp2 = self.target_ox_projection(
                 (-copy_prob + 1) * dec_out 
-                + copy_prob * self.copy_projection(torch.cat(context, states[0][-1], lstm_in))
+                + copy_prob * self.copy_projection(torch.cat((context, states[0][-1]),-1))
                 )
         else:
             lp2 = None

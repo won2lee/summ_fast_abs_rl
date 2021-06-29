@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import init
 from itertools import chain
+from toolz.sandbox import unzip
 
 from .rnn import lstm_encoder
 from .rnn import MultiLayerLSTMCells
@@ -38,7 +39,7 @@ class Seq2SeqSumm(nn.Module):
 
         # vanillat lstm / LNlstm
         self._dec_lstm = MultiLayerLSTMCells(
-            n_hidden if parallel else 2*emb_dim, n_hidden, n_layer, dropout=dropout
+            n_hidden+emb_dim if parallel else 2*emb_dim, n_hidden, n_layer, dropout=dropout
         )
         # project encoder final states to decoder initial states
         enc_out_dim = n_hidden * (2 if bidirectional else 1)
@@ -69,7 +70,7 @@ class Seq2SeqSumm(nn.Module):
             self.sub_dropout = nn.Dropout(p=0.2)
 
             self.target_ox_projection = nn.Linear(emb_dim, 3, bias=False)
-            self.copy_projection = nn.Linear(3*emb_dim, emb_dim, bias=False)
+            self.copy_projection = nn.Linear(2*emb_dim, emb_dim, bias=False)
 
 
     def forward(self, article, art_lens, abstract):
@@ -194,10 +195,7 @@ class Seq2SeqSumm(nn.Module):
         #X_embed = self.model_embeddings.vocabs(X)
         X_embed = embedding(X)
 
-        sub_coder = sub_module[0]
-        sub_gate =sub_module[1]
-        sub_projection =sub_module[2]
-        sub_dropout = sub_module[3]
+        sub_coder, sub_gate,sub_projection,sub_dropout = sub_module
 
         out,(last_h1,last_c1) = sub_coder(X_embed)
         #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
@@ -237,20 +235,22 @@ class AttentionalLSTMDecoder(object):
         self._projection = projection
         
         self.parallel = parallel
-        if parallel:
-            self.sub_coder = sub_module[0], 
-            self.sub_gate = sub_module[1], 
-            self.sub_projection = sub_module[2], 
-            self.sub_dropout = sub_module[3]
-            self.target_ox_projection = target_ox 
-            self.copy_projection = copy_proj
+        self.sub_module = sub_module
+        # if parallel:
+        #     self.sub_coder = sub_module[0], 
+        #     self.sub_gate = sub_module[1], 
+        #     self.sub_projection = sub_module[2], 
+        #     self.sub_dropout = sub_module[3]
+        self.target_ox_projection = target_ox 
+        self.copy_projection = copy_proj
 
 
     def __call__(self, attention, init_states, target, tgt_lens):
 
         if self.parallel:
-            target, XO = Seq2SeqSumm.parallel_encode(target,tgt_lens,self._embedding,
-                sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout), tgt=True)
+            target, XO = Seq2SeqSumm.parallel_encode(target,tgt_lens,self._embedding, self.sub_module, tgt=True)
+            # target, XO = Seq2SeqSumm.parallel_encode(target,tgt_lens,self._embedding,
+            #     sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout), tgt=True)
             target = target.transpose(0,1)
             
         max_len = target.size(1)
@@ -259,12 +259,12 @@ class AttentionalLSTMDecoder(object):
 
         for i in range(max_len):
             tok = target[:, i:i+1]
-            logit, states, _ = self._step(tok, states, attention, parallel)
+            logit, states, _ = self._step(tok, states, attention)
             logits.append(logit)
 
         if self.parallel:
             logits = list(unzip(logits))
-            logit = [torch.stack(logits, dim=1) for lgt in logits]
+            logit = [torch.stack(lgt, dim=1) for lgt in logits]
             return logit, XO
 
         logit = torch.stack(logits, dim=1)
