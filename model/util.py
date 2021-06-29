@@ -26,12 +26,13 @@ def sequence_mean(sequence, seq_lens, dim=1):
         mean = torch.mean(sequence, dim=dim, keepdim=False)
     return mean
 
-def sequence_loss(logits, targets, xent_fn=None, pad_idx=0):
+def sequence_loss(logits, targets, xent_fn=None, pad_idx=0, mask=None):
     """ functional interface of SequenceLoss"""
     print(f"logits.size():{logits.size()},targets.size():{targets.size()}")
     assert logits.size()[:-1] == targets.size()
     targets = targets.cuda()
-    mask = (targets != pad_idx).cuda() 
+    if mask is None:
+        mask = (targets != pad_idx).cuda() 
     target = targets.masked_select(mask)
     print(f"logits:{logits.is_cuda}, mask:{mask.is_cuda}")
     logit = logits.masked_select(
@@ -42,9 +43,10 @@ def sequence_loss(logits, targets, xent_fn=None, pad_idx=0):
         loss = xent_fn(logit, target)
     else:
         loss = F.cross_entropy(logit, target)
+    print(f"loss.mean:{loss.mean()}")
     assert (not math.isnan(loss.mean().item())
             and not math.isinf(loss.mean().item()))
-    return loss
+    return loss, mask
 
 #################### LSTM helper #########################
 
@@ -97,7 +99,7 @@ def get_sents_lenth(source, seq_lens, tgt = False):
     #    print(f"k :{[k for k in s[:seq_lens[i]]]}")
 
 
-    iXO = [[k.item() if k.item() in sbol else 0 for k in s[:seq_lens[i]]] for i,s in enumerate(source) ]
+    iXO = [[k.item()-3 if k.item() in sbol else 0 for k in s[:seq_lens[i]]] for i,s in enumerate(source) ]
     #   1 0 2  0  0  1  0  1  0  0  1  0  1  0       <= XO
     #   0   2        5     7        10   12   [14]   <= XX1
     #     1       4     6        9    11    13       <= XX_R

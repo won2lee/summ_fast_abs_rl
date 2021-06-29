@@ -79,8 +79,8 @@ def configure_training(opt, lr, clip_grad, lr_decay, batch_size):
     train_params['lr_decay']       = lr_decay
 
     nll = lambda logit, target: F.nll_loss(logit, target, reduce=False)
-    def criterion(logits, targets):
-        return sequence_loss(logits, targets, nll, pad_idx=PAD)
+    def criterion(logits, targets, mask=None):
+        return sequence_loss(logits, targets, nll, pad_idx=PAD, mask=mask)
 
     return criterion, train_params
 
