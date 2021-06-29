@@ -111,8 +111,8 @@ class BasicPipeline(object):
             #loss = loss1.mean()
             print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
-            loss2, _ = self._criterion(*loss_args, mask=mask)[0].mean()
-            loss = loss1.mean() + loss2
+            loss2, _ = self._criterion(*loss_args, mask=mask)
+            loss = loss1.mean() + loss2.mean()
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )
