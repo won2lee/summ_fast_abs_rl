@@ -213,11 +213,11 @@ class Seq2SeqSumm(nn.Module):
         # 재구성된 문장의 길이가 다르기 때문에 패딩
             
         if tgt:
-            emb_sequence = pad_sequence(X_input).squeeze(-2)[:-1]
+            emb_sequence = pad_sequence(X_input).squeeze(-2) #[:-1]
             XO = [torch.tensor(x) for x in XO]
             XO = torch.tensor(pad_sequence(XO)) #.to(self.device) #,device = self.device) #<=[:-1]
             
-            return emb_sequence, XO
+            return emb_sequence, XO.transpose(0,1)
 
         else:
             emb_sequence = pad_sequence(X_input).squeeze(-2)
@@ -264,7 +264,7 @@ class AttentionalLSTMDecoder(object):
 
         if self.parallel:
             logits = list(unzip(logits))
-            logit = [torch.stack(lgt, dim=1) for lgt in logits]
+            logit = [torch.stack(list(lgt), dim=1) for lgt in logits]
             return logit, XO
 
         logit = torch.stack(logits, dim=1)

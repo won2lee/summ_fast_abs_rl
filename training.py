@@ -60,7 +60,7 @@ def basic_validate(net, criterion, val_batches):
 class BasicPipeline(object):
     def __init__(self, name, net,
                  train_batcher, val_batcher, batch_size,
-                 val_fn, criterion, optim, grad_fn=None):
+                 val_fn, criterion, optim, grad_fn=None, parallel=None ):
         self.name = name
         self._net = net
         self._train_batcher = train_batcher
@@ -75,6 +75,7 @@ class BasicPipeline(object):
         self._n_epoch = 0  # epoch not very useful?
         self._batch_size = batch_size
         self._batches = self.batches()
+        self.parallel = parallel
 
     def batches(self):
         while True:
@@ -83,6 +84,7 @@ class BasicPipeline(object):
             self._n_epoch += 1
 
     def get_loss_args(self, net_out, bw_args):
+        print(F"net_out :{type(net_out)},  bw_args :{type(bw_args)}")
         if isinstance(net_out, tuple):
             loss_args = net_out + bw_args
         else:
@@ -102,11 +104,11 @@ class BasicPipeline(object):
         # get logs and output for logging, backward
         log_dict = {}
 
-        if parallel:
+        if self.parallel:
             loss_args = self.get_loss_args(net_out[0], bw_args)
             loss = self._criterion(*loss_args).mean()
-            loss_args = self.get_loss_args(net_out[1], XO)
-            loss += self._criterion(*loss_args).mean()
+            #loss_args = self.get_loss_args(net_out[1], (XO,))
+            #loss += self._criterion(*loss_args).mean()
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )

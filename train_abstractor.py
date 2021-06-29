@@ -170,7 +170,7 @@ def main(args):
         net = net.cuda()
     pipeline = BasicPipeline(meta['net'], net,
                              train_batcher, val_batcher, args.batch, val_fn,
-                             criterion, optimizer, grad_fn)
+                             criterion, optimizer, grad_fn, parallel)
     trainer = BasicTrainer(pipeline, args.path,
                            args.ckpt_freq, args.patience, scheduler)
 

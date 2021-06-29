@@ -28,10 +28,12 @@ def sequence_mean(sequence, seq_lens, dim=1):
 
 def sequence_loss(logits, targets, xent_fn=None, pad_idx=0):
     """ functional interface of SequenceLoss"""
+    print(f"logits.size():{logits.size()},targets.size():{targets.size()}")
     assert logits.size()[:-1] == targets.size()
-
-    mask = targets != pad_idx
+    targets = targets.cuda()
+    mask = (targets != pad_idx).cuda() 
     target = targets.masked_select(mask)
+    print(f"logits:{logits.is_cuda}, mask:{mask.is_cuda}")
     logit = logits.masked_select(
         mask.unsqueeze(2).expand_as(logits)
     ).contiguous().view(-1, logits.size(-1))
@@ -42,7 +44,6 @@ def sequence_loss(logits, targets, xent_fn=None, pad_idx=0):
     assert (not math.isnan(loss.mean().item())
             and not math.isinf(loss.mean().item()))
     return loss
-
 
 #################### LSTM helper #########################
 
