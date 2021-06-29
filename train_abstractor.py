@@ -90,7 +90,7 @@ def build_batchers(word2id, cuda, debug, parallel):
         src, target = sample
         return (len(target), len(src))
     batchify = compose(
-        batchify_fn_copy(PAD, START, END, cuda=cuda),
+        batchify_fn_copy(PAD, START, END, cuda=cuda, parallel=parallel),
         convert_batch_copy(UNK, word2id)
     )
 

@@ -48,7 +48,9 @@ class CopySumm(Seq2SeqSumm):
             self._decoder = CopyLSTMDecoder(
                 self._copy, self._embedding, self._dec_lstm,
                 self._attn_wq, self._projection,
-                parallel=self.parallel, target_ox=self.target_ox_projection, copy_proj=self.copy_projection
+                parallel=self.parallel, 
+                sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout),
+                target_ox=self.target_ox_projection, copy_proj=self.copy_projection
             )
         else:
             self._decoder = CopyLSTMDecoder(
@@ -56,12 +58,12 @@ class CopySumm(Seq2SeqSumm):
                 self._attn_wq, self._projection
             )  #emb_dim 추가하지 않음 
 
-    def forward(self, article, art_lens, abstract, extend_art, extend_vsize):
+    def forward(self, article, art_lens, abstract, extend_art, extend_vsize,tgt_lens):
         attention, init_dec_states, art_lens = self.encode(article, art_lens) ####### add art_lens in return 
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
         logit,XO = self._decoder(
             (attention, mask, extend_art, extend_vsize),
-            init_dec_states, abstract
+            init_dec_states, abstract, tgt_lens 
         )
         return logit, XO
 
@@ -188,7 +190,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         self._copy = copy
 
 
-    def _step(self, tok, states, attention,parallel=False):
+    def _step(self, tok, states, attention):
         prev_states, prev_out = states
 
         # lstm_in = torch.cat(
@@ -197,7 +199,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         # )
 
         #####################################################################
-        if parallel==False:
+        if self.parallel==False:
             tok = self._embedding(tok)
 
         # lstm_in = torch.cat(
@@ -224,6 +226,20 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         # compute the probabilty of each copying
         copy_prob = torch.sigmoid(self._copy(context, states[0][-1], lstm_in))  #self._copy(context, states[0][-1], lstm_in))
         # add the copy prob to existing vocab distribution
+        print(f"context ; {(len(context),context[0].size()) if type(context) is list else context.size()}")
+        print(f"score ; {(len(score),score[0].size()) if type(score) is list else score.size()}")
+        print(f"dec_out ; {(len(dec_out),dec_out[0].size()) if type(dec_out) is list else dec_out.size()}")
+        print(f"gen_prob ; {(len(gen_prob),gen_prob[0].size()) if type(gen_prob) is list else gen_prob.size()}")
+        print(f"copy_prob ; {(len(copy_prob),copy_prob[0].size()) if type(copy_prob) is list else copy_prob.size()}")
+        print(f"extend_src ; {(len(extend_src),extend_src[0].size()) if type(extend_src) is list else extend_src.size()}")
+        
+        context ; torch.Size([32, 256])
+        score ; torch.Size([32, 57])
+        dec_out ; torch.Size([32, 128])
+        gen_prob ; torch.Size([32, 30535])
+        copy_prob ; torch.Size([32, 1])
+        extend_src ; torch.Size([32, 100])
+
         lp = torch.log(
             ((-copy_prob + 1) * gen_prob
             ).scatter_add(
@@ -232,7 +248,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
                 src=score * copy_prob
         ) + 1e-8)  # numerical stability for log
 
-        if parallel:
+        if self.parallel:
             lp2 = self.target_ox_projection(torch.cat(
                 dec_out, 
                 self.copy_projection(torch.cat(context, states[0][-1], lstm_in))

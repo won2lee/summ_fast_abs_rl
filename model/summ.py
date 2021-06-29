@@ -38,7 +38,7 @@ class Seq2SeqSumm(nn.Module):
 
         # vanillat lstm / LNlstm
         self._dec_lstm = MultiLayerLSTMCells(
-            n_hidden+emb_dim if parallel else 2*emb_dim, n_hidden, n_layer, dropout=dropout
+            n_hidden if parallel else 2*emb_dim, n_hidden, n_layer, dropout=dropout
         )
         # project encoder final states to decoder initial states
         enc_out_dim = n_hidden * (2 if bidirectional else 1)
@@ -246,10 +246,10 @@ class AttentionalLSTMDecoder(object):
             self.copy_projection = copy_proj
 
 
-    def __call__(self, attention, init_states, target, parallel=False):
+    def __call__(self, attention, init_states, target, tgt_lens):
 
-        if parallel:
-            target, XO = Seq2SeqSumm.parallel_encode(target,[],embedding,
+        if self.parallel:
+            target, XO = Seq2SeqSumm.parallel_encode(target,tgt_lens,self._embedding,
                 sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout), tgt=True)
             target = target.transpose(0,1)
             
@@ -262,7 +262,7 @@ class AttentionalLSTMDecoder(object):
             logit, states, _ = self._step(tok, states, attention, parallel)
             logits.append(logit)
 
-        if parallel:
+        if self.parallel:
             logits = list(unzip(logits))
             logit = [torch.stack(logits, dim=1) for lgt in logits]
             return logit, XO
