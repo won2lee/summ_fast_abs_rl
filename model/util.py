@@ -37,6 +37,7 @@ def sequence_loss(logits, targets, xent_fn=None, pad_idx=0):
     logit = logits.masked_select(
         mask.unsqueeze(2).expand_as(logits)
     ).contiguous().view(-1, logits.size(-1))
+    print(f"logit.size():{logit.size()}, target.size:{target.size()}")
     if xent_fn:
         loss = xent_fn(logit, target)
     else:

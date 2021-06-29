@@ -105,10 +105,13 @@ class BasicPipeline(object):
         log_dict = {}
 
         if self.parallel:
+            print("normal loss process")
             loss_args = self.get_loss_args(net_out[0], bw_args)
-            loss = self._criterion(*loss_args).mean()
-            #loss_args = self.get_loss_args(net_out[1], (XO,))
-            #loss += self._criterion(*loss_args).mean()
+            loss1 = self._criterion(*loss_args).mean()
+            print("XO loss process")
+            loss_args = self.get_loss_args(net_out[1], (XO,))
+            loss2 = self._criterion(*loss_args).mean()
+            loss = loss1 + loss2
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )
