@@ -39,7 +39,7 @@ class CopySumm(Seq2SeqSumm):
                  n_hidden, bidirectional, n_layer, parallel, dropout=0.0):
         super().__init__(vocab_size, emb_dim,
                          n_hidden, bidirectional, n_layer, parallel, dropout)
-        self._copy = _CopyLinear(n_hidden, n_hidden, 2*emb_dim)
+        self._copy = _CopyLinear(n_hidden, n_hidden, n_hidden+emb_dim if self.parallel else 2*emb_dim)
         print(f"parallel : {parallel}")
         print(f"self.parallel : {self.parallel}")
 
@@ -206,12 +206,13 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         #     [self._embedding(tok).squeeze(1), prev_out],
         #     dim=1
         # )
+        print(f"tok.size() : {tok.size()}, prev_out.size :{prev_out.size()}")
         lstm_in = torch.cat(
             [tok.squeeze(1), prev_out],
             dim=1
         )
         ######################################################################
-        print(f"lstm_in:{[tt.size() for tt in lstm_in]}, prev_states :{[tt.size() for tt in prev_states]}")
+        print(f"lstm_in:{lstm_in.size()}, prev_states :{[tt.size() for tt in prev_states]}")
         states = self._lstm(lstm_in, prev_states)
         lstm_out = states[0][-1]
         query = torch.mm(lstm_out, self._attn_w)
