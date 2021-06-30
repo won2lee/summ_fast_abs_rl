@@ -69,8 +69,8 @@ class Seq2SeqSumm(nn.Module):
             self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
             self.sub_dropout = nn.Dropout(p=0.2)
 
-            self.target_ox_projection = nn.Linear(emb_dim, 4, bias=False)
-            self.copy_projection = nn.Linear(2*emb_dim, emb_dim, bias=False)
+            self.target_ox_projection = nn.Linear(2*emb_dim, 4, bias=False)
+            self.copy_projection = nn.Linear(2*n_hiddenm, emb_dim, bias=False)
 
 
     def forward(self, article, art_lens, abstract):
