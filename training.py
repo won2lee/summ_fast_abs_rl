@@ -76,6 +76,7 @@ class BasicPipeline(object):
         self._batch_size = batch_size
         self._batches = self.batches()
         self.parallel = parallel
+        self.count = 0
 
     def batches(self):
         while True:
@@ -84,7 +85,7 @@ class BasicPipeline(object):
             self._n_epoch += 1
 
     def get_loss_args(self, net_out, bw_args):
-        print(F"net_out :{type(net_out)},  bw_args :{type(bw_args)}")
+        #print(F"net_out :{type(net_out)},  bw_args :{type(bw_args)}")
         if isinstance(net_out, tuple):
             loss_args = net_out + bw_args
         else:
@@ -93,33 +94,36 @@ class BasicPipeline(object):
 
     def train_step(self):
         # forward pass of model
+        self.count+=1
         self._net.train()
-        print("start train_step")
+        #print("start train_step")
         fw_args, bw_args = next(self._batches)
-        print("got one batch")
+        #print("got one batch")
         #print(f"fw_args.size : {[fw_args[i].size() if type(fw_args[i]) is torch.Tensor else len(fw_args[i]) for i in range(4)]}")
         net_out, XO = self._net(*fw_args)
-        print("one copy_summ process was done")
+        #print("one copy_summ process was done")
 
         # get logs and output for logging, backward
         log_dict = {}
 
         if self.parallel:
-            print("normal loss process")
+            #print("normal loss process")
             loss_args = self.get_loss_args(net_out[0], bw_args)
             loss1, mask = self._criterion(*loss_args)
             #loss = loss1.mean()
-            print("XO loss process")
+            #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
             loss = loss1.mean() + loss2.mean()
+            if self.count%50==0:
+                print(f"loss1 : {loss1.mean()}, loss2 : {loss2.mean()}")
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )
             loss = self._criterion(*loss_args).mean()
 
         loss.backward()
-        print(f"loss :{loss}")
+        #print(f"loss :{loss}")
         log_dict['loss'] = loss.item()
         if self._grad_fn is not None:
             log_dict.update(self._grad_fn())

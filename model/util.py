@@ -43,7 +43,7 @@ def sequence_loss(logits, targets, xent_fn=None, pad_idx=0, mask=None):
         loss = xent_fn(logit, target)
     else:
         loss = F.cross_entropy(logit, target)
-    print(f"loss.mean:{loss.mean()}")
+    #print(f"loss.mean:{loss.mean()}")
     assert (not math.isnan(loss.mean().item())
             and not math.isinf(loss.mean().item()))
     return loss, mask
