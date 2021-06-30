@@ -252,7 +252,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         ) + 1e-8)  # numerical stability for log
 
         if self.parallel:
-            lp2 = F.softmax(self.target_ox_projection(torch.cat((
+            lp2 = F.log_softmax(self.target_ox_projection(torch.cat((
                 dec_out, 
                 self.copy_projection(torch.cat((context, states[0][-1]),-1))
                 ),-1)),-1)

@@ -166,7 +166,7 @@ def lstm_encoder(sequence, lstm,
     """ functional LSTM encoder (sequence is [b, t]/[b, t, d],
     lstm should be rolled lstm)"""
     batch_size = sequence.size(0)
-    print(f"seq_size:{sequence.size()}")
+    # print(f"seq_size:{sequence.size()}")
     #if not lstm.batch_first:
     #    sequence = sequence.transpose(0, 1)
     # emb_sequence = (embedding(sequence) if embedding is not None else sequence)
