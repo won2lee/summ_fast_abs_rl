@@ -28,17 +28,17 @@ def sequence_mean(sequence, seq_lens, dim=1):
 
 def sequence_loss(logits, targets, xent_fn=None, pad_idx=0, mask=None):
     """ functional interface of SequenceLoss"""
-    print(f"logits.size():{logits.size()},targets.size():{targets.size()}")
+    # print(f"logits.size():{logits.size()},targets.size():{targets.size()}")
     assert logits.size()[:-1] == targets.size()
     targets = targets.cuda()
     if mask is None:
         mask = (targets != pad_idx).cuda() 
     target = targets.masked_select(mask)
-    print(f"logits:{logits.is_cuda}, mask:{mask.is_cuda}")
+    # print(f"logits:{logits.is_cuda}, mask:{mask.is_cuda}")
     logit = logits.masked_select(
         mask.unsqueeze(2).expand_as(logits)
     ).contiguous().view(-1, logits.size(-1))
-    print(f"logit.size():{logit.size()}, target.size:{target.size()}")
+    # print(f"logit.size():{logit.size()}, target.size:{target.size()}")
     if xent_fn:
         loss = xent_fn(logit, target)
     else:
@@ -84,9 +84,9 @@ def get_sents_lenth(source, seq_lens, tgt = False):
     if type(source[0]) is not torch.Tensor and type(source[0]) is not list:
         source = [source]
 
-    if type(source[0]) is list:
-        print(f"source_len : {len(source)}")
-        print(f"source_size() : {source[0].size()}")
+    # if type(source[0]) is list:
+    #     print(f"source_len : {len(source)}")
+    #     print(f"source_size() : {source[0].size()}")
     sbol = [4,5,6]
 
     # if seq_lens==[]:

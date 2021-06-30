@@ -40,8 +40,8 @@ class CopySumm(Seq2SeqSumm):
         super().__init__(vocab_size, emb_dim,
                          n_hidden, bidirectional, n_layer, parallel, dropout)
         self._copy = _CopyLinear(n_hidden, n_hidden, n_hidden+emb_dim if self.parallel else 2*emb_dim)
-        print(f"parallel : {parallel}")
-        print(f"self.parallel : {self.parallel}")
+        # print(f"parallel : {parallel}")
+        # print(f"self.parallel : {self.parallel}")
 
         if self.parallel:
 
@@ -206,13 +206,13 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         #     [self._embedding(tok).squeeze(1), prev_out],
         #     dim=1
         # )
-        print(f"tok.size() : {tok.size()}, prev_out.size :{prev_out.size()}")
+        # print(f"tok.size() : {tok.size()}, prev_out.size :{prev_out.size()}")
         lstm_in = torch.cat(
             [tok.squeeze(1), prev_out],
             dim=1
         )
         ######################################################################
-        print(f"lstm_in:{lstm_in.size()}, prev_states :{[tt.size() for tt in prev_states]}")
+        # print(f"lstm_in:{lstm_in.size()}, prev_states :{[tt.size() for tt in prev_states]}")
         states = self._lstm(lstm_in, prev_states)
         lstm_out = states[0][-1]
         query = torch.mm(lstm_out, self._attn_w)
@@ -227,14 +227,14 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         # compute the probabilty of each copying
         copy_prob = torch.sigmoid(self._copy(context, states[0][-1], lstm_in))  #self._copy(context, states[0][-1], lstm_in))
         # add the copy prob to existing vocab distribution
-        print(f"context ; {(len(context),context[0].size()) if type(context) is list else context.size()}")
-        print(f"states[0][-1] ; {(len(states[0][-1]),states[0][-1][0].size()) if type(states[0][-1]) is list else states[0][-1].size()}")
-        print(f"lstm_in ; {(len(lstm_in),lstm_in[0].size()) if type(lstm_in) is list else lstm_in.size()}")
-        print(f"score ; {(len(score),score[0].size()) if type(score) is list else score.size()}")
-        print(f"dec_out ; {(len(dec_out),dec_out[0].size()) if type(dec_out) is list else dec_out.size()}")
-        print(f"gen_prob ; {(len(gen_prob),gen_prob[0].size()) if type(gen_prob) is list else gen_prob.size()}")
-        print(f"copy_prob ; {(len(copy_prob),copy_prob[0].size()) if type(copy_prob) is list else copy_prob.size()}")
-        print(f"extend_src ; {(len(extend_src),extend_src[0].size()) if type(extend_src) is list else extend_src.size()}")
+        # print(f"context ; {(len(context),context[0].size()) if type(context) is list else context.size()}")
+        # print(f"states[0][-1] ; {(len(states[0][-1]),states[0][-1][0].size()) if type(states[0][-1]) is list else states[0][-1].size()}")
+        # print(f"lstm_in ; {(len(lstm_in),lstm_in[0].size()) if type(lstm_in) is list else lstm_in.size()}")
+        # print(f"score ; {(len(score),score[0].size()) if type(score) is list else score.size()}")
+        # print(f"dec_out ; {(len(dec_out),dec_out[0].size()) if type(dec_out) is list else dec_out.size()}")
+        # print(f"gen_prob ; {(len(gen_prob),gen_prob[0].size()) if type(gen_prob) is list else gen_prob.size()}")
+        # print(f"copy_prob ; {(len(copy_prob),copy_prob[0].size()) if type(copy_prob) is list else copy_prob.size()}")
+        # print(f"extend_src ; {(len(extend_src),extend_src[0].size()) if type(extend_src) is list else extend_src.size()}")
         """
         context ; torch.Size([32, 256])
         score ; torch.Size([32, 46])

@@ -18,7 +18,7 @@ class CnnDmDataset(Dataset):
 
     def __getitem__(self, i: int):
         #with open(join(self._data_path, '{}.json'.format(i))) as f:
-        with open(join(self._data_path, self._l_data[{}].format(i))) as f:
+        with open(join(self._data_path, self._l_data[i])) as f:
             js = json.loads(f.read())
         return js
 
@@ -28,6 +28,6 @@ def _count_data(path):
     matcher = re.compile(r'[0-9]+\.json')
     match = lambda name: bool(matcher.match(name))
     names = os.listdir(path)
-    l_data = list(filter(match, names)))
-    n_data = len(list(filter(match, names)))
+    l_data = list(filter(match, names))
+    n_data = len(l_data)
     return n_data, l_data
