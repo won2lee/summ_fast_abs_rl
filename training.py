@@ -27,28 +27,44 @@ def get_basic_grad_fn(net, clip_grad, max_grad=1e2):
     return f
 
 @curry
-def compute_loss(net, criterion, fw_args, loss_args):
-    loss = criterion(*((net(*fw_args),) + loss_args))
-    return loss
+def compute_loss(net, criterion, parallel,fw_args, loss_args):
+    if parallel:
+        logit, XO = net(*fw_args)
+        loss1 = criterion(*((logit[0],) +  loss_args))
+        loss2 = criterion(*((logit[1],) +  XO))
+        return (loss1, loss2)
+    else:
+        loss = criterion(*((net(*fw_args),) + loss_args))
+        return loss
 
 @curry
-def val_step(loss_step, fw_args, loss_args):
+def val_step(loss_step, parallel, fw_args, loss_args):
     loss = loss_step(fw_args, loss_args)
-    return loss.size(0), loss.sum().item()
+    if parallel:
+        (loss[0].size(0), loss[0].sum().item()), (loss[0].size(0), loss[0].sum().item())
+    else:
+        return loss.size(0), loss.sum().item()
 
 @curry
-def basic_validate(net, criterion, val_batches):
+def basic_validate(net, criterion, parallel, val_batches):
     print('running validation ... ', end='')
     net.eval()
     start = time()
     with torch.no_grad():
-        validate_fn = val_step(compute_loss(net, criterion))
-        n_data, tot_loss = reduce(
-            lambda a, b: (a[0]+b[0], a[1]+b[1]),
-            starmap(validate_fn, val_batches),
-            (0, 0)
-        )
-    val_loss = tot_loss / n_data
+        validate_fn = val_step(compute_loss(net, criterion, parallel),parallel)
+        if parallel:
+            lgt1,lgt2 = reduce(
+                lambda a, b: [(a[i][0]+b[i][0], a[i][1]+b[i][1]) for i in range(2)],
+                starmap(validate_fn, val_batches),
+                [(0, 0),(0, 0)]
+            )
+        else:   
+            n_data, tot_loss = reduce(
+                lambda a, b: (a[0]+b[0], a[1]+b[1]),
+                starmap(validate_fn, val_batches),
+                (0, 0)
+            )
+    val_loss = tot_loss / n_data if not parallel else lgt1[1]/lgt1[0] + lgt2[1]/lgt2[0]
     print(
         'validation finished in {}                                    '.format(
             timedelta(seconds=int(time()-start)))

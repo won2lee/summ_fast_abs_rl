@@ -159,7 +159,7 @@ def main(args):
         json.dump(meta, f, indent=4)
 
     # prepare trainer
-    val_fn = basic_validate(net, criterion)
+    val_fn = basic_validate(net, criterion, parallel)
     grad_fn = get_basic_grad_fn(net, args.clip)
     optimizer = optim.Adam(net.parameters(), **train_params['optimizer'][1])
     scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True,
