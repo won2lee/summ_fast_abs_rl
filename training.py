@@ -30,18 +30,19 @@ def get_basic_grad_fn(net, clip_grad, max_grad=1e2):
 def compute_loss(net, criterion, parallel,fw_args, loss_args):
     if parallel:
         logit, XO = net(*fw_args)
-        loss1 = criterion(*((logit[0],) +  loss_args))
-        loss2 = criterion(*((logit[1],) +  XO))
+        loss1, mask = criterion(*((logit[0],) +  loss_args))
+        #loss1, mask = criterion(*((logit[0],) +  loss_args))        
+        loss2, _ = criterion(*((logit[1],) +  (XO,)), mask=mask)
         return (loss1, loss2)
     else:
-        loss = criterion(*((net(*fw_args),) + loss_args))
+        loss, _ = criterion(*((net(*fw_args),) + loss_args))
         return loss
 
 @curry
 def val_step(loss_step, parallel, fw_args, loss_args):
     loss = loss_step(fw_args, loss_args)
     if parallel:
-        (loss[0].size(0), loss[0].sum().item()), (loss[0].size(0), loss[0].sum().item())
+        return (loss[0].size(0), loss[0].sum().item()), (loss[1].size(0), loss[1].sum().item())
     else:
         return loss.size(0), loss.sum().item()
 
@@ -52,6 +53,7 @@ def basic_validate(net, criterion, parallel, val_batches):
     start = time()
     with torch.no_grad():
         validate_fn = val_step(compute_loss(net, criterion, parallel),parallel)
+        # print(validate_fn(val_batches))
         if parallel:
             lgt1,lgt2 = reduce(
                 lambda a, b: [(a[i][0]+b[i][0], a[i][1]+b[i][1]) for i in range(2)],
@@ -73,7 +75,7 @@ def basic_validate(net, criterion, parallel, val_batches):
     return {'loss': val_loss}
 
 
-class BasicPipeline(object):
+class (BasicPipeline(object)):
     def __init__(self, name, net,
                  train_batcher, val_batcher, batch_size,
                  val_fn, criterion, optim, grad_fn=None, parallel=None ):

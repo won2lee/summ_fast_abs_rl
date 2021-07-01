@@ -30,7 +30,7 @@ from utils import (make_vocab, make_embedding,
 
 # NOTE: bucket size too large may sacrifice randomness,
 #       to low may increase # of PAD tokens
-BUCKET_SIZE = 64 #00
+BUCKET_SIZE = 6400 #00
 
 try:
     DATA_DIR = os.environ['DATA']
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch', type=int, action='store', default=32,
                         help='the training batch size')
     parser.add_argument(
-        '--ckpt_freq', type=int, action='store', default=3000,
+        '--ckpt_freq', type=int, action='store', default=300,
         help='number of update steps for checkpoint and validation'
     )
     parser.add_argument('--patience', type=int, action='store', default=5,
