@@ -5,7 +5,7 @@ from torch.nn import init
 
 from .util import reorder_sequence, reorder_lstm_states
 
-import model.summ as summ
+#from .summ import Seq2SeqSumm
 
 #####################################################
 #if parallel => tokenize 단계에서 반영 
@@ -177,7 +177,7 @@ def lstm_encoder(sequence, lstm,
     # parallel(emb_sequence, sequence)
     # parallel = False
     if parallel:
-        emb_sequence, seq_lens = summ.Seq2SeqSumm.parallel_encode(sequence,seq_lens, embedding, sub_module)
+        emb_sequence, seq_lens = model.summ.Seq2SeqSumm.parallel_encode(sequence,seq_lens, embedding, sub_module)
     else:
         emb_sequence = (embedding(sequence) if embedding is not None else sequence)
         emb_sequence = emb_sequence.transpose(0, 1)
