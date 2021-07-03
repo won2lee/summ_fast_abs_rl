@@ -35,7 +35,7 @@ def compute_loss(net, criterion, parallel,fw_args, loss_args):
         loss2, _ = criterion(*((logit[1],) +  (XO,)), mask=mask)
         return (loss1, loss2)
     else:
-        loss, _ = criterion(*((net(*fw_args),) + loss_args))
+        loss, _ = criterion(*((net(*fw_args)[0],) + loss_args))
         return loss
 
 @curry
@@ -138,7 +138,9 @@ class BasicPipeline(object):
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )
-            loss = self._criterion(*loss_args).mean()
+            loss = self._criterion(*loss_args)[0].mean()
+            if self.count%50==0:
+                print(f"loss : {loss.mean()}")
 
         loss.backward()
         #print(f"loss :{loss}")

@@ -60,7 +60,7 @@ class LSTMEncoder(nn.Module):
         size = (self._init_h.size(0), input_.size(0), self._init_h.size(1))
         init_states = (self._init_h.unsqueeze(1).expand(*size),
                        self._init_c.unsqueeze(1).expand(*size))
-        lstm_out, _ = lstm_encoder(
+        lstm_out, _, _ = lstm_encoder(
             input_, self._lstm, in_lens, init_states)
         return lstm_out.transpose(0, 1)
 
@@ -269,7 +269,7 @@ class PtrExtractSumm(nn.Module):
         self._sent_enc = ConvSentEncoder(
             vocab_size, emb_dim, conv_hidden, dropout, parallel=parallel)
         self._art_enc = LSTMEncoder(
-            3*conv_hidden, lstm_hidden, lstm_layer,
+            5*conv_hidden if parallel else 3*conv_hidden, lstm_hidden, lstm_layer,
             dropout=dropout, bidirectional=bidirectional
         )
         enc_out_dim = lstm_hidden * (2 if bidirectional else 1)

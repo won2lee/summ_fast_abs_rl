@@ -27,6 +27,10 @@ from data.batcher import convert_batch_extract_ff, batchify_fn_extract_ff
 from data.batcher import convert_batch_extract_ptr, batchify_fn_extract_ptr
 from data.batcher import BucketedGenerater
 
+from utils import (make_vocab, make_embedding, 
+                   make_embedding_from_pretrained, 
+                   apply_sub_module_weight_from_pretrained)
+
 
 BUCKET_SIZE = 6400
 
@@ -214,7 +218,7 @@ if __name__ == '__main__':
                         help='the dimension of word embedding')
     parser.add_argument('--w2v', action='store',
                         help='use pretrained word2vec embedding')
-    parser.add_argument('--conv_hidden', type=int, action='store', default=100,
+    parser.add_argument('--conv_hidden', type=int, action='store', default=150,
                         help='the number of hidden units of Conv')
     parser.add_argument('--lstm_hidden', type=int, action='store', default=256,
                         help='the number of hidden units of lSTM')
