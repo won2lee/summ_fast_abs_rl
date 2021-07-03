@@ -14,7 +14,8 @@ from torch.nn.utils.rnn import pad_sequence #,pad_packed_sequence, pack_padded_s
 INIT = 1e-2
 
 
-class Seq2SeqSumm(nn.Module):
+class 
+Seq2SeqSumm(nn.Module):
     def __init__(self, vocab_size, emb_dim,
                  n_hidden, bidirectional, n_layer, parallel, dropout=0.0):
         super().__init__()

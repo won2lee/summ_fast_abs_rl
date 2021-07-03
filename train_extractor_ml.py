@@ -81,7 +81,7 @@ def build_batchers(net_type, word2id, cuda, debug):
 
 
 def configure_net(net_type, vocab_size, emb_dim, conv_hidden,
-                  lstm_hidden, lstm_layer, bidirectional):
+                  lstm_hidden, lstm_layer, bidirectional, parallel):
     assert net_type in ['ff', 'rnn']
     net_args = {}
     net_args['vocab_size']    = vocab_size
@@ -92,7 +92,7 @@ def configure_net(net_type, vocab_size, emb_dim, conv_hidden,
     net_args['bidirectional'] = bidirectional
 
     net = (ExtractSumm(**net_args) if net_type == 'ff'
-           else PtrExtractSumm(**net_args))
+           else PtrExtractSumm(**net_args, parallel=parallel))
     return net, net_args
 
 
@@ -126,6 +126,7 @@ def main(args):
     # batcher
     with open(join(DATA_DIR, 'vocab_cnt.pkl'), 'rb') as f:
         wc = pkl.load(f, encoding="bytes") 
+    parallel = args.parallel
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(args.net_type, word2id,
                                                 args.cuda, args.debug)
@@ -133,13 +134,31 @@ def main(args):
     # make net
     net, net_args = configure_net(args.net_type,
                                   len(word2id), args.emb_dim, args.conv_hidden,
-                                  args.lstm_hidden, args.lstm_layer, args.bi)
+                                  args.lstm_hidden, args.lstm_layer, args.bi, parallel)
+    parallel = False
+    """
     if args.w2v:
         # NOTE: the pretrained embedding having the same dimension
         #       as args.emb_dim should already be trained
         embedding, _ = make_embedding(
             {i: w for w, i in word2id.items()}, args.w2v)
         net.set_embedding(embedding)
+    """
+    if args.w2v or args.pretrained:
+        if args.w2v:
+            # NOTE: the pretrained embedding having the same dimension
+            #       as args.emb_dim should already be trained
+            embedding, _ = make_embedding(
+                {i: w for w, i in word2id.items()}, args.w2v)
+        else:
+            pre_trained = torch.load(args.pretrained)
+            embedding, _ = make_embedding_from_pretrained(
+                {i: w for w, i in word2id.items()}, pre_trained)
+            if parallel:
+                net._sent_enc = apply_sub_module_weight_from_pretrained(net._sent_enc,pre_trained, extr=True)
+
+        net.set_embedding(embedding)
+
 
     # configure training setting
     criterion, train_params = configure_training(
@@ -159,7 +178,8 @@ def main(args):
         json.dump(meta, f, indent=4)
 
     # prepare trainer
-    val_fn = basic_validate(net, criterion)
+
+    val_fn = basic_validate(net, criterion, parallel)
     grad_fn = get_basic_grad_fn(net, args.clip)
     optimizer = optim.Adam(net.parameters(), **train_params['optimizer'][1])
     scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True,

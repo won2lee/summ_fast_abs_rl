@@ -15,13 +15,19 @@ class ConvSentEncoder(nn.Module):
     Convolutional word-level sentence encoder
     w/ max-over-time pooling, [3, 4, 5] kernel sizes, ReLU activation
     """
-    def __init__(self, vocab_size, emb_dim, n_hidden, dropout):
+    def __init__(self, vocab_size, emb_dim, n_hidden, dropout, parallel=False):
         super().__init__()
         self._embedding = nn.Embedding(vocab_size, emb_dim, padding_idx=0)
         self._convs = nn.ModuleList([nn.Conv1d(emb_dim, n_hidden, i)
-                                     for i in range(3, 6)])
+                                     for i in range(3, 8 if parallel else 6)])
         self._dropout = dropout
         self._grad_handle = None
+        # self.parallel = parallel
+        # if self.parallel:
+        #     self.sub_coder= nn.LSTM(emb_dim, n_hidden)  #(embed_size, self.hidden_size)
+        #     self.sub_gate = nn.Linear(emb_dim, n_hidden, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+        #     self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
+        #     self.sub_dropout = nn.Dropout(p=0.2)
 
     def forward(self, input_):
         emb_input = self._embedding(input_)
@@ -258,10 +264,10 @@ class PtrExtractSumm(nn.Module):
     """ rnn-ext"""
     def __init__(self, emb_dim, vocab_size, conv_hidden,
                  lstm_hidden, lstm_layer, bidirectional,
-                 n_hop=1, dropout=0.0):
+                 n_hop=1, dropout=0.0, parallel=False):
         super().__init__()
         self._sent_enc = ConvSentEncoder(
-            vocab_size, emb_dim, conv_hidden, dropout)
+            vocab_size, emb_dim, conv_hidden, dropout, parallel=parallel)
         self._art_enc = LSTMEncoder(
             3*conv_hidden, lstm_hidden, lstm_layer,
             dropout=dropout, bidirectional=bidirectional
@@ -280,7 +286,7 @@ class PtrExtractSumm(nn.Module):
             enc_out, dim=1, index=target.unsqueeze(2).expand(bs, nt, d)
         )
         output = self._extractor(enc_out, sent_nums, ptr_in)
-        return output
+        return output, None
 
     def extract(self, article_sents, sent_nums=None, k=4):
         enc_out = self._encode(article_sents, sent_nums)

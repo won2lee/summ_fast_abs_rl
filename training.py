@@ -75,10 +75,10 @@ def basic_validate(net, criterion, parallel, val_batches):
     return {'loss': val_loss}
 
 
-class (BasicPipeline(object)):
+class BasicPipeline(object):
     def __init__(self, name, net,
                  train_batcher, val_batcher, batch_size,
-                 val_fn, criterion, optim, grad_fn=None, parallel=None ):
+                 val_fn, criterion, optim, grad_fn=None, parallel=False ):
         self.name = name
         self._net = net
         self._train_batcher = train_batcher

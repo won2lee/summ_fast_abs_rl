@@ -92,7 +92,7 @@ def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
                 oovs.append(i)
     return embedding, oovs 
 
-def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en'):
+def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en', extr=False):
     import re
     #keys() = {'en':pre_trained['en'].keys(), 'ko':pre_trained['ko'].keys()}
     p = re.compile("_(en|ko)_")
@@ -104,5 +104,5 @@ def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en'):
 
     with torch.no_grad():
         for k,v in m_keys.items():
-            globals()['net.'+k] = pre_trained[lang][v]
+            globals()['net._sent_enc.'+k if extr else 'net.'+k] = pre_trained[lang][v]
     return net
