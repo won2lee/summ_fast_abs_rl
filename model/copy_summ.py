@@ -79,13 +79,36 @@ class CopySumm(Seq2SeqSumm):
         outputs = []
         attns = []
         states = init_dec_states
+
+        
+        _,sb_init = self.parallel_beam_code([[4,5,6]])
+        init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((1,batch_size,sb_init.size()[-1])) 
+            for i in range(2)])  # 초기 init_vector를 4('_')를 적용했을 떄를 값으로 
+
         for i in range(max_len):
-            tok, states, attn_score = self._decoder.decode_step(
-                tok, states, attention)
-            attns.append(attn_score)
-            outputs.append(tok[:, 0].clone())
-            tok.masked_fill_(tok >= vsize, unk)
-        return outputs, attns
+            if self.parallel:
+                tok, init_vecs = self.parallel_beam_code(self, tok, init_vecs): #slang_is_tlang=False):
+                toks, states, attn_score = self._decoder.decode_step(
+                    tok, states, attention)
+                tok, xo = toks
+
+                idx, init_h, init_c  = unzip([(i, sb_init[0][:,x].unsqueeze(1),sb_init[1][:,x].unsqueeze(1))
+                                     for i,x in enumerate(xo) if x not 0])
+                init_vecs[0][:,torch.tensor(idx)] = torch.cat(init_h,1)
+                init_vecs[1][:,torch.tensor(idx)] = torch.cat(init_c,1))  #xo 값 에 따라 h,c update
+
+                attns.append(attn_score)
+                xos.append(xo)
+                outputs.append(tok[:, 0].clone())
+                tok.masked_fill_(tok >= vsize, unk)
+            else:
+                tok, states, attn_score = self._decoder.decode_step(
+                    tok, states, attention)
+                attns.append(attn_score)
+                outputs.append(tok[:, 0].clone())
+                tok.masked_fill_(tok >= vsize, unk)
+
+        return (outputs, xos if self.parallel else None), attns
 
     def decode(self, article, extend_art, extend_vsize, go, eos, unk, max_len):
         vsize = self._embedding.num_embeddings

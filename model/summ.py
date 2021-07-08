@@ -226,6 +226,23 @@ class Seq2SeqSumm(nn.Module):
             
             return emb_sequence, seq_lens
 
+    def parallel_beam_code(self, X, init_vecs= None): #slang_is_tlang=False):
+
+        if type(X) is not torch.Tensor:
+            X = torch.tensor(X)
+        X_embed = self._embedding(X).unsqueeze(0)
+
+        #sub_coder, sub_gate,sub_projection,sub_dropout = sub_module
+
+        out,(h,c) = self.sub_coder(X_embed, init_vecs)
+        #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
+        X_proj = self.sub_projection(X_embed)
+        X_gate = torch.sigmoid(self.sub_gate(X_embed))
+
+        X_way = (X_gate * X_proj + (1-X_gate) * out).squeeze(0) #X_proj)  
+
+        return X_way, (h,c)
+
 
 class AttentionalLSTMDecoder(object):
     def __init__(self, embedding, lstm, attn_w, projection, parallel=False, sub_module=None, target_ox=None, copy_proj=None):
@@ -301,5 +318,8 @@ class AttentionalLSTMDecoder(object):
 
     def decode_step(self, tok, states, attention):
         logit, states, score = self._step(tok, states, attention)
-        out = torch.max(logit, dim=1, keepdim=True)[1]
+        if self.parallel:
+            out = [torch.max(logit[i], dim=1, keepdim=True)[1] for i in range(2)]
+        else:
+            out = torch.max(logit, dim=1, keepdim=True)[1]
         return out, states, score

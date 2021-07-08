@@ -101,11 +101,11 @@ def configure_training(opt, lr, clip_grad, lr_decay, batch_size,
 
     return train_params
 
-def build_batchers(batch_size):
+def build_batchers(batch_size, parallel):
     def coll(batch):
         art_batch, abs_batch = unzip(batch)
-        art_sents = list(filter(bool, map(tokenize(None), art_batch)))
-        abs_sents = list(filter(bool, map(tokenize(None), abs_batch)))
+        art_sents = list(filter(bool, map(tokenize(None, parallel=parallel), art_batch)))
+        abs_sents = list(filter(bool, map(tokenize(None, parallel=parallel), abs_batch)))
         return art_sents, abs_sents
     loader = DataLoader(
         RLDataset('train'), batch_size=batch_size,

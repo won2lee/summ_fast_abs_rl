@@ -4,7 +4,7 @@ import re
 import os
 from os.path import join
 import pickle as pkl
-from itertools import starmap
+from itertools import starmap, chain
 
 from cytoolz import curry
 
@@ -97,7 +97,7 @@ class Abstractor(object):
         dec_sents = []
         for i, raw_words in enumerate(raw_article_sents):
             dec = []
-            for id_, attn in zip(decs, attns):
+            for id_, attn in zip(decs[0], attns):
                 if id_[i] == END:
                     break
                 elif id_[i] == UNK:
@@ -105,7 +105,11 @@ class Abstractor(object):
                 else:
                     dec.append(id2word[id_[i].item()])
             dec_sents.append(dec)
-        return dec_sents
+
+        if parallel: # 문장을 biden said => ^ biden _ said 로 변환 
+            dec_sents = ([chain(*[[xo,dec_sents[i][j]] if xo in [1,2,3] else [dec_sents[i][j]] 
+                for j,xo in enumerate(xo_s)])  for i, xo_s in enumerate(decs[1])])
+        return dec_sents #xo 
 
 
 class BeamAbstractor(Abstractor):
