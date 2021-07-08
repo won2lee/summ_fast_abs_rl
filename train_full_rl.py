@@ -220,6 +220,8 @@ if __name__ == '__main__':
     )
     parser.add_argument('--patience', type=int, action='store', default=3,
                         help='patience for early stopping')
+    parser.add_argument('--parallel', action='store_true',
+                        help='enable sub lstm')
     parser.add_argument('--no-cuda', action='store_true',
                         help='disable GPU training')
     args = parser.parse_args()

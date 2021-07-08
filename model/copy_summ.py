@@ -87,15 +87,15 @@ class CopySumm(Seq2SeqSumm):
 
         for i in range(max_len):
             if self.parallel:
-                tok, init_vecs = self.parallel_beam_code(self, tok, init_vecs): #slang_is_tlang=False):
+                tok, init_vecs = self.parallel_beam_code(self, tok, init_vecs) #slang_is_tlang=False):
                 toks, states, attn_score = self._decoder.decode_step(
                     tok, states, attention)
                 tok, xo = toks
 
                 idx, init_h, init_c  = unzip([(i, sb_init[0][:,x].unsqueeze(1),sb_init[1][:,x].unsqueeze(1))
-                                     for i,x in enumerate(xo) if x not 0])
+                                     for i,x in enumerate(xo) if x != 0])
                 init_vecs[0][:,torch.tensor(idx)] = torch.cat(init_h,1)
-                init_vecs[1][:,torch.tensor(idx)] = torch.cat(init_c,1))  #xo 값 에 따라 h,c update
+                init_vecs[1][:,torch.tensor(idx)] = torch.cat(init_c,1)  #xo 값 에 따라 h,c update
 
                 attns.append(attn_score)
                 xos.append(xo)
