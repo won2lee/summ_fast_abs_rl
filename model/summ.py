@@ -94,7 +94,10 @@ class Seq2SeqSumm(nn.Module):
             article, self._enc_lstm, art_lens,
             init_enc_states, self._embedding,
             parallel=self.parallel, 
-            sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout) if self.parallel else None
+            sub_module = ((self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout) 
+                                if self.parallel else None),
+            paral_enc = Seq2SeqSumm.parallel_encode if self.parallel else None
+
         )   ################################################################# art_lens 추가 
         if self._enc_lstm.bidirectional:
             h, c = final_states

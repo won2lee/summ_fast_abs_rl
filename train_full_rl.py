@@ -124,6 +124,7 @@ def train(args):
     if not exists(args.path):
         os.makedirs(args.path)
 
+    parallel = args.parallel
     # make net
     agent, agent_vocab, abstractor, net_args = configure_net(
         args.abs_dir, args.ext_dir, args.cuda)
@@ -134,7 +135,7 @@ def train(args):
         'adam', args.lr, args.clip, args.decay, args.batch,
         args.gamma, args.reward, args.stop, 'rouge-1'
     )
-    train_batcher, val_batcher = build_batchers(args.batch)
+    train_batcher, val_batcher = build_batchers(args.batch, parallel)
     # TODO different reward
     reward_fn = compute_rouge_l
     stop_reward_fn = compute_rouge_n(n=1)
