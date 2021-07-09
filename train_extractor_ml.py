@@ -94,6 +94,7 @@ def configure_net(net_type, vocab_size, emb_dim, conv_hidden,
     net_args['lstm_hidden']   = lstm_hidden
     net_args['lstm_layer']    = lstm_layer
     net_args['bidirectional'] = bidirectional
+    net_args['parallel'] = parallel
 
     net = (ExtractSumm(**net_args) if net_type == 'ff'
            else PtrExtractSumm(**net_args, parallel=parallel))
