@@ -91,6 +91,7 @@ class Abstractor(object):
     def __call__(self, raw_article_sents):
         self._net.eval()
         dec_args, id2word = self._prepro(raw_article_sents)
+        print(f"device : {self._device}")
         decs, attns = self._net.batch_decode(*dec_args).to(self._device)
         print(f"decs : {decs.is_cuda}")
         print(f"attns : {attns.is_cuda}")

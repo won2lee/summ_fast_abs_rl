@@ -81,7 +81,7 @@ class CopySumm(Seq2SeqSumm):
         states = init_dec_states
 
         
-        _,sb_init = self.parallel_beam_code([[4,5,6]])
+        _,sb_init = self.parallel_beam_code([[4,5,6]], device = article.device)
         print(f"sb_init : {sb_init.is_cuda}")
         init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((1,batch_size,sb_init.size()[-1])) 
             for i in range(2)])  # 초기 init_vector를 4('_')를 적용했을 떄를 값으로 
