@@ -97,7 +97,7 @@ def configure_net(net_type, vocab_size, emb_dim, conv_hidden,
     net_args['parallel'] = parallel
 
     net = (ExtractSumm(**net_args) if net_type == 'ff'
-           else PtrExtractSumm(**net_args, parallel=parallel))
+           else PtrExtractSumm(**net_args))
     return net, net_args
 
 
