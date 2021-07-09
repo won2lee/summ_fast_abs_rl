@@ -91,7 +91,9 @@ class Abstractor(object):
     def __call__(self, raw_article_sents):
         self._net.eval()
         dec_args, id2word = self._prepro(raw_article_sents)
-        decs, attns = self._net.batch_decode(*dec_args)
+        decs, attns = self._net.batch_decode(*dec_args).to(self._device)
+        print(f"decs : {decs.is_cuda}")
+        print(f"attns : {attns.is_cuda}")
         def argmax(arr, keys):
             return arr[max(range(len(arr)), key=lambda i: keys[i].item())]
         dec_sents = []

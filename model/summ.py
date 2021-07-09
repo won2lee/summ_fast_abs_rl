@@ -189,7 +189,7 @@ class Seq2SeqSumm(nn.Module):
         # print(f"X[:4]: {[x.size() for x in X[:4]]}")    
         # print(f"pad_seqed_size: {pad_sequence(X).size()}")
         #X = pad_sequence(X)  #.squeeze(-1)
-        X = pad_sequence(X) 
+        X = pad_sequence(X).to(source.device) 
         
 
         #if lang =='en':
@@ -233,7 +233,8 @@ class Seq2SeqSumm(nn.Module):
 
         if type(X) is not torch.Tensor:
             X = torch.tensor(X)
-        X_embed = self._embedding(X).unsqueeze(0).cuda()
+        X_embed = self._embedding(X).unsqueeze(0)
+        print(f"X_embed on cuda : {X_embed.is_cuda}")
 
         #sub_coder, sub_gate,sub_projection,sub_dropout = sub_module
 
