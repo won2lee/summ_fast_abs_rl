@@ -233,7 +233,7 @@ class Seq2SeqSumm(nn.Module):
 
         if type(X) is not torch.Tensor:
             X = torch.tensor(X)
-        X_embed = self._embedding(X).unsqueeze(0)
+        X_embed = self._embedding(X).unsqueeze(0).cuda()
 
         #sub_coder, sub_gate,sub_projection,sub_dropout = sub_module
 

@@ -72,7 +72,7 @@ class CopySumm(Seq2SeqSumm):
         """ greedy decode support batching"""
         batch_size = len(art_lens)
         vsize = self._embedding.num_embeddings
-        attention, init_dec_states = self.encode(article, art_lens)
+        attention, init_dec_states, _ = self.encode(article, art_lens)
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
         attention = (attention, mask, extend_art, extend_vsize)
         tok = torch.LongTensor([go]*batch_size).to(article.device)
