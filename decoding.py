@@ -97,9 +97,9 @@ class Abstractor(object):
         self._net.eval()
         dec_args, id2word = self._prepro(raw_article_sents)
         print(f"device : {self._device}")
-        decs, attns = self._net.batch_decode(*dec_args).to(self._device)
-        print(f"decs : {decs.is_cuda}")
-        print(f"attns : {attns.is_cuda}")
+        decs, attns = self._net.batch_decode(*dec_args)  #.to(self._device)
+        #print(f"decs : {decs.is_cuda}")
+        #print(f"attns : {attns.is_cuda}")
         def argmax(arr, keys):
             return arr[max(range(len(arr)), key=lambda i: keys[i].item())]
         dec_sents = []
@@ -115,8 +115,14 @@ class Abstractor(object):
             dec_sents.append(dec)
 
         if self.parallel: # 문장을 biden said => ^ biden _ said 로 변환 
-            dec_sents = ([chain(*[[xo,dec_sents[i][j]] if xo in [1,2,3] else [dec_sents[i][j]] 
-                for j,xo in enumerate(xo_s)])  for i, xo_s in enumerate(decs[1])])
+            xos = decs[1]
+            dec_sents = ([chain(*[[id2word[xos[j,i]+3], w] if xos[j,i] in [1,2,3] else [w] 
+                            for j,w in enumerate(dec)]) 
+                            for i,dec in enumerate(dec_sents)])
+ 
+            # dec_sents = ([chain(*[[xo,dec_sents[i][j]] if xo in [1,2,3] else [dec_sents[i][j]] 
+            #     for j,xo in enumerate(xo_s)])  for i, xo_s in enumerate(decs[1])])
+
         return dec_sents #xo 
 
 

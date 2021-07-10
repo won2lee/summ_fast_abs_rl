@@ -75,7 +75,7 @@ class Seq2SeqSumm(nn.Module):
 
 
     def forward(self, article, art_lens, abstract):
-        attention, init_dec_states = self.encode(article, art_lens)
+        attention, init_dec_states, art_lens = self.encode(article, art_lens)
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
         logit = self._decoder((attention, mask), init_dec_states, abstract)
         return logit

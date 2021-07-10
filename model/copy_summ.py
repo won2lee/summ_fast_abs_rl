@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import init
 from torch.nn import functional as F
+from toolz.sandbox import unzip
 
 from .attention import step_attention
 from .util import len_mask
@@ -73,12 +74,13 @@ class CopySumm(Seq2SeqSumm):
         batch_size = len(art_lens)
         print(f"article len : {len(article)}, {len(article[0])}")
         vsize = self._embedding.num_embeddings
-        attention, init_dec_states, _ = self.encode(article, art_lens)
+        attention, init_dec_states, art_lens = self.encode(article, art_lens)
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
         attention = (attention, mask, extend_art, extend_vsize)
         tok = torch.LongTensor([go]*batch_size).to(article.device)
         outputs = []
         attns = []
+        xos = []
         states = init_dec_states
 
         #  tok, init_vecs = self.parallel_beam_code(self, [tok], init_vecs) #slang_is_tlang=False):
@@ -98,17 +100,22 @@ class CopySumm(Seq2SeqSumm):
         for i in range(max_len):
             if self.parallel:
                 print(f"i : {i}, tok.size : {tok.size()}")
-                tok, init_vecs = self.parallel_beam_code(tok, init_vecs=init_vecs, device = article.device) #slang_is_tlang=False):
+                tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) #slang_is_tlang=False):
                 print(f"i : {i}, tok.size : {tok.size()}")
 
                 toks, states, attn_score = self._decoder.decode_step(
                     tok, states, attention)
                 tok, xo = toks
 
-                idx, init_h, init_c  = unzip([(i, sb_init[0][:,x].unsqueeze(1),sb_init[1][:,x].unsqueeze(1))
-                                     for i,x in enumerate(xo) if x != 0])
-                init_vecs[0][:,torch.tensor(idx)] = torch.cat(init_h,1)
-                init_vecs[1][:,torch.tensor(idx)] = torch.cat(init_c,1)  #xo 값 에 따라 h,c update
+                idx, init_h, init_c  = ([list(k) for k in 
+                                        list(unzip([(i, sb_init[0][:,x],sb_init[1][:,x])
+                                        for i,x in enumerate(xo) if x != 0]))])
+                print(f"init_h[0] : {init_h[0].size()}") 
+                print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
+                
+                idx = torch.LongTensor(idx)
+                init_vecs[0][:,idx] = torch.cat(init_h,1)
+                init_vecs[1][:,idx] = torch.cat(init_c,1)  #xo 값 에 따라 h,c update
 
                 attns.append(attn_score)
                 xos.append(xo)
