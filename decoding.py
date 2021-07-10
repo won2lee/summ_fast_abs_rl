@@ -84,6 +84,7 @@ class Abstractor(object):
         extend_arts = conver2id(UNK, ext_word2id, raw_article_sents)
 
         if self.parallel:
+            raw_arts = [[w for w in src if w not in ['_','^','`']] for src in raw_article_sents]
             extend_arts = [[w for w in src if w not in [4,5,6]] for src in extend_arts]
 
         extend_art = pad_batch_tensorize(extend_arts, PAD, cuda=False
@@ -91,19 +92,29 @@ class Abstractor(object):
         extend_vsize = len(ext_word2id)
         dec_args = (article, art_lens, extend_art, extend_vsize,
                     START, END, UNK, self._max_len)
-        return dec_args, ext_id2word
+        return dec_args, ext_id2word, raw_arts if self.parallel else raw_article_sents 
 
     def __call__(self, raw_article_sents):
         self._net.eval()
-        dec_args, id2word = self._prepro(raw_article_sents)
+        dec_args, id2word, raw_arts = self._prepro(raw_article_sents)
         print(f"device : {self._device}")
         decs, attns = self._net.batch_decode(*dec_args)  #.to(self._device)
+
+        # attn_b = []
+        # for i in range(len(attns[0]):
+        #     atti = []
+        #     for x in attns:
+        #        atti.append((x[i].items(), key = lambda x: x[0], reverse=True)[0][0])
+        #     attn_b.append(atti)
+
+
+
         #print(f"decs : {decs.is_cuda}")
         #print(f"attns : {attns.is_cuda}")
         def argmax(arr, keys):
             return arr[max(range(len(arr)), key=lambda i: keys[i].item())]
         dec_sents = []
-        for i, raw_words in enumerate(raw_article_sents):
+        for i, raw_words in enumerate(raw_arts): #raw_article_sents):
             dec = []
             for id_, attn in zip(decs[0], attns):
                 if id_[i] == END:
