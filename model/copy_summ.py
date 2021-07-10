@@ -71,6 +71,7 @@ class CopySumm(Seq2SeqSumm):
                      go, eos, unk, max_len):
         """ greedy decode support batching"""
         batch_size = len(art_lens)
+        print(f"article len : {len(article)}, {len(article[0])}")
         vsize = self._embedding.num_embeddings
         attention, init_dec_states, _ = self.encode(article, art_lens)
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
@@ -86,7 +87,7 @@ class CopySumm(Seq2SeqSumm):
         # TypeError: new(): data must be a sequence (got CopySumm)n]
       
         xx,sb_init = self.parallel_beam_code([[4,5,6]], device = article.device)
-        print(f"sb_init : {sb_init.is_cuda}")
+        print(f"sb_init : {sb_init[0].is_cuda}")
         print(f"xx.size : {xx.size()}, sb_init[0].size : {sb_init[0].size()}")
 
         init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((1,batch_size,sb_init[0].size()[-1])) 
@@ -97,7 +98,7 @@ class CopySumm(Seq2SeqSumm):
         for i in range(max_len):
             if self.parallel:
                 print(f"i : {i}, tok.size : {tok.size()}")
-                tok, init_vecs = self.parallel_beam_code(self, tok, init_vecs) #slang_is_tlang=False):
+                tok, init_vecs = self.parallel_beam_code(tok, init_vecs=init_vecs, device = article.device) #slang_is_tlang=False):
                 print(f"i : {i}, tok.size : {tok.size()}")
 
                 toks, states, attn_score = self._decoder.decode_step(
@@ -241,7 +242,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         #     [self._embedding(tok).squeeze(1), prev_out],
         #     dim=1
         # )
-        # print(f"tok.size() : {tok.size()}, prev_out.size :{prev_out.size()}")
+        print(f"tok.size() : {tok.size()}, prev_out.size :{prev_out.size()}")
         lstm_in = torch.cat(
             [tok.squeeze(1), prev_out],
             dim=1

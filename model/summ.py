@@ -233,13 +233,16 @@ class Seq2SeqSumm(nn.Module):
 
         if type(X) is not torch.Tensor:
             X = torch.LongTensor(X)
+
+
         X = X.to(device)
-        X_embed = self._embedding(X)  #.unsqueeze(0)
-        print(f"X_embed on cuda : {X_embed.is_cuda}")
-
-        #sub_coder, sub_gate,sub_projection,sub_dropout = sub_module
-
-        out,(h,c) = self.sub_coder(X_embed, init_vecs)
+        X_embed = self._embedding(X) #.contiguous()  #.unsqueeze(0)
+        print(f"X_embed on cuda : {X_embed.is_cuda}, X_embed :{X_embed.size()}")
+        if init_vecs:
+            init_vecs = (init_vecs[0].contiguous(), init_vecs[1].contiguous())
+            out,(h,c) = self.sub_coder(X_embed, init_vecs)
+        else:
+            out,(h,c) = self.sub_coder(X_embed)
         #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
         X_proj = self.sub_projection(X_embed)
         X_gate = torch.sigmoid(self.sub_gate(X_embed))
