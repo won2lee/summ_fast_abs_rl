@@ -21,11 +21,14 @@ def attention_aggregate(value, score):
 
 def step_attention(query, key, value, mem_mask=None):
     """ query[(Bs), B, D], key[B, T, D], value[B, T, D]"""
+    print(f"key :{key.size()}, query :{query.size()}")
     score = dot_attention_score(key, query.unsqueeze(-2))
     print(f"score :{score.size()}, mem_mask :{mem_mask.size()}")
     if mem_mask is None:
         norm_score = F.softmax(score, dim=-1)
     else:
+        # if mem_mask.size()[-1] > score.size()[-1]:
+        #     mem_mask = mem_mask[:,:,:score.size()[-1]]
         norm_score = prob_normalize(score, mem_mask)
     output = attention_aggregate(value, norm_score)
     return output.squeeze(-2), norm_score.squeeze(-2)

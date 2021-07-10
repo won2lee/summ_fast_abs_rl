@@ -67,6 +67,7 @@ class Abstractor(object):
         self._word2id = word2id
         self._id2word = {i: w for w, i in word2id.items()}
         self._max_len = max_len
+        self.parallel = abs_args['parallel']
 
     def _prepro(self, raw_article_sents):
         ext_word2id = dict(self._word2id)
@@ -81,6 +82,10 @@ class Abstractor(object):
         article = pad_batch_tensorize(articles, PAD, cuda=False
                                      ).to(self._device)
         extend_arts = conver2id(UNK, ext_word2id, raw_article_sents)
+
+        if self.parallel:
+            extend_arts = [[w for w in src if w not in [4,5,6]] for src in extend_arts]
+
         extend_art = pad_batch_tensorize(extend_arts, PAD, cuda=False
                                         ).to(self._device)
         extend_vsize = len(ext_word2id)
@@ -109,7 +114,7 @@ class Abstractor(object):
                     dec.append(id2word[id_[i].item()])
             dec_sents.append(dec)
 
-        if parallel: # 문장을 biden said => ^ biden _ said 로 변환 
+        if self.parallel: # 문장을 biden said => ^ biden _ said 로 변환 
             dec_sents = ([chain(*[[xo,dec_sents[i][j]] if xo in [1,2,3] else [dec_sents[i][j]] 
                 for j,xo in enumerate(xo_s)])  for i, xo_s in enumerate(decs[1])])
         return dec_sents #xo 

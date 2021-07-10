@@ -183,7 +183,7 @@ def lstm_encoder(sequence, lstm,
         emb_sequence = (embedding(sequence) if embedding is not None else sequence)
         emb_sequence = emb_sequence.transpose(0, 1)
 
-    art_lens = seq_lens # 바뀐 seq lens 를 전달하기 위해
+    #art_lens = seq_lens # 바뀐 seq lens 를 전달하기 위해
     ##########################################################
     if lstm.batch_first:
         emb_sequence = emb_sequence.transpose(0, 1)
@@ -216,7 +216,7 @@ def lstm_encoder(sequence, lstm,
     else:
         lstm_out, final_states = lstm(emb_sequence, init_states)
 
-    return lstm_out, final_states, art_lens 
+    return lstm_out, final_states, seq_lens #art_lens 
 
 
 def init_lstm_states(lstm, batch_size, device):
