@@ -232,9 +232,9 @@ class Seq2SeqSumm(nn.Module):
     def parallel_beam_code(self, X, init_vecs= None, device = 'cuda'): #slang_is_tlang=False):
 
         if type(X) is not torch.Tensor:
-            X = torch.tensor(X)
+            X = torch.LongTensor(X)
         X = X.to(device)
-        X_embed = self._embedding(X).unsqueeze(0)
+        X_embed = self._embedding(X)  #.unsqueeze(0)
         print(f"X_embed on cuda : {X_embed.is_cuda}")
 
         #sub_coder, sub_gate,sub_projection,sub_dropout = sub_module

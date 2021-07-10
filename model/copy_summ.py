@@ -80,15 +80,26 @@ class CopySumm(Seq2SeqSumm):
         attns = []
         states = init_dec_states
 
-        
-        _,sb_init = self.parallel_beam_code([[4,5,6]], device = article.device)
+        #  tok, init_vecs = self.parallel_beam_code(self, [tok], init_vecs) #slang_is_tlang=False):
+        #   File "/content/fast_abs_rl/model/summ.py", line 235, in parallel_beam_code
+        #     X = torch.LongTensor(X)
+        # TypeError: new(): data must be a sequence (got CopySumm)n]
+      
+        xx,sb_init = self.parallel_beam_code([[4,5,6]], device = article.device)
         print(f"sb_init : {sb_init.is_cuda}")
-        init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((1,batch_size,sb_init.size()[-1])) 
+        print(f"xx.size : {xx.size()}, sb_init[0].size : {sb_init[0].size()}")
+
+        init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((1,batch_size,sb_init[0].size()[-1])) 
             for i in range(2)])  # 초기 init_vector를 4('_')를 적용했을 떄를 값으로 
+
+        print(f"init_vecs[0].size : {init_vecs[0].size()}")
 
         for i in range(max_len):
             if self.parallel:
+                print(f"i : {i}, tok.size : {tok.size()}")
                 tok, init_vecs = self.parallel_beam_code(self, tok, init_vecs) #slang_is_tlang=False):
+                print(f"i : {i}, tok.size : {tok.size()}")
+
                 toks, states, attn_score = self._decoder.decode_step(
                     tok, states, attention)
                 tok, xo = toks
