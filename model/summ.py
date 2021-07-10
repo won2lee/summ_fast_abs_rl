@@ -317,6 +317,7 @@ class AttentionalLSTMDecoder(object):
         lstm_out = states[0][-1]
         query = torch.mm(lstm_out, self._attn_w)
         attention, attn_mask = attention
+        print(f"attention:{attention.size()},  attn_mask :{attn_mask.size()}, query : {query.size()}")
         context, score = step_attention(
             query, attention, attention, attn_mask)
         dec_out = self._projection(torch.cat([lstm_out, context], dim=1))
