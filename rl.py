@@ -66,7 +66,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     rewards = []
     avg_reward = 0
     for inds, abss in zip(indices, abs_batch):
-        print(f"inds:{type(inds)}, abss:{type(abss)}")
+        # print(f"inds:{type(inds)}, abss:{type(abss)}")
         rs = ([reward_fn(summaries[i+j], abss[j])
               for j in range(min(len(inds)-1, len(abss)))]
               + [0 for _ in range(max(0, len(inds)-1-len(abss)))]

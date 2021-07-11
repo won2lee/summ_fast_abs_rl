@@ -72,7 +72,7 @@ class CopySumm(Seq2SeqSumm):
                      go, eos, unk, max_len):
         """ greedy decode support batching"""
         batch_size = len(art_lens)
-        print(f"article len : {len(article)}, {len(article[0])}")
+        #print(f"article len : {len(article)}, {len(article[0])}")
         vsize = self._embedding.num_embeddings
         attention, init_dec_states, art_lens = self.encode(article, art_lens)
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
