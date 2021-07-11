@@ -97,7 +97,7 @@ class Abstractor(object):
     def __call__(self, raw_article_sents):
         self._net.eval()
         dec_args, id2word, raw_arts = self._prepro(raw_article_sents)
-        print(f"device : {self._device}")
+        #print(f"device : {self._device}")
         decs, attns = self._net.batch_decode(*dec_args)  #.to(self._device)
 
         # attn_b = []
@@ -127,8 +127,9 @@ class Abstractor(object):
 
         if self.parallel: # 문장을 biden said => ^ biden _ said 로 변환 
             xos = decs[1]
-            dec_sents = ([chain(*[[id2word[xos[j,i]+3], w] if xos[j,i] in [1,2,3] else [w] 
-                            for j,w in enumerate(dec)]) 
+            #print(f"xos[i][j]:{xos[0][0]}")
+            dec_sents = ([list(chain(*[[id2word[xos[j][i].item()+3], w] if xos[j][i].item() in [1,2,3] else [w] 
+                            for j,w in enumerate(dec)])) 
                             for i,dec in enumerate(dec_sents)])
  
             # dec_sents = ([chain(*[[xo,dec_sents[i][j]] if xo in [1,2,3] else [dec_sents[i][j]] 

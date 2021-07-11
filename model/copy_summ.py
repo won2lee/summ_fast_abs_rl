@@ -89,19 +89,19 @@ class CopySumm(Seq2SeqSumm):
         # TypeError: new(): data must be a sequence (got CopySumm)n]
       
         xx,sb_init = self.parallel_beam_code([[4,5,6]], device = article.device)
-        print(f"sb_init : {sb_init[0].is_cuda}")
-        print(f"xx.size : {xx.size()}, sb_init[0].size : {sb_init[0].size()}")
+        # print(f"sb_init : {sb_init[0].is_cuda}")
+        # print(f"xx.size : {xx.size()}, sb_init[0].size : {sb_init[0].size()}")
 
         init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((1,batch_size,sb_init[0].size()[-1])) 
             for i in range(2)])  # 초기 init_vector를 4('_')를 적용했을 떄를 값으로 
 
-        print(f"init_vecs[0].size : {init_vecs[0].size()}")
+        # print(f"init_vecs[0].size : {init_vecs[0].size()}")
 
         for i in range(max_len):
             if self.parallel:
-                print(f"i : {i}, tok.size : {tok.size()}")
+                # print(f"i : {i}, tok.size : {tok.size()}")
                 tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) #slang_is_tlang=False):
-                print(f"i : {i}, tok.size : {tok.size()}")
+                # print(f"i : {i}, tok.size : {tok.size()}")
 
                 toks, states, attn_score = self._decoder.decode_step(
                     tok, states, attention)
@@ -110,8 +110,8 @@ class CopySumm(Seq2SeqSumm):
                 idx, init_h, init_c  = ([list(k) for k in 
                                         list(unzip([(i, sb_init[0][:,x],sb_init[1][:,x])
                                         for i,x in enumerate(xo) if x != 0]))])
-                print(f"init_h[0] : {init_h[0].size()}") 
-                print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
+                # print(f"init_h[0] : {init_h[0].size()}") 
+                # print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
                 
                 idx = torch.LongTensor(idx)
                 init_vecs[0][:,idx] = torch.cat(init_h,1)
@@ -249,7 +249,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         #     [self._embedding(tok).squeeze(1), prev_out],
         #     dim=1
         # )
-        print(f"tok.size() : {tok.size()}, prev_out.size :{prev_out.size()}")
+        # print(f"tok.size() : {tok.size()}, prev_out.size :{prev_out.size()}")
         lstm_in = torch.cat(
             [tok.squeeze(1), prev_out],
             dim=1
