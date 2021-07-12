@@ -31,6 +31,8 @@ def a2c_validate(agent, abstractor, loader):
                 ext_inds += [(len(ext_sents), len(indices)-1)]
                 ext_sents += [raw_arts[idx.item()]
                               for idx in indices if idx.item() < len(raw_arts)]
+            #print(f"first ext_sents: {ext_sents[0]}")
+            #print(f"last ext_sents: {ext_sents[-1]}")
             all_summs = abstractor(ext_sents)
             for (j, n), abs_sents in zip(ext_inds, abs_batch):
                 summs = all_summs[j:j+n]

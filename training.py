@@ -254,6 +254,9 @@ class BasicTrainer(object):
                 self._step += 1
                 self.log(log_dict)
 
+                if self._step % 50 == 0:
+                    print(f"{self._step} step was done")
+
                 if self._step % self._ckpt_freq == 0:
                     stop = self.checkpoint()
                     if stop:
