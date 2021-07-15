@@ -205,29 +205,29 @@ class CopySumm(Seq2SeqSumm):
                 token = self._embedding(token)
 
             ###########################################################################################################
-            if self.parallel:
-                # print(f"i : {i}, tok.size : {tok.size()}")
-                tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) #slang_is_tlang=False):
-                # print(f"i : {i}, tok.size : {tok.size()}")
+            # if self.parallel:
+            #     # print(f"i : {i}, tok.size : {tok.size()}")
+            #     tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) #slang_is_tlang=False):
+            #     # print(f"i : {i}, tok.size : {tok.size()}")
 
-                toks, states, attn_score = self._decoder.decode_step(
-                    tok, states, attention)
-                tok, xo = toks
+            #     toks, states, attn_score = self._decoder.decode_step(
+            #         tok, states, attention)
+            #     tok, xo = toks
 
-                idx, init_h, init_c  = ([list(k) for k in 
-                                        list(unzip([(i, sb_init[0][:,x],sb_init[1][:,x])
-                                        for i,x in enumerate(xo) if x != 0]))])
-                # print(f"init_h[0] : {init_h[0].size()}") 
-                # print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
+            #     idx, init_h, init_c  = ([list(k) for k in 
+            #                             list(unzip([(i, sb_init[0][:,x],sb_init[1][:,x])
+            #                             for i,x in enumerate(xo) if x != 0]))])
+            #     # print(f"init_h[0] : {init_h[0].size()}") 
+            #     # print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
                 
-                idx = torch.LongTensor(idx)
-                init_vecs[0][:,idx] = torch.cat(init_h,1)
-                init_vecs[1][:,idx] = torch.cat(init_c,1)  #xo 값 에 따라 h,c update
+            #     idx = torch.LongTensor(idx)
+            #     init_vecs[0][:,idx] = torch.cat(init_h,1)
+            #     init_vecs[1][:,idx] = torch.cat(init_c,1)  #xo 값 에 따라 h,c update
 
-                attns.append(attn_score)
-                xos.append(xo)
-                outputs.append(tok[:, 0].clone())
-                tok.masked_fill_(tok >= vsize, unk)
+            #     attns.append(attn_score)
+            #     xos.append(xo)
+            #     outputs.append(tok[:, 0].clone())
+            #     tok.masked_fill_(tok >= vsize, unk)
             #####################################################################################################################
 
             topk, lp, states, attn_score = self._decoder.topk_step(
@@ -406,7 +406,32 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
                 source=score.contiguous().view(beam*batch, -1) * copy_prob
         ) + 1e-8).contiguous().view(beam, batch, -1)
 
-        k_lp, k_tok = lp.topk(k=k, dim=-1)
+
+        lp = torch.log(
+            ((-copy_prob + 1) * gen_prob
+            ).scatter_add(
+                dim=1,
+                index=extend_src.expand_as(score),
+                src=score * copy_prob
+
+        if self.parallel:
+            lp2 = F.log_softmax(self.target_ox_projection(torch.cat((
+                dec_out, 
+                self.copy_projection(torch.cat((context, states[0][-1]),-1))
+                ),-1)),-1)
+
+            lp_all = lp.unsqueeze(-1).expand(-1,-1,4) + lp2.unsquueze(-2).expand(-1,lp.size()[-1],-1)
+            k_lp, k_tok_x = lp_all.view(beam,batch,-1).topk(k=k, dim=-1)
+            k_tok = k_tok_x // 4
+            k_xo = k_tok_x % 4
+
+            # lp2 = self.target_ox_projection(
+            #     (-copy_prob + 1) * dec_out 
+            #     + copy_prob * self.copy_projection(torch.cat((context, states[0][-1]),-1))
+            #     )        
+
+        else:
+            k_lp, k_tok = lp.topk(k=k, dim=-1)
         return k_tok, k_lp, (states, dec_out), score
 
     def _compute_gen_prob(self, dec_out, extend_vsize, eps=1e-6):

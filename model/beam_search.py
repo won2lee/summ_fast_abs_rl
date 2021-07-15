@@ -7,7 +7,7 @@ import torch
 
 
 class _Hypothesis(object):
-    def __init__(self, sequence, logprob, hists, attns=[], xo, init_vecs):
+    def __init__(self, sequence, logprob, hists, xo, init_vecs, attns=[]):
         """
         seqence: list of int tokens
         logprob: current log probability
@@ -21,14 +21,15 @@ class _Hypothesis(object):
         self.xo = xo
         self.init_vecs = init_vecs
 
-    def extend_k(self, topk, logprobs, hists, attn=None, xo, init_vecs, diverse=1.0):
+    def extend_k(self, topk, logprobs, hists, xo, init_vecs, attn=None, diverse=1.0):
         if attn is None:
             attns = []
         else:
             attns = self.attns + [attn]
         return [_Hypothesis(self.sequence+[t.item()],
-                            self.logprob+lp.item()-diverse*i, hists, attns)
-                for i, (t, lp) in enumerate(zip(topk, logprobs))]
+                            self.logprob+lp.item()-diverse*i, hists, 
+                            self.xo+[x.item()], init_vecs, attns)
+                for i, (t, lp, x) in enumerate(zip(topk, logprobs, xo))]
 
     def __lt__(self, other):
         return (other.logprob/len(other.sequence)
