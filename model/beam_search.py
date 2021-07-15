@@ -21,7 +21,7 @@ class _Hypothesis(object):
         self.xo = xo
         self.init_vecs = init_vecs
 
-    def extend_k(self, topk, logprobs, hists, xo, init_vecs, attn=None, diverse=1.0):
+    def extend_k(self, topk, logprobs, hists, attn=None, xok=None, init_vecs=None, diverse=1.0):
         if attn is None:
             attns = []
         else:
@@ -68,11 +68,11 @@ def pack_beam(hyps, device):
 
 
 def next_search_beam(beam, beam_size, finished,
-                     end, topk, lp, hists, attn=None, diverse=1.0):
+                     end, topk, lp, hists, attn=None, xok=None, sub_stts=None, diverse=1.0):
     """generate the next beam(K-best hyps)"""
-    topks, lps, hists_list, attns = _unpack_topk(topk, lp, hists, attn)
+    topks, lps, hists_list, attns, xoks, sub_list = _unpack_topk(topk, lp, hists, attn, xok, sub_stts)
     hyps_lists = [h.extend_k(topks[i], lps[i],
-                             hists_list[i], attns[i], diverse)
+                             hists_list[i], attns[i], xoks[i], sub_list[i], diverse)
                   for i, h in enumerate(beam)]
     hyps = list(concat(hyps_lists))
     finished, beam = _clean_beam(finished, hyps, end, beam_size)
@@ -97,19 +97,24 @@ def best_sequence(finished, beam=None):
         return best_seq
 
 
-def _unpack_topk(topk, lp, hists, attn=None):
+def _unpack_topk(topk, lp, hists, attn=None, xok=None, sub_stts=None):
     """unpack the decoder output"""
     beam, _ = topk.size()
     topks = [t for t in topk]
     lps = [l for l in lp]
     k_hists = [(hists[0][:, i, :], hists[1][:, i, :], hists[2][i, :])
                for i in range(beam)]
+    if xok:
+        xoks = [x for x in xok]
+        k_subs = [(sub_stts[0][:,i,:], sub_stts[1][:,i,:]) for i in range(beam)]
+    else:
+        xoks, k_subs = None,None 
 
     if attn is None:
         return topks, lps, k_hists
     else:
         attns = [attn[i] for i in range(beam)]
-        return topks, lps, k_hists, attns
+        return topks, lps, k_hists, attns, xoks, k_subs
 
 
 def _clean_beam(finished, beam, end_tok, beam_size, remove_tri=True):
