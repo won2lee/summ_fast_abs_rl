@@ -7,7 +7,7 @@ import torch
 
 
 class _Hypothesis(object):
-    def __init__(self, sequence, logprob, hists, attns=[]):
+    def __init__(self, sequence, logprob, hists, attns=[], xo, init_vecs):
         """
         seqence: list of int tokens
         logprob: current log probability
@@ -18,8 +18,10 @@ class _Hypothesis(object):
         self.logprob = logprob
         self.hists = hists
         self.attns = attns  # for unk replacement
+        self.xo = xo
+        self.init_vecs = init_vecs
 
-    def extend_k(self, topk, logprobs, hists, attn=None, diverse=1.0):
+    def extend_k(self, topk, logprobs, hists, attn=None, xo, init_vecs, diverse=1.0):
         if attn is None:
             attns = []
         else:
@@ -33,9 +35,9 @@ class _Hypothesis(object):
                 < self.logprob/len(self.sequence))
 
 
-def init_beam(start, hists):
+def init_beam(start, hists, xo, init_vecs):
     """ get a initial beam to start beam search"""
-    return [_Hypothesis([start], 0, hists)]
+    return [_Hypothesis([start], 0, hists, xo, init_vecs)]
 
 
 def create_beam(tok, lp, hists):
@@ -53,7 +55,15 @@ def pack_beam(hyps, device):
                   for i, d in enumerate([1, 1, 0]))
     token = token.to(device)
     states = ((hists[0], hists[1]), hists[2])
-    return token, states
+
+    if hyps[0].init_vecs:
+        xos = torch.LongTensor([h.xo[-1] for h in hyps])
+        xos = xos.to(device)
+        init_vecs = tuple(torch.stack([hyp.init_vecs[i] for hyp in hyps], dim=1) for i in range(2))
+        return token, states, xos, init_vecs
+
+    else:
+        return token, states, None, None
 
 
 def next_search_beam(beam, beam_size, finished,

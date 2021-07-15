@@ -154,27 +154,81 @@ class CopySumm(Seq2SeqSumm):
                            go, eos, unk, max_len, beam_size, diverse=1.0):
         batch_size = len(art_lens)
         vsize = self._embedding.num_embeddings
-        attention, init_dec_states = self.encode(article, art_lens)
+        attention, init_dec_states, art_lens = self.encode(article, art_lens)
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
         all_attention = (attention, mask, extend_art, extend_vsize)
         attention = all_attention
         (h, c), prev = init_dec_states
-        all_beams = [bs.init_beam(go, (h[:, i, :], c[:, i, :], prev[i]))
+
+        ###############################################################################################################
+        if self.parallel:
+            _,sb_init = self.parallel_beam_code([[4,5,6]], device = article.device)
+            # print(f"sb_init : {sb_init[0].is_cuda}")
+            # print(f"xx.size : {xx.size()}, sb_init[0].size : {sb_init[0].size()}")
+            init_vecs= ([sb_init[i][:,0].unsqueeze(1)  #.expand((1,batch_size,sb_init[0].size()[-1])) 
+                for i in range(2)])  # 초기 init_vector를 4('_')를 적용했을 떄를 값으로 
+            #tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) 
+        ###############################################################################################################
+
+        all_beams = [bs.init_beam(go, (h[:, i, :], c[:, i, :], prev[i]), [4], init_vecs if self.parallel else None)
                      for i in range(batch_size)]
         finished_beams = [[] for _ in range(batch_size)]
+
         outputs = [None for _ in range(batch_size)]
         for t in range(max_len):
             toks = []
             all_states = []
+            xos = []
+            sub_states = []
+
             for beam in filter(bool, all_beams):
-                token, states = bs.pack_beam(beam, article.device)
+
+                token, states, xo, init_vecs = bs.pack_beam(beam, article.device)
                 toks.append(token)
                 all_states.append(states)
+                xos.append(xo)
+                sub_states.append(init_vecs)
+
             token = torch.stack(toks, dim=1)
             states = ((torch.stack([h for (h, _), _ in all_states], dim=2),
                        torch.stack([c for (_, c), _ in all_states], dim=2)),
                       torch.stack([prev for _, prev in all_states], dim=1))
+            xo_toks = torch.stack(xos, dim=1)
+            sub_stts = (torch.stack([h for h, _ in sub_states], dim=2), 
+                        torch.stack([c for _, c in sub_states], dim=2))
             token.masked_fill_(token >= vsize, unk)
+
+            if self.parallel:
+                # print(f"i : {i}, tok.size : {tok.size()}")
+                token, sub_stts = self.parallel_beam_code(token.squeeze(), init_vecs=sub_stts, device = article.device)
+            else:
+                token = self._embedding(token)
+
+            ###########################################################################################################
+            if self.parallel:
+                # print(f"i : {i}, tok.size : {tok.size()}")
+                tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) #slang_is_tlang=False):
+                # print(f"i : {i}, tok.size : {tok.size()}")
+
+                toks, states, attn_score = self._decoder.decode_step(
+                    tok, states, attention)
+                tok, xo = toks
+
+                idx, init_h, init_c  = ([list(k) for k in 
+                                        list(unzip([(i, sb_init[0][:,x],sb_init[1][:,x])
+                                        for i,x in enumerate(xo) if x != 0]))])
+                # print(f"init_h[0] : {init_h[0].size()}") 
+                # print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
+                
+                idx = torch.LongTensor(idx)
+                init_vecs[0][:,idx] = torch.cat(init_h,1)
+                init_vecs[1][:,idx] = torch.cat(init_c,1)  #xo 값 에 따라 h,c update
+
+                attns.append(attn_score)
+                xos.append(xo)
+                outputs.append(tok[:, 0].clone())
+                tok.masked_fill_(tok >= vsize, unk)
+            #####################################################################################################################
 
             topk, lp, states, attn_score = self._decoder.topk_step(
                 token, states, attention, beam_size)
@@ -193,6 +247,11 @@ class CopySumm(Seq2SeqSumm):
                     attn_score[:, batch_i, :],
                     diverse
                 )
+
+                for h in new_beam:
+                    if h.xo != 0:
+                        h.init_vecs = ([sb_init[i][:,xo-3].unsqueeze(1) for i in range(2)])
+                        
                 batch_i += 1
                 if len(finished) >= beam_size:
                     all_beams[i] = []
@@ -314,9 +373,9 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
 
         # lstm is not bemable
         nl, _, _, d = h.size()
-        beam, batch = tok.size()
+        beam, batch = tok.size()[:2]
         lstm_in_beamable = torch.cat(
-            [self._embedding(tok), prev_out], dim=-1)
+            [tok, prev_out], dim=-1)
         lstm_in = lstm_in_beamable.contiguous().view(beam*batch, -1)
         prev_states = (h.contiguous().view(nl, -1, d),
                        c.contiguous().view(nl, -1, d))

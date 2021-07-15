@@ -107,8 +107,6 @@ class Abstractor(object):
         #        atti.append((x[i].items(), key = lambda x: x[0], reverse=True)[0][0])
         #     attn_b.append(atti)
 
-
-
         #print(f"decs : {decs.is_cuda}")
         #print(f"attns : {attns.is_cuda}")
         def argmax(arr, keys):
@@ -141,7 +139,7 @@ class Abstractor(object):
 class BeamAbstractor(Abstractor):
     def __call__(self, raw_article_sents, beam_size=5, diverse=1.0):
         self._net.eval()
-        dec_args, id2word = self._prepro(raw_article_sents)
+        dec_args, id2word, raw_article_sents = self._prepro(raw_article_sents)
         dec_args = (*dec_args, beam_size, diverse)
         all_beams = self._net.batched_beamsearch(*dec_args)
         all_beams = list(starmap(_process_beam(id2word),
