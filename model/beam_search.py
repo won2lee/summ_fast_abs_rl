@@ -26,9 +26,9 @@ class _Hypothesis(object):
             attns = []
         else:
             attns = self.attns + [attn]
-        print(f"topk :{topk}")
-        print(f"logprobs : {logprobs}")
-        print(f"xok : {xok}")
+        # print(f"topk :{topk}")
+        # print(f"logprobs : {logprobs}")
+        # print(f"xok : {xok}")
         return [_Hypothesis(self.sequence+[t.item()],
                             self.logprob+lp.item()-diverse*i, hists, 
                             self.xo+[x.item()], init_vecs, attns)

@@ -112,8 +112,9 @@ def rerank(all_beams, ext_inds):
 
 def rerank_mp(all_beams, ext_inds):
     beam_lists = [all_beams[i: i+n] for i, n in ext_inds if n > 0]
-    with mp.Pool(8) as pool:
-        reranked = pool.map(rerank_one, beam_lists)
+    # with mp.Pool(8) as pool:
+    #     reranked = pool.map(rerank_one, beam_lists)
+    reranked = map(rerank_one, beam_lists)
     return list(concat(reranked))
 
 def rerank_one(beams):
@@ -122,7 +123,8 @@ def rerank_one(beams):
         for b in beam[:n]:
             b.gram_cnt = Counter(_make_n_gram(b.sequence))
         return beam[:n]
-    beams = map(process_beam(n=_PRUNE[len(beams)]), beams)
+    # beams = map(process_beam(n=_PRUNE[len(beams)]), beams)
+    beams = map(process_beam(n=len(beams)), beams)
     best_hyps = max(product(*beams), key=_compute_score)
     dec_outs = [h.sequence for h in best_hyps]
     return dec_outs
