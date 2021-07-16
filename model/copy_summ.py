@@ -250,10 +250,10 @@ class CopySumm(Seq2SeqSumm):
                     (states[0][0][:, :, batch_i, :],
                      states[0][1][:, :, batch_i, :],
                      states[1][:, batch_i, :]),
-                    attn_score[:, batch_i, :],
                     xok[:,batch_i,:],
                     (sub_stts[0][:,:,batch_i,:],
                      sub_stts[1][:,:,batch_i,:]),
+                    attn_score[:, batch_i, :],
                     diverse
                 )
 
