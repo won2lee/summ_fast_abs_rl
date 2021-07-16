@@ -200,7 +200,7 @@ class CopySumm(Seq2SeqSumm):
 
             if self.parallel:
                 # print(f"i : {i}, tok.size : {tok.size()}")
-                nbeam, nbatch, nhddn = token.size()[:2], sub_stts[0].size()[-1]
+                (nbeam, nbatch), nhddn = token.size()[:2], sub_stts[0].size()[-1]
                 token, sub_stts = self.parallel_beam_code(token.view(nbeam*nbatch, -1).squeeze(), 
                                                         init_vecs=(sub_stts[0].view(-1,nbeam*nbatch,nhddn),
                                                                     sub_stts[1].view(-1,nbeam*nbatch,nhddn)), 
