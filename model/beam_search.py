@@ -7,7 +7,7 @@ import torch
 
 
 class _Hypothesis(object):
-    def __init__(self, sequence, logprob, hists, xo, init_vecs, attns=[]):
+    def __init__(self, sequence, logprob, hists, xo=None, init_vecs=None, attns=[]):
         """
         seqence: list of int tokens
         logprob: current log probability
@@ -21,7 +21,7 @@ class _Hypothesis(object):
         self.xo = xo
         self.init_vecs = init_vecs
 
-    def extend_k(self, topk, logprobs, hists, attn=None, xok=None, init_vecs=None, diverse=1.0):
+    def extend_k(self, topk, logprobs, hists, xok=None, init_vecs=None, attn=None, diverse=1.0):
         if attn is None:
             attns = []
         else:
@@ -71,11 +71,11 @@ def pack_beam(hyps, device):
 
 
 def next_search_beam(beam, beam_size, finished,
-                     end, topk, lp, hists, attn=None, xok=None, sub_stts=None, diverse=1.0):
+                     end, topk, lp, hists, xok=None, sub_stts=None, attn=None, diverse=1.0):
     """generate the next beam(K-best hyps)"""
-    topks, lps, hists_list, attns, xoks, sub_list = _unpack_topk(topk, lp, hists, attn, xok, sub_stts)
+    topks, lps, hists_list, xoks, sub_list, attns= _unpack_topk(topk, lp, hists, xok, sub_stts, attn)
     hyps_lists = [h.extend_k(topks[i], lps[i],
-                             hists_list[i], attns[i], xoks[i], sub_list[i], diverse)
+                             hists_list[i], xoks[i], sub_list[i], attns[i], diverse)
                   for i, h in enumerate(beam)]
     hyps = list(concat(hyps_lists))
     finished, beam = _clean_beam(finished, hyps, end, beam_size)
@@ -100,7 +100,7 @@ def best_sequence(finished, beam=None):
         return best_seq
 
 
-def _unpack_topk(topk, lp, hists, attn=None, xok=None, sub_stts=None):
+def _unpack_topk(topk, lp, hists, xok=None, sub_stts=None, attn=None):
     """unpack the decoder output"""
     beam, _ = topk.size()
     topks = [t for t in topk]
@@ -117,7 +117,7 @@ def _unpack_topk(topk, lp, hists, attn=None, xok=None, sub_stts=None):
         return topks, lps, k_hists
     else:
         attns = [attn[i] for i in range(beam)]
-        return topks, lps, k_hists, attns, xoks, k_subs
+        return topks, lps, k_hists, xoks, k_subs, attns
 
 
 def _clean_beam(finished, beam, end_tok, beam_size, remove_tri=True):
@@ -129,7 +129,7 @@ def _clean_beam(finished, beam, end_tok, beam_size, remove_tri=True):
             h.logprob = -1e9
         if h.sequence[-1] == end_tok:
             finished_hyp = _Hypothesis(h.sequence[:-1], # remove EOS
-                                       h.logprob, h.hists, h.attns)
+                                       h.logprob, h.hists, attns = h.attns)
             finished.append(finished_hyp)
         else:
             new_beam.append(h)
