@@ -170,7 +170,7 @@ class CopySumm(Seq2SeqSumm):
             #tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) 
         ###############################################################################################################
 
-        all_beams = [bs.init_beam(go, (h[:, i, :], c[:, i, :], prev[i]), [4], init_vecs if self.parallel else None)
+        all_beams = [bs.init_beam(go, (h[:, i, :], c[:, i, :], prev[i]), [1], init_vecs if self.parallel else None)
                      for i in range(batch_size)]
         finished_beams = [[] for _ in range(batch_size)]
 
@@ -259,7 +259,7 @@ class CopySumm(Seq2SeqSumm):
 
                 for h in new_beam:
                     if h.xo != 0:
-                        h.init_vecs = ([sb_init[i][:,xo].unsqueeze(1) for i in range(2)])
+                        h.init_vecs = ([sb_init[i][:,xo-1].unsqueeze(1) for i in range(2)])
                         
                 batch_i += 1
                 if len(finished) >= beam_size:
@@ -410,7 +410,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
             ((-copy_prob + 1) * gen_prob
             ).scatter_add_(
                 dim=1,
-                index=extend_src_.expand_as(score).contiguous().view(
+                index=extend_src.expand_as(score).contiguous().view(
                     beam*batch, -1),
                 src=score.contiguous().view(beam*batch, -1) * copy_prob
         ) + 1e-8).contiguous().view(beam, batch, -1)
