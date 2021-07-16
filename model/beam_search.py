@@ -26,10 +26,13 @@ class _Hypothesis(object):
             attns = []
         else:
             attns = self.attns + [attn]
+        print(f"topk :{topk}")
+        print(f"logprobs : {logprobs}")
+        print(f"xok : {xok}")
         return [_Hypothesis(self.sequence+[t.item()],
                             self.logprob+lp.item()-diverse*i, hists, 
                             self.xo+[x.item()], init_vecs, attns)
-                for i, (t, lp, x) in enumerate(zip(topk, logprobs, xo))]
+                for i, (t, lp, x) in enumerate(zip(topk, logprobs, xok))]
 
     def __lt__(self, other):
         return (other.logprob/len(other.sequence)
@@ -104,7 +107,7 @@ def _unpack_topk(topk, lp, hists, attn=None, xok=None, sub_stts=None):
     lps = [l for l in lp]
     k_hists = [(hists[0][:, i, :], hists[1][:, i, :], hists[2][i, :])
                for i in range(beam)]
-    if xok:
+    if xok is not None:
         xoks = [x for x in xok]
         k_subs = [(sub_stts[0][:,i,:], sub_stts[1][:,i,:]) for i in range(beam)]
     else:

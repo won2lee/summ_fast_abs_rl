@@ -205,8 +205,8 @@ class CopySumm(Seq2SeqSumm):
                                                         init_vecs=(sub_stts[0].view(-1,nbeam*nbatch,nhddn),
                                                                     sub_stts[1].view(-1,nbeam*nbatch,nhddn)), 
                                                         device = article.device)
-                token = token.view(beam,batch,-1)
-                sub_stts = (sub_stts[0].view(-1,beam,batch,nhddn), sub_stts[1].view(-1,beam,batch,nhddn))
+                token = token.view(nbeam,nbatch,-1)
+                sub_stts = (sub_stts[0].view(-1,nbeam,nbatch,nhddn), sub_stts[1].view(-1,nbeam,nbatch,nhddn))
             else:
                 token = self._embedding(token)
 
@@ -408,11 +408,11 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         ).contiguous().view(-1, 1)
         lp = torch.log(
             ((-copy_prob + 1) * gen_prob
-            ).scatter_add(
+            ).scatter_add_(
                 dim=1,
-                index=extend_src.expand_as(score).contiguous().view(
+                index=extend_src_.expand_as(score).contiguous().view(
                     beam*batch, -1),
-                source=score.contiguous().view(beam*batch, -1) * copy_prob
+                src=score.contiguous().view(beam*batch, -1) * copy_prob
         ) + 1e-8).contiguous().view(beam, batch, -1)
 
         # states = self._lstm(lstm_in, prev_states)
