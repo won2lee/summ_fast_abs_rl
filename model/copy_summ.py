@@ -165,7 +165,7 @@ class CopySumm(Seq2SeqSumm):
             _,sb_init = self.parallel_beam_code([[4,5,6]], device = article.device)
             # print(f"sb_init : {sb_init[0].is_cuda}")
             # print(f"xx.size : {xx.size()}, sb_init[0].size : {sb_init[0].size()}")
-            init_vecs= ([sb_init[i][:,0].unsqueeze(1)  #.expand((1,batch_size,sb_init[0].size()[-1])) 
+            init_vecs= ([sb_init[i][:,0] #.unsqueeze(1)  #.expand((1,batch_size,sb_init[0].size()[-1])) 
                 for i in range(2)])  # 초기 init_vector를 4('_')를 적용했을 떄를 값으로 
             #tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) 
         ###############################################################################################################
@@ -258,14 +258,15 @@ class CopySumm(Seq2SeqSumm):
                 )
 
                 for h in new_beam:
-                    if h.xo[-1].item() != 0:
-                        h.init_vecs = ([sb_init[i][:,h.xo[-1].item()-1].unsqueeze(1) for i in range(2)])
+                    if h.xo[-1] != 0:
+                        h.init_vecs = ([sb_init[i][:,h.xo[-1]-1] #.unsqueeze(1) 
+                                        for i in range(2)])
                         
                 batch_i += 1
                 if len(finished) >= beam_size:
                     all_beams[i] = []
                     outputs[i] = finished[:beam_size]
-                    # exclude finished inputs
+                    # exclude finished inputs  
                     (attention, mask, extend_art, extend_vsize
                     ) = all_attention
                     masks = [mask[j] for j, o in enumerate(outputs)
