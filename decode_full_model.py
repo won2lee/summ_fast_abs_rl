@@ -70,6 +70,7 @@ def decode(save_path, model_dir, split, batch_size,
     i = 0
     with torch.no_grad():
         for i_debug, raw_article_batch in enumerate(loader):
+            print(f"i_debug : {i_debug}")
             tokenized_article_batch = map(tokenize(None), raw_article_batch)
             ext_arts = []
             ext_inds = []
@@ -90,21 +91,26 @@ def decode(save_path, model_dir, split, batch_size,
                 dec_outs = abstractor(ext_arts)
             assert i == batch_size*i_debug
             for j, n in ext_inds:
-                decoded_sents = [' '.join(dec) for dec in dec_outs[j:j+n]]
+                #decoded_sents = [' '.join(dec) for dec in dec_outs[j:j+n]]
+                decoded_sents = ([' '.join(list(chain(*[[w if dec[1][i] == 0 else sb[dec[1][i]] + w 
+                                for i,w in enumerate(dec[0])] 
+                                for dec in zip(dec_outs[0][j:j+n],dec_outs[1][j:j+n])]))) ])
                 with open(join(save_path, 'output/{}.dec'.format(i)),
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
                 i += 1
-                print('{}/{} ({:.2f}%) decoded in {} seconds\r'.format(
-                    i, n_data, i/n_data*100,
-                    timedelta(seconds=int(time()-start))
-                ), end='')
+                if i%100 == 0:
+                    print('{}/{} ({:.2f}%) decoded in {} seconds'.format(  #\r'.format(
+                        i, n_data, i/n_data*100,
+                        timedelta(seconds=int(time()-start))
+                    )) #, end='')
     print()
+    print("decoding was completed !!")
 
-_PRUNE = defaultdict(
-    lambda: 2,
-    {1:5, 2:5, 3:5, 4:5, 5:5, 6:4, 7:3, 8:3}
-)
+# _PRUNE = defaultdict(
+#     lambda: 2,
+#     {1:5, 2:5, 3:5, 4:5, 5:5, 6:4, 7:3, 8:3}
+# )
 
 def rerank(all_beams, ext_inds):
     beam_lists = (all_beams[i: i+n] for i, n in ext_inds if n > 0)
@@ -126,7 +132,7 @@ def rerank_one(beams):
     # beams = map(process_beam(n=_PRUNE[len(beams)]), beams)
     beams = map(process_beam(n=len(beams)), beams)
     best_hyps = max(product(*beams), key=_compute_score)
-    dec_outs = [h.sequence for h in best_hyps]
+    dec_outs = [(h.sequence, h.xo) for h in best_hyps]
     return dec_outs
 
 def _make_n_gram(sequence, n=2):

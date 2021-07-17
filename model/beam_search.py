@@ -129,7 +129,7 @@ def _clean_beam(finished, beam, end_tok, beam_size, remove_tri=True):
             h.logprob = -1e9
         if h.sequence[-1] == end_tok:
             finished_hyp = _Hypothesis(h.sequence[:-1], # remove EOS
-                                       h.logprob, h.hists, attns = h.attns)
+                                       h.logprob, h.hists, h.xo, attns = h.attns)
             finished.append(finished_hyp)
         else:
             new_beam.append(h)
