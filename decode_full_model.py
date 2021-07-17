@@ -69,6 +69,7 @@ def decode(save_path, model_dir, split, batch_size,
     # Decoding
     i = 0
     with torch.no_grad():
+        sb = {1:"_",2:"^",3:"`"}
         for i_debug, raw_article_batch in enumerate(loader):
             print(f"i_debug : {i_debug}")
             tokenized_article_batch = map(tokenize(None), raw_article_batch)
@@ -92,18 +93,19 @@ def decode(save_path, model_dir, split, batch_size,
             assert i == batch_size*i_debug
             for j, n in ext_inds:
                 #decoded_sents = [' '.join(dec) for dec in dec_outs[j:j+n]]
-                decoded_sents = ([' '.join(list(chain(*[[w if dec[1][i] == 0 else sb[dec[1][i]] + w 
-                                for i,w in enumerate(dec[0])] 
-                                for dec in zip(dec_outs[0][j:j+n],dec_outs[1][j:j+n])]))) ])
+                decoded_sents = ([' '.join(list(chain(*[[w] if dec[1][i] == 0 else [sb[dec[1][i]], w] 
+                                for i,w in enumerate(dec[0])])))
+                                for dec in dec_outs[j:j+n]])  #in zip(dec_outs[0][j:j+n],dec_outs[1][j:j+n])])))])
                 with open(join(save_path, 'output/{}.dec'.format(i)),
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
                 i += 1
-                if i%100 == 0:
+                if i%10 == 0:
                     print('{}/{} ({:.2f}%) decoded in {} seconds'.format(  #\r'.format(
                         i, n_data, i/n_data*100,
                         timedelta(seconds=int(time()-start))
                     )) #, end='')
+                    
     print()
     print("decoding was completed !!")
 
