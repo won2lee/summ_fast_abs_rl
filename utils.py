@@ -66,7 +66,7 @@ def make_embedding(id2word, w2v_file, initializer=None):
                 oovs.append(i)
     return embedding, oovs
 
-def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
+def make_embedding_from_pretrained(id2word, pre_trained, initializer=None, no_grad=False):
     #attrs = basename(w2v_file).split('.')  #word2vec.{dim}d.{vsize}k.bin
     
     w2v = pre_trained['voc']
@@ -79,7 +79,7 @@ def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
         initializer(embedding)
 
     oovs = []
-    with torch.no_grad():
+    with torch.no_grad() if no_grad else torch.enable_grad():
         for i in range(len(id2word)):
             # NOTE: id2word can be list or dict
             if i == START:
@@ -92,7 +92,7 @@ def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
                 oovs.append(i)
     return embedding, oovs 
 
-def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en', extr=False):
+def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en', extr=False, no_grad=False):
     import re
     #keys() = {'en':pre_trained['en'].keys(), 'ko':pre_trained['ko'].keys()}
     p = re.compile("_(en|ko)_")
@@ -102,7 +102,7 @@ def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en', extr=Fa
     m_keys = {q.sub('sub_',p.sub('_',k)):k for k in pre_trained[lang].keys()}
     print(f"m_keys:{m_keys}")
 
-    with torch.no_grad():
+    with torch.no_grad() if no_grad else torch.enable_grad():
         for k,v in m_keys.items():
             globals()['net._sent_enc.'+k if extr else 'net.'+k] = pre_trained[lang][v]
     return net

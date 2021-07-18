@@ -6,7 +6,7 @@ from os.path import join
 from datetime import timedelta
 from time import time
 from collections import Counter, defaultdict
-from itertools import product
+from itertools import product, chain
 from functools import reduce
 import operator as op
 
@@ -105,6 +105,10 @@ def decode(save_path, model_dir, split, batch_size,
                         i, n_data, i/n_data*100,
                         timedelta(seconds=int(time()-start))
                     )) #, end='')
+            print(f"raw_art_sents : {raw_art_sents}")
+            print(f"ext_arts : {ext_arts[-len(ext):]}")
+            print(f"decoded_sents : {decoded_sents[-1]}")
+
                     
     print()
     print("decoding was completed !!")
