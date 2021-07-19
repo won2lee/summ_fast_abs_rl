@@ -119,7 +119,8 @@ class BasicPipeline(object):
         #print("got one batch")
         #print(f"fw_args.size : {[fw_args[i].size() if type(fw_args[i]) is torch.Tensor else len(fw_args[i]) for i in range(4)]}")
         net_out, XO = self._net(*fw_args)
-        print(f"XO[0] : {XO[0]}")
+        if self.count%50==0:
+            print(f"XO[0] : {XO[0]}")
         #print("one copy_summ process was done")
 
         # get logs and output for logging, backward

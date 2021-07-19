@@ -259,7 +259,7 @@ class CopySumm(Seq2SeqSumm):
 
                 for h in new_beam:
                     if h.xo[-1] != 0:
-                        h.init_vecs = ([sb_init[i][:,h.xo[-1]-1] #.unsqueeze(1) 
+                        h.init_vecs = ([sb_init[i][:,h.xo[-1]-1,:] #.unsqueeze(1) 
                                         for i in range(2)])
                         
                 batch_i += 1
