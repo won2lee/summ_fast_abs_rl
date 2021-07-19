@@ -6,6 +6,7 @@ from os.path import basename
 import gensim
 import torch
 from torch import nn
+import copy
 
 
 def count_data(path):
@@ -66,7 +67,7 @@ def make_embedding(id2word, w2v_file, initializer=None):
                 oovs.append(i)
     return embedding, oovs
 
-def make_embedding_from_pretrained(id2word, pre_trained, initializer=None, no_grad=False):
+def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
     #attrs = basename(w2v_file).split('.')  #word2vec.{dim}d.{vsize}k.bin
     
     w2v = pre_trained['voc']
@@ -79,7 +80,7 @@ def make_embedding_from_pretrained(id2word, pre_trained, initializer=None, no_gr
         initializer(embedding)
 
     oovs = []
-    with torch.no_grad() if no_grad else torch.enable_grad():
+    with torch.no_grad():
         for i in range(len(id2word)):
             # NOTE: id2word can be list or dict
             if i == START:
