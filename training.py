@@ -121,7 +121,7 @@ class BasicPipeline(object):
         net_out, XO = self._net(*fw_args)
         if self.count%50==0:
             print(f"XO[0]     : {XO[0]}")
-            print(f"inf XO[0] : {max(net_out[1], dim=-1)}")
+            print(f"inf XO[0] : {net_out[1].topk(k=1, dim=-1)}")
         #print("one copy_summ process was done")
 
         # get logs and output for logging, backward
@@ -135,7 +135,7 @@ class BasicPipeline(object):
             #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
-            loss = loss1.mean() + loss2.mean()
+            loss = loss1.mean() + 1000* loss2.mean()
             if self.count%50==0:
                 print(f"loss1 : {loss1.mean()}, loss2 : {loss2.mean()}")
         else:
