@@ -364,10 +364,14 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         ) + 1e-8)  # numerical stability for log
 
         if self.parallel:
-            lp2 = F.log_softmax(self.target_ox_projection(torch.cat((
-                dec_out, 
-                self.copy_projection(torch.cat((context, states[0][-1]),-1))
-                ),-1)),-1)
+            # lp2 = F.log_softmax(self.target_ox_projection(torch.cat((
+            #     dec_out, 
+            #     self.copy_projection(torch.cat((context, states[0][-1]),-1))
+            #     ),-1)),-1)
+            lp2 = F.log_softmax(self.target_ox_projection(dec_out),-1)
+                # torch.cat((
+                # dec_out, 
+                # tok.squeeze(1)),-1)),-1)
             # lp2 = self.target_ox_projection(
             #     (-copy_prob + 1) * dec_out 
             #     + copy_prob * self.copy_projection(torch.cat((context, states[0][-1]),-1))
@@ -439,8 +443,9 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         if self.parallel:
             lp2 = F.log_softmax(self.target_ox_projection(torch.cat((
                 dec_out, 
-                self.copy_projection(torch.cat((context, states[0][-1]),-1))
-                ),-1)),-1)
+                tok),-1)),-1)
+                # self.copy_projection(torch.cat((context, states[0][-1]),-1))
+                # ),-1)),-1)
 
             lp_all = lp.unsqueeze(-1).expand(-1,-1,-1,4) + lp2.unsqueeze(-2).expand(-1,-1,lp.size()[-1],-1)
             k_lp, k_tok_x = lp_all.view(beam,batch,-1).topk(k=k, dim=-1)

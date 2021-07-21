@@ -207,7 +207,7 @@ if __name__ == '__main__':
     # training options
     parser.add_argument('--lr', type=float, action='store', default=1e-3,
                         help='learning rate')
-    parser.add_argument('--decay', type=float, action='store', default=0.5,
+    parser.add_argument('--decay', type=float, action='store', default=0.7,
                         help='learning rate decay ratio')
     parser.add_argument('--lr_p', type=int, action='store', default=0,
                         help='patience for learning rate decay')
