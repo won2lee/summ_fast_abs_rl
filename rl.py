@@ -48,7 +48,8 @@ def a2c_validate(agent, abstractor, loader):
 
 def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                    gamma=0.99, reward_fn=compute_rouge_l,
-                   stop_reward_fn=compute_rouge_n(n=1), stop_coeff=1.0):
+                   stop_reward_fn=compute_rouge_n(n=1), stop_coeff=1.0,
+                   single_abs_snt=False):
     opt.zero_grad()
     indices = []
     probs = []
@@ -69,12 +70,21 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     avg_reward = 0
     for inds, abss in zip(indices, abs_batch):
         # print(f"inds:{type(inds)}, abss:{type(abss)}")
-        rs = ([reward_fn(summaries[i+j], abss[j])
-              for j in range(min(len(inds)-1, len(abss)))]
-              + [0 for _ in range(max(0, len(inds)-1-len(abss)))]
-              + [stop_coeff*stop_reward_fn(
-                  list(concat(summaries[i:i+len(inds)-1])),
-                  list(concat(abss)))])
+        if single_abs_snt:
+            cum_rwd = [0.]+[reward_fn(list(concat(summaries[i:i+j])), abss) # cumulated rewards
+                        for j in range(min(len(inds)-1, len(abss)))]
+            rs = ([cum_rwd[j+1]-cum_rwd[j] for j in range(min(len(inds)-1, len(abss)))]  #contribution to total reward by one step action
+                  + [0 for _ in range(max(0, len(inds)-1-len(abss)))]
+                  + [stop_coeff*stop_reward_fn(
+                      list(concat(summaries[i:i+len(inds)-1])),
+                      list(concat(abss)))])
+        else:
+            rs = ([reward_fn(summaries[i+j], abss[j])
+                  for j in range(min(len(inds)-1, len(abss)))]
+                  + [0 for _ in range(max(0, len(inds)-1-len(abss)))]
+                  + [stop_coeff*stop_reward_fn(
+                      list(concat(summaries[i:i+len(inds)-1])),
+                      list(concat(abss)))])
         assert len(rs) == len(inds)
         avg_reward += rs[-1]/stop_coeff
         i += len(inds)-1
@@ -149,7 +159,8 @@ class A2CPipeline(BasicPipeline):
                  train_batcher, val_batcher,
                  optim, grad_fn,
                  reward_fn, gamma,
-                 stop_reward_fn, stop_coeff):
+                 stop_reward_fn, stop_coeff,
+                 single_abs_snt):
         self.name = name
         self._net = net
         self._train_batcher = train_batcher
@@ -162,6 +173,7 @@ class A2CPipeline(BasicPipeline):
         self._reward_fn = reward_fn
         self._stop_reward_fn = stop_reward_fn
         self._stop_coeff = stop_coeff
+        self._single_abs_snt = single_abs_snt
 
         self._n_epoch = 0  # epoch not very useful?
 
@@ -176,7 +188,8 @@ class A2CPipeline(BasicPipeline):
             self._train_batcher,
             self._opt, self._grad_fn,
             self._gamma, self._reward_fn,
-            self._stop_reward_fn, self._stop_coeff
+            self._stop_reward_fn, self._stop_coeff,
+            self._single_abs_snt
         )
         return log_dict
 

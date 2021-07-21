@@ -125,6 +125,7 @@ def train(args):
         os.makedirs(args.path)
 
     parallel = args.parallel
+    single_abs_snt = False
     # make net
     agent, agent_vocab, abstractor, net_args = configure_net(
         args.abs_dir, args.ext_dir, args.cuda)
@@ -173,7 +174,8 @@ def train(args):
                            train_batcher, val_batcher,
                            optimizer, grad_fn,
                            reward_fn, args.gamma,
-                           stop_reward_fn, args.stop)
+                           stop_reward_fn, args.stop,
+                           single_abs_snt)
     trainer = BasicTrainer(pipeline, args.path,
                            args.ckpt_freq, args.patience, scheduler,
                            val_mode='score')
