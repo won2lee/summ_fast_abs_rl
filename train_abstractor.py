@@ -17,6 +17,7 @@ from model.copy_summ import CopySumm
 from model.util import sequence_loss
 from training import get_basic_grad_fn, basic_validate
 from training import BasicPipeline, BasicTrainer
+from decoding import load_best_ckpt
 
 from data.data import CnnDmDataset
 from data.batcher import coll_fn, prepro_fn
