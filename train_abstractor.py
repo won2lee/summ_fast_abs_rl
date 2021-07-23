@@ -126,7 +126,22 @@ def main(args):
     # make net
     net, net_args = configure_net(len(word2id), args.emb_dim,
                                   args.n_hidden, args.bi, args.n_layer, parallel)
-    if args.w2v or args.pretrained:
+    
+    if args.continued:
+        # abs_meta = json.load(open(join(args.path, 'meta.json')))
+        # assert abs_meta['net'] == 'base_abstractor'
+        # abs_args = abs_meta['net_args']
+        abs_ckpt = load_best_ckpt(args.path)
+        # word2id = pkl.load(open(join(args.path, 'vocab.pkl'), 'rb'))
+        net.load_state_dict(abs_ckpt)
+        # self._device = torch.device('cuda' if cuda else 'cpu')
+        # self._net = abstractor.to(self._device)
+        # self._word2id = word2id
+        # self._id2word = {i: w for w, i in word2id.items()}
+        # self._max_len = max_len
+        # self.parallel = abs_args['parallel']
+
+    elif args.w2v or args.pretrained:
         if args.w2v:
             # NOTE: the pretrained embedding having the same dimension
             #       as args.emb_dim should already be trained
@@ -207,9 +222,9 @@ if __name__ == '__main__':
     # training options
     parser.add_argument('--lr', type=float, action='store', default=1e-3,
                         help='learning rate')
-    parser.add_argument('--decay', type=float, action='store', default=0.7,
+    parser.add_argument('--decay', type=float, action='store', default=0.5,
                         help='learning rate decay ratio')
-    parser.add_argument('--lr_p', type=int, action='store', default=0,
+    parser.add_argument('--lr_p', type=int, action='store', default=1,
                         help='patience for learning rate decay')
     parser.add_argument('--clip', type=float, action='store', default=2.0,
                         help='gradient clipping')
@@ -230,6 +245,8 @@ if __name__ == '__main__':
                         help='enable sub lstm')
     parser.add_argument('--pretrained', action='store',
                         help='use pretrained-in-nmt embed')
+    parser.add_argument('--continued', action='store',
+                        help='use pretrained-abstrator')
 
     args = parser.parse_args()
     args.bi = not args.no_bi
