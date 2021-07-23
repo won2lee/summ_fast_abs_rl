@@ -1,6 +1,6 @@
 """ module providing basic training utilities"""
 import os
-from os.path import join
+from os.path import join, exists
 from time import time
 from datetime import timedelta
 from itertools import starmap
@@ -184,7 +184,8 @@ class BasicTrainer(object):
         self._pipeline = pipeline
         self._save_dir = save_dir
         self._logger = tensorboardX.SummaryWriter(join(save_dir, 'log'))
-        os.makedirs(join(save_dir, 'ckpt'))
+        if not exists(join(save_dir, 'ckpt')):
+            os.makedirs(join(save_dir, 'ckpt'))
 
         self._ckpt_freq = ckpt_freq
         self._patience = patience

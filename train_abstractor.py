@@ -245,7 +245,7 @@ if __name__ == '__main__':
                         help='enable sub lstm')
     parser.add_argument('--pretrained', action='store',
                         help='use pretrained-in-nmt embed')
-    parser.add_argument('--continued', action='store',
+    parser.add_argument('--continued', action='store_true',
                         help='use pretrained-abstrator')
 
     args = parser.parse_args()
