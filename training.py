@@ -78,7 +78,7 @@ def basic_validate(net, criterion, parallel, val_batches):
 class BasicPipeline(object):
     def __init__(self, name, net,
                  train_batcher, val_batcher, batch_size,
-                 val_fn, criterion, optim, grad_fn=None, parallel=False ):
+                 val_fn, criterion, optim, grad_fn=None, parallel=False):
         self.name = name
         self._net = net
         self._train_batcher = train_batcher
@@ -119,7 +119,7 @@ class BasicPipeline(object):
         #print("got one batch")
         #print(f"fw_args.size : {[fw_args[i].size() if type(fw_args[i]) is torch.Tensor else len(fw_args[i]) for i in range(4)]}")
         net_out, XO = self._net(*fw_args)
-        if self.count%50==0:
+        if self.count%50==0 and self.parallel:
             print(f"XO[0]     : {XO[0]}")
             print(f"inf XO[0] : {net_out[1][0].argmax(-1)}")
         #print("one copy_summ process was done")
