@@ -66,7 +66,7 @@ def basic_validate(net, criterion, parallel, val_batches):
                 starmap(validate_fn, val_batches),
                 (0, 0)
             )
-    val_loss = tot_loss / n_data if not parallel else lgt1[1]/lgt1[0] + lgt2[1]/lgt2[0]
+    val_loss = tot_loss / n_data if not parallel else lgt1[1]/lgt1[0] + 5 * lgt2[1]/lgt2[0]
     print(
         'validation finished in {}                                    '.format(
             timedelta(seconds=int(time()-start)))
@@ -135,7 +135,7 @@ class BasicPipeline(object):
             #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
-            loss = loss1.mean() + loss2.mean()
+            loss = loss1.mean() + 5 * loss2.mean()
             if self.count%50==0:
                 print(f"loss1 : {loss1.mean()}, loss2 : {loss2.mean()}")
         else:
