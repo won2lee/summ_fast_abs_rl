@@ -137,13 +137,13 @@ class BasicPipeline(object):
             loss2, _ = self._criterion(*loss_args, mask=mask)
             loss = loss1.mean() + 5 * loss2.mean()
             if self.count%50==0:
-                print(f"loss1 : {loss1.mean()}, loss2 : {loss2.mean()}")
+                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}")
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )
             loss = self._criterion(*loss_args)[0].mean()
             if self.count%50==0:
-                print(f"loss : {loss.mean()}")
+                print(f"loss of step {self.count} : {loss.mean()}")
 
         loss.backward()
         #print(f"loss :{loss}")
@@ -258,8 +258,8 @@ class BasicTrainer(object):
                 self._step += 1
                 self.log(log_dict)
 
-                if self._step % 50 == 0:
-                    print(f"{self._step} step was done")
+                # if self._step % 50 == 0:
+                #     print(f"{self._step} step was done")
 
                 if self._step % self._ckpt_freq == 0:
                     stop = self.checkpoint()

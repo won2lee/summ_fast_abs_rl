@@ -17,6 +17,7 @@ from model.extract import ExtractSumm, PtrExtractSumm
 from model.util import sequence_loss
 from training import get_basic_grad_fn, basic_validate
 from training import BasicPipeline, BasicTrainer
+from decoding import load_best_ckpt
 
 from utils import PAD, UNK
 from utils import make_vocab, make_embedding
@@ -149,7 +150,15 @@ def main(args):
             {i: w for w, i in word2id.items()}, args.w2v)
         net.set_embedding(embedding)
     """
-    if args.w2v or args.pretrained:
+    if args.continued:
+        # abs_meta = json.load(open(join(args.path, 'meta.json')))
+        # assert abs_meta['net'] == 'base_abstractor'
+        # abs_args = abs_meta['net_args']
+        extr_ckpt = load_best_ckpt(args.path)
+        # word2id = pkl.load(open(join(args.path, 'vocab.pkl'), 'rb'))
+        net.load_state_dict(extr_ckpt)
+
+    elif args.w2v or args.pretrained:
         if args.w2v:
             # NOTE: the pretrained embedding having the same dimension
             #       as args.emb_dim should already be trained
@@ -259,6 +268,8 @@ if __name__ == '__main__':
                         help='enable sub lstm')
     parser.add_argument('--pretrained', action='store',
                         help='use pretrained-in-nmt embed')
+    parser.add_argument('--continued', action='store_true',
+                        help='use pretrained-extrator')
     args = parser.parse_args()
     args.bi = not args.no_bi
     args.cuda = torch.cuda.is_available() and not args.no_cuda
