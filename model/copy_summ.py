@@ -106,11 +106,11 @@ class CopySumm(Seq2SeqSumm):
                 toks, states, attn_score = self._decoder.decode_step(
                     tok, states, attention)
                 tok, xo = toks
-                print(f'tok.size() : {tok.size()}xo.size() : {xo.size()}')
+                #print(f'tok.size() : {tok.size()}xo.size() : {xo.size()}')
 
                 idx, init_h, init_c  = ([list(k) for k in 
-                                        list(unzip([(i, sb_init[0][:,x],sb_init[1][:,x])
-                                        for i,x in enumerate(xo) if x != 0]))])
+                                        list(unzip([(ix, sb_init[0][:,x.item()-1],sb_init[1][:,x.item()-1])
+                                        for ix,x in enumerate(xo) if x.item() != 0]))])
                 # print(f"init_h[0] : {init_h[0].size()}") 
                 # print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
                 

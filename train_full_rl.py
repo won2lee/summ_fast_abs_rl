@@ -205,9 +205,9 @@ if __name__ == '__main__':
                         help='reward function for RL')
     parser.add_argument('--lr', type=float, action='store', default=1e-4,
                         help='learning rate')
-    parser.add_argument('--decay', type=float, action='store', default=0.5,
+    parser.add_argument('--decay', type=float, action='store', default=0.7,
                         help='learning rate decay ratio')
-    parser.add_argument('--lr_p', type=int, action='store', default=0,
+    parser.add_argument('--lr_p', type=int, action='store', default=1,
                         help='patience for learning rate decay')
     parser.add_argument('--gamma', type=float, action='store', default=0.95,
                         help='discount factor of RL')
@@ -215,10 +215,10 @@ if __name__ == '__main__':
                         help='stop coefficient for rouge-1')
     parser.add_argument('--clip', type=float, action='store', default=2.0,
                         help='gradient clipping')
-    parser.add_argument('--batch', type=int, action='store', default=16,
+    parser.add_argument('--batch', type=int, action='store', default=12,
                         help='the training batch size')
     parser.add_argument(
-        '--ckpt_freq', type=int, action='store', default=1000,
+        '--ckpt_freq', type=int, action='store', default=500,
         help='number of update steps for checkpoint and validation'
     )
     parser.add_argument('--patience', type=int, action='store', default=3,
