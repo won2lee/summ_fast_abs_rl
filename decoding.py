@@ -126,9 +126,9 @@ class Abstractor(object):
         if self.parallel: # 문장을 biden said => ^ biden _ said 로 변환 
             xos = decs[1]
             #print(f"xos[i][j]:{xos[0][0]}")
-            dec_sents = ([list(chain(*[[id2word[xos[j][i].item()+3], w] if xos[j][i].item() in [1,2,3] else [w] 
-                            for j,w in enumerate(dc)])) 
-                            for i,dc in enumerate(dec_sents)])
+            dec_sents = ([list(chain(*[[id2word[xos[j][i].item()+3], w] if xos[j][i].item() != 0 else [w] 
+                            for j,w in enumerate(ds)])) 
+                            for i,ds in enumerate(dec_sents)])
  
             # dec_sents = ([chain(*[[xo,dec_sents[i][j]] if xo in [1,2,3] else [dec_sents[i][j]] 
             #     for j,xo in enumerate(xo_s)])  for i, xo_s in enumerate(decs[1])])

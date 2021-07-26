@@ -92,7 +92,7 @@ class CopySumm(Seq2SeqSumm):
         # print(f"sb_init : {sb_init[0].is_cuda}")
         # print(f"xx.size : {xx.size()}, sb_init[0].size : {sb_init[0].size()}")
 
-        init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((1,batch_size,sb_init[0].size()[-1])) 
+        init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((-1,batch_size,-1)) #sb_init[0].size()[-1])) 
             for i in range(2)])  # 초기 init_vector를 4('_')를 적용했을 떄를 값으로 
 
         # print(f"init_vecs[0].size : {init_vecs[0].size()}")
@@ -106,7 +106,7 @@ class CopySumm(Seq2SeqSumm):
                 toks, states, attn_score = self._decoder.decode_step(
                     tok, states, attention)
                 tok, xo = toks
-                #print(f'tok.size() : {tok.size()}xo.size() : {xo.size()}')
+                print(f'tok.size() : {tok.size()}, xo.size() : {xo.size()}')
 
                 idx, init_h, init_c  = ([list(k) for k in 
                                         list(unzip([(ix, sb_init[0][:,x.item()-1],sb_init[1][:,x.item()-1])
@@ -119,7 +119,7 @@ class CopySumm(Seq2SeqSumm):
                 init_vecs[1][:,idx] = torch.stack(init_c,1)  #xo 값 에 따라 h,c update
 
                 attns.append(attn_score)
-                xos.append(xo)
+                xos.append(xo[:, 0].clone())
                 outputs.append(tok[:, 0].clone())
                 tok.masked_fill_(tok >= vsize, unk)
             else:
@@ -327,7 +327,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         ######################################################################
         # print(f"lstm_in:{lstm_in.size()}, prev_states :{[tt.size() for tt in prev_states]}")
         states = self._lstm(lstm_in, prev_states)
-        lstm_out = states[0][-1]
+        lstm_out = states[0][-1]  #h, last layer
         query = torch.mm(lstm_out, self._attn_w)
         attention, attn_mask, extend_src, extend_vsize = attention
         context, score = step_attention(

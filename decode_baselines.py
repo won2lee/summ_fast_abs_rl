@@ -80,7 +80,7 @@ def decode(save_path, abs_dir, ext_dir, split, batch_size, max_len, cuda):
                 #     decoded_sents = ([' '.join(list(chain(*[[str(w)] if xs[i] == 0 else [sb[xs[i]], str(w)] 
                 #                 for i,w in enumerate(snt)])))
                 #                 for snt,xs in dec_outs[j:j+n]])
-                # else:
+                # else:          
                 decoded_sents = [' '.join(dec) for dec in dec_outs[j:j+n]]
                 for k, dec_str in enumerate(decoded_sents):
                     with open(join(save_path, 'output_{}/{}.dec'.format(k, i)),
