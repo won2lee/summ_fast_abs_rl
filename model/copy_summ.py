@@ -115,8 +115,8 @@ class CopySumm(Seq2SeqSumm):
                 # print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
                 
                 idx = torch.LongTensor(idx)
-                init_vecs[0][:,idx] = torch.cat(init_h,1)
-                init_vecs[1][:,idx] = torch.cat(init_c,1)  #xo 값 에 따라 h,c update
+                init_vecs[0][:,idx] = torch.stack(init_h,1)
+                init_vecs[1][:,idx] = torch.stack(init_c,1)  #xo 값 에 따라 h,c update
 
                 attns.append(attn_score)
                 xos.append(xo)
