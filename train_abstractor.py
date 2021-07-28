@@ -142,7 +142,7 @@ def main(args):
         # self._max_len = max_len
         # self.parallel = abs_args['parallel']
 
-    elif args.w2v or args.pretrained:
+    if args.w2v or args.pretrained:
         if args.w2v:
             # NOTE: the pretrained embedding having the same dimension
             #       as args.emb_dim should already be trained
@@ -153,7 +153,10 @@ def main(args):
             embedding, _ = make_embedding_from_pretrained(
                 {i: w for w, i in word2id.items()}, pre_trained)
             if parallel:
-                net = apply_sub_module_weight_from_pretrained(net,pre_trained)
+                net = apply_sub_module_weight_from_pretrained(
+                        net,pre_trained, 
+                        no_grad = False if args.lr < 0.0001 else True
+                        )
 
         net.set_embedding(embedding)
 
