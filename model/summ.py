@@ -56,7 +56,7 @@ class Seq2SeqSumm(nn.Module):
         self._projection = nn.Sequential(
             nn.Linear(2*n_hidden, n_hidden),
             nn.Tanh(),
-            nn.Linear(n_hidden, emb_dim, bias=False)
+            nn.Linear(n_hidden, emb_dim, bias=False)  # emb_bin => n_hidden 으로 올리는 것 고려  
         )
         # functional object for easier usage
         self._decoder = AttentionalLSTMDecoder(
@@ -66,7 +66,8 @@ class Seq2SeqSumm(nn.Module):
         #self.parallel = parallel
         if self.parallel:
             self.sub_coder= nn.LSTM(emb_dim, n_hidden)  #(embed_size, self.hidden_size)
-            self.sub_gate = nn.Linear(emb_dim, n_hidden, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+            self.sub_gate = nn.Linear(2*n_hidden, 1, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+            #self.sub_gate = nn.Linear(emb_dim, n_hidden, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
             self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
             self.sub_dropout = nn.Dropout(p=0.2)
 
@@ -204,7 +205,8 @@ class Seq2SeqSumm(nn.Module):
         out,(last_h1,last_c1) = sub_coder(X_embed)
         #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
         X_proj = sub_projection(X_embed[1:])
-        X_gate = torch.sigmoid(sub_gate(X_embed[1:]))
+        #X_gate = torch.sigmoid(sub_gate(X_embed[1:]))
+        X_gate = torch.sigmoid(sub_gate(torch.cat((X_proj,out[1:]),-1))) 
 
 
         X_way = sub_dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
@@ -247,7 +249,8 @@ class Seq2SeqSumm(nn.Module):
             out,(h,c) = self.sub_coder(X_embed)
         #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
         X_proj = self.sub_projection(X_embed)
-        X_gate = torch.sigmoid(self.sub_gate(X_embed))
+        #X_gate = torch.sigmoid(self.sub_gate(X_embed))
+        X_gate = torch.sigmoid(self.sub_gate(torch.cat((X_proj,out),-1))) 
 
         X_way = (X_gate * X_proj + (1-X_gate) * out).squeeze(0) #X_proj)  
 
