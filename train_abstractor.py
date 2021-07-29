@@ -42,15 +42,15 @@ class MatchDataset(CnnDmDataset):
     """ single article sentence -> single abstract sentence
     (dataset created by greedily matching ROUGE)
     """
-    def __init__(self, split):
-        super().__init__(split, DATA_DIR)
+    def __init__(self, split, mono_abs):
+        super().__init__(split, DATA_DIR, mono_abs)
 
     def __getitem__(self, i):
         js_data = super().__getitem__(i)
         art_sents, abs_sents, extracts = (
             js_data['article'], js_data['abstract'], js_data['extracted'])
         matched_arts = [art_sents[i] for i in extracts]
-        return matched_arts, abs_sents[:len(extracts)]
+        return matched_arts, abs_sents[:1 if self._mono_abs else len(extracts)]
 
 
 def configure_net(vocab_size, emb_dim,
@@ -85,7 +85,7 @@ def configure_training(opt, lr, clip_grad, lr_decay, batch_size):
 
     return criterion, train_params
 
-def build_batchers(word2id, cuda, debug, parallel):
+def build_batchers(word2id, cuda, debug, parallel, mono_abs):
     prepro = prepro_fn(args.max_art, args.max_abs, parallel=parallel)
     def sort_key(sample):
         src, target = sample
@@ -96,7 +96,7 @@ def build_batchers(word2id, cuda, debug, parallel):
     )
 
     train_loader = DataLoader(
-        MatchDataset('train'), batch_size=BUCKET_SIZE,
+        MatchDataset('train', mono_abs), batch_size=BUCKET_SIZE,
         shuffle=not debug,
         num_workers=4 if cuda and not debug else 0,
         collate_fn=coll_fn
@@ -105,7 +105,7 @@ def build_batchers(word2id, cuda, debug, parallel):
                                       single_run=False, fork=not debug)
 
     val_loader = DataLoader(
-        MatchDataset('val'), batch_size=BUCKET_SIZE,
+        MatchDataset('val', mono_abs), batch_size=BUCKET_SIZE,
         shuffle=False, num_workers=4 if cuda and not debug else 0,
         collate_fn=coll_fn
     )
@@ -122,7 +122,7 @@ def main(args):
     print(f"main.parallel : {parallel}")
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(word2id,
-                                                args.cuda, args.debug, parallel)
+                                                args.cuda, args.debug, parallel, args.mono_snt_abs)
 
     # make net
     net, net_args = configure_net(len(word2id), args.emb_dim,
@@ -250,6 +250,8 @@ if __name__ == '__main__':
     parser.add_argument('--pretrained', action='store',
                         help='use pretrained-in-nmt embed')
     parser.add_argument('--continued', action='store_true',
+                        help='use pretrained-abstrator')
+    parser.add_argument('--mono_abs', action='store_true',
                         help='use pretrained-abstrator')
 
     args = parser.parse_args()

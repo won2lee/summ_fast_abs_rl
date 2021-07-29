@@ -49,7 +49,7 @@ def a2c_validate(agent, abstractor, loader):
 def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                    gamma=0.99, reward_fn=compute_rouge_l,
                    stop_reward_fn=compute_rouge_n(n=1), stop_coeff=1.0,
-                   single_abs_snt=False):
+                   mono_abs=False):
     opt.zero_grad()
     indices = []
     probs = []
@@ -61,8 +61,12 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         baselines.append(bs)
         indices.append(inds)
         probs.append(ms)
-        ext_sents += [raw_arts[idx.item()]
-                      for idx in inds if idx.item() < len(raw_arts)]
+        if mono_abs:
+            ext_sents += [raw_arts[:idx.item()+1]
+                          for idx in inds if idx.item() < len(raw_arts)]  # cumulate sentences           
+        else:
+            ext_sents += [raw_arts[idx.item()]
+                          for idx in inds if idx.item() < len(raw_arts)]
     with torch.no_grad():
         summaries = abstractor(ext_sents)
     i = 0
@@ -70,10 +74,11 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     avg_reward = 0
     for inds, abss in zip(indices, abs_batch):
         # print(f"inds:{type(inds)}, abss:{type(abss)}")
-        if single_abs_snt:
-            cum_rwd = [0.]+[reward_fn(list(concat(summaries[i:i+j])), abss) # cumulated rewards
+        if mono_abs:
+            cum_rwd = [0.]+[reward_fn(summaries[i+j], abss) # cumulated rewards
                         for j in range(min(len(inds)-1, len(abss)))]
-            rs = ([cum_rwd[j+1]-cum_rwd[j] for j in range(min(len(inds)-1, len(abss)))]  #contribution to total reward by one step action
+            rs = ([cum_rwd[j+1]-cum_rwd[j] for j in range(min(len(inds)-1, len(abss)))  #contribution to total reward by one step action
+                  for j in range(min(len(inds)-1, len(abss)))]
                   + [0 for _ in range(max(0, len(inds)-1-len(abss)))]
                   + [stop_coeff*stop_reward_fn(
                       list(concat(summaries[i:i+len(inds)-1])),

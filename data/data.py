@@ -8,10 +8,11 @@ from torch.utils.data import Dataset
 
 
 class CnnDmDataset(Dataset):
-    def __init__(self, split: str, path: str) -> None:
+    def __init__(self, split: str, path: str, mono_abs: bool) -> None:
         assert split in ['train', 'val', 'test']
         self._data_path = join(path, split)
         self._n_data, self._l_data = _count_data(self._data_path)
+        self._mono_abs = mono_abs
 
     def __len__(self) -> int:
         return self._n_data
