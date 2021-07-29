@@ -122,7 +122,7 @@ def main(args):
     print(f"main.parallel : {parallel}")
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(word2id,
-                                                args.cuda, args.debug, parallel, args.mono_snt_abs)
+                                                args.cuda, args.debug, parallel, args.mono_abs)
 
     # make net
     net, net_args = configure_net(len(word2id), args.emb_dim,
@@ -141,8 +141,14 @@ def main(args):
         # self._id2word = {i: w for w, i in word2id.items()}
         # self._max_len = max_len
         # self.parallel = abs_args['parallel']
+        if parallel:
+            pre_trained = torch.load(args.pretrained)
+            net = apply_sub_module_weight_from_pretrained(
+                    net,pre_trained, 
+                    no_grad = False if args.lr < 0.0001 else True
+                    )
 
-    if args.w2v or args.pretrained:
+    elif args.w2v or args.pretrained:
         if args.w2v:
             # NOTE: the pretrained embedding having the same dimension
             #       as args.emb_dim should already be trained
@@ -155,7 +161,7 @@ def main(args):
             if parallel:
                 net = apply_sub_module_weight_from_pretrained(
                         net,pre_trained, 
-                        no_grad = False if args.lr < 0.0001 else True
+                        no_grad = True
                         )
 
         net.set_embedding(embedding)
