@@ -38,8 +38,8 @@ except KeyError:
 
 class RLDataset(CnnDmDataset):
     """ get the article sentences only (for decoding use)"""
-    def __init__(self, split):
-        super().__init__(split, DATA_DIR)
+    def __init__(self, split, mono_abs=None):
+        super().__init__(split, DATA_DIR, mono_abs)
 
     def __getitem__(self, i):
         js_data = super().__getitem__(i)

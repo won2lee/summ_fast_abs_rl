@@ -194,7 +194,7 @@ class A2CPipeline(BasicPipeline):
             self._opt, self._grad_fn,
             self._gamma, self._reward_fn,
             self._stop_reward_fn, self._stop_coeff,
-            single_abs_snt=self._single_abs_snt
+            mono_abs=self._single_abs_snt
         )
         return log_dict
 

@@ -25,9 +25,9 @@ except KeyError:
 
 class DecodeDataset(CnnDmDataset):
     """ get the article sentences only (for decoding use)"""
-    def __init__(self, split):
+    def __init__(self, split, mono_abs):
         assert split in ['val', 'test']
-        super().__init__(split, DATASET_DIR)
+        super().__init__(split, DATASET_DIR, mono_abs)
 
     def __getitem__(self, i):
         js_data = super().__getitem__(i)

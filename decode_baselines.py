@@ -20,7 +20,7 @@ from decoding import make_html_safe
 MAX_ABS_NUM = 6  # need to set max sentences to extract for non-RL extractor
 
 
-def decode(save_path, abs_dir, ext_dir, split, batch_size, max_len, cuda):
+def decode(save_path, abs_dir, ext_dir, split, batch_size, max_len, cuda, mono_abs):
     start = time()
     # setup model
     if abs_dir is None:
@@ -40,7 +40,7 @@ def decode(save_path, abs_dir, ext_dir, split, batch_size, max_len, cuda):
     def coll(batch):
         articles = list(filter(bool, batch))
         return articles
-    dataset = DecodeDataset(split)
+    dataset = DecodeDataset(split, mono_abs)
 
     n_data = len(dataset)
     loader = DataLoader(
@@ -119,9 +119,11 @@ if __name__ == '__main__':
 
     parser.add_argument('--no-cuda', action='store_true',
                         help='disable GPU training')
+    parser.add_argument('--mono_abs', action='store_true',
+                        help='for kor summ data')
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available() and not args.no_cuda
 
     data_split = 'test' if args.test else 'val'
     decode(args.path, args.abs_dir, args.ext_dir,
-           data_split, args.batch, args.max_dec_word, args.cuda)
+           data_split, args.batch, args.max_dec_word, args.cuda, args.mono_abs)

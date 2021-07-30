@@ -106,7 +106,7 @@ class CopySumm(Seq2SeqSumm):
                 toks, states, attn_score = self._decoder.decode_step(
                     tok, states, attention)
                 tok, xo = toks
-                print(f'tok.size() : {tok.size()}, xo.size() : {xo.size()}')
+                #print(f'tok.size() : {tok.size()}, xo.size() : {xo.size()}')
 
                 idx, init_h, init_c  = ([list(k) for k in 
                                         list(unzip([(ix, sb_init[0][:,x.item()-1],sb_init[1][:,x.item()-1])
