@@ -135,17 +135,19 @@ def main(args):
         abs_ckpt = load_best_ckpt(args.path)
         # word2id = pkl.load(open(join(args.path, 'vocab.pkl'), 'rb'))
         net.load_state_dict(abs_ckpt)
+        if args.lr < 0.0001
+            net.requires_grad_(requires_grad=True)
         # self._device = torch.device('cuda' if cuda else 'cpu')
         # self._net = abstractor.to(self._device)
         # self._word2id = word2id
         # self._id2word = {i: w for w, i in word2id.items()}
         # self._max_len = max_len
         # self.parallel = abs_args['parallel']
-        if parallel:
+        elif parallel and args.pretrained:
             pre_trained = torch.load(args.pretrained)
             net = apply_sub_module_weight_from_pretrained(
                     net,pre_trained, 
-                    no_grad = False if args.lr < 0.0001 else True
+                    no_grad = True if args.lr > 0.0001 else False
                     )
 
     elif args.w2v or args.pretrained:
@@ -160,7 +162,7 @@ def main(args):
                 {i: w for w, i in word2id.items()}, pre_trained)
             if parallel:
                 net = apply_sub_module_weight_from_pretrained(
-                        net,pre_trained, 
+                        net,pre_trained,lang = args.lang,
                         no_grad = True
                         )
 
@@ -258,7 +260,7 @@ if __name__ == '__main__':
     parser.add_argument('--continued', action='store_true',
                         help='use pretrained-abstrator')
     parser.add_argument('--mono_abs', action='store_true',
-                        help='use pretrained-abstrator')
+                        help='for kor summ data')
 
     args = parser.parse_args()
     args.bi = not args.no_bi
