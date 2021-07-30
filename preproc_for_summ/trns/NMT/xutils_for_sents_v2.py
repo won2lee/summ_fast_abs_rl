@@ -481,7 +481,7 @@ def to_bpe_sents10(sentences, vocabs,vocs_dict, logprob, key_vars, sum_voc_vals,
                             
                         temp_sum = [np.log(vocabs[ww])-logprob[len(ww)] + magic4(ww,z,k_args) for ww in n_w[i-window:i]]
                                                 
-                        print(f'temp_sum {temp_sum},vocabs[to_ch] {vocabs[to_ch]}')
+                        #print(f'temp_sum {temp_sum},vocabs[to_ch] {vocabs[to_ch]}')
                         if sum(temp_sum)/len(temp_sum)< np.log(vocabs[to_ch])*nx-logprob[len(to_ch)] + magic4(to_ch,z,k_args):
                             n_w = n_w[:i-window]+[to_ch]+n_w[i:]
                             to_continue = 1 

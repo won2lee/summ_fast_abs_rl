@@ -68,21 +68,32 @@ def sanitize_input(in_file, dataList = None):
 def fast_preproc(in_path,out_path, lang):
     from glob import glob
     f_list = glob(in_path+"*")
+    to_load = True
     
+    if len(f_list) == 1:
+        to_load = False
+        with open(f_list[0]) as f:
+            f_list = json.loads(f.read())
+      
     if not exists(out_path):
         os.makedirs(out_path)
      
     pre_ko = preproc_ko2en()
     en_vocs = pre_en()
     preproc = preProc(lang, to_start, pre_ko, preproc_en, en_vocs)
-    
+        
     for i,fi in enumerate(f_list):
-        with open(fi) as f:
-            js = json.loads(f.read())
+        #if i>100:
+        #    break
+        if to_load:
+            with open(fi) as f:
+                js = json.loads(f.read())
+        else:
+            js = fi
         for k in ["article", "abstract"]:
             js[k] = preproc(sanitize_input(None, js[k]))
-        with open(join(out_path, fi.split('/')[-1]),"w") as f:
-            json.dump(js,f,indent=4) 
+        with open(join(out_path, fi.split('/')[-1] if to_load else fi['id']),"w") as f:
+            json.dump(js,f,indent=4,ensure_ascii=False) 
         if i%10000==0:
             print(f"{i}th file was done") 
 
