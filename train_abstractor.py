@@ -135,7 +135,7 @@ def main(args):
         abs_ckpt = load_best_ckpt(args.path)
         # word2id = pkl.load(open(join(args.path, 'vocab.pkl'), 'rb'))
         net.load_state_dict(abs_ckpt)
-        if args.lr < 0.0001
+        if args.lr < 0.0001:
             net.requires_grad_(requires_grad=True)
         # self._device = torch.device('cuda' if cuda else 'cpu')
         # self._net = abstractor.to(self._device)
@@ -261,6 +261,8 @@ if __name__ == '__main__':
                         help='use pretrained-abstrator')
     parser.add_argument('--mono_abs', action='store_true',
                         help='for kor summ data')
+    parser.add_argument('--lang', type=str, action='store', default='en',
+                        help='language to summ')
 
     args = parser.parse_args()
     args.bi = not args.no_bi

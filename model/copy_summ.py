@@ -370,7 +370,8 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
             #     self.copy_projection(torch.cat((context, states[0][-1]),-1))
             #     ),-1)),-1)
             #F.log_softmax(self.target_ox_projection(gen_prob[:,:self.vocab_size]),-1)
-            lp2 = F.log_softmax(self.target_ox_projection(torch.cat(dec_out,tok),-1),-1)
+            #print(f'decode, tok :{decode.size()}, {tok.size()}')
+            lp2 = F.log_softmax(self.target_ox_projection(torch.cat([dec_out,tok.squeeze(1)],-1)),-1)
                 # torch.cat((
                 # dec_out, 
                 # tok.squeeze(1)),-1)),-1)
@@ -444,6 +445,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
 
         if self.parallel:
             lp2 = F.log_softmax(self.target_ox_projection(dec_out),-1)
+            lp2 = F.log_softmax(self.target_ox_projection(torch.cat([dec_out,tok],-1)),-1)
             #lp2 = F.log_softmax(self.target_ox_projection(gen_prob[:,:self.vocab_size]),-1).contiguous().view(beam, batch, -1)
             # lp2 = F.log_softmax(self.target_ox_projection(torch.cat((
             #     dec_out, 
