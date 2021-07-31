@@ -38,9 +38,13 @@ def make_vocab(wc, vocab_size):
     word2id['^'] = TTL
     word2id['`'] = CAP
 
-
-    for i, (w, _) in enumerate(wc.most_common(vocab_size), 7):
+    i = 7
+    for (w, _) in wc.most_common(vocab_size):
+        if w in ['_','^','`']:
+            continue
+    # for i, (w, _) in enumerate(wc.most_common(vocab_size), 7):
         word2id[w] = i
+        i += 1
     return word2id
 
 
@@ -87,6 +91,8 @@ def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
                 embedding[i, :] = torch.Tensor(voc_embed[w2v['<s>']])
             elif i == END:
                 embedding[i, :] = torch.Tensor(voc_embed[w2v[r'</s>']])
+            elif i in [4,5,6]:
+                continue
             elif id2word[i] in w2v:
                 embedding[i, :] = torch.Tensor(voc_embed[w2v[id2word[i]]])
             else:
