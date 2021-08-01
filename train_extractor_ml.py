@@ -157,6 +157,15 @@ def main(args):
         extr_ckpt = load_best_ckpt(args.path)
         # word2id = pkl.load(open(join(args.path, 'vocab.pkl'), 'rb'))
         net.load_state_dict(extr_ckpt)
+        if args.lr < 0.0001:
+            net.requires_grad_(requires_grad=True)
+
+        elif parallel and args.pretrained:
+            pre_trained = torch.load(args.pretrained)
+            net = apply_sub_module_weight_from_pretrained(
+                    net,pre_trained, 
+                    no_grad = True if args.lr > 0.0001 else False
+                    )
 
     elif args.w2v or args.pretrained:
         if args.w2v:

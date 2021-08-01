@@ -99,7 +99,7 @@ def make_embedding_from_pretrained(id2word, pre_trained, initializer=None):
                 oovs.append(i)
     return embedding, oovs 
 
-def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en', extr=False, no_grad=False):
+def apply_sub_module_weight_from_pretrained(net, pre_trained, lang='en', extr=False, no_grad=True):
     import re
     #keys() = {'en':pre_trained['en'].keys(), 'ko':pre_trained['ko'].keys()}
     p = re.compile("_(en|ko)_")
