@@ -218,7 +218,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch', type=int, action='store', default=12,
                         help='the training batch size')
     parser.add_argument(
-        '--ckpt_freq', type=int, action='store', default=500,
+        '--ckpt_freq', type=int, action='store', default=1000,
         help='number of update steps for checkpoint and validation'
     )
     parser.add_argument('--patience', type=int, action='store', default=3,
