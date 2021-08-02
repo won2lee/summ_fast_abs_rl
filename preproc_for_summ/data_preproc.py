@@ -92,7 +92,7 @@ def fast_preproc(in_path,out_path, lang):
             js = fi
         for k in ["article", "abstract"]:
             js[k] = preproc(sanitize_input(None, js[k]))
-        with open(join(out_path, fi.split('/')[-1] if to_load else fi['id']),"w") as f:
+        with open(join(out_path, fi.split('/')[-1]+".json" if to_load else fi['id']+".json"),"w") as f:
             json.dump(js,f,indent=4,ensure_ascii=False) 
         if i%10000==0:
             print(f"{i}th file was done") 

@@ -45,7 +45,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='program to preproceed')
     parser.add_argument('--in_path', default='in_path/', help='root of the data')
-    parser.add_argument('--out_path', default="finished_files_dir/",
+    parser.add_argument('--out_path', default="finished_files/",
                         help='out data after proprocess')
 
     args = parser.parse_args()

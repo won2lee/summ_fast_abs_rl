@@ -50,6 +50,8 @@ class MatchDataset(CnnDmDataset):
         art_sents, abs_sents, extracts = (
             js_data['article'], js_data['abstract'], js_data['extracted'])
         matched_arts = [art_sents[i] for i in extracts]
+        if self._mono_abs:
+            matched_arts = [" ".join(matched_arts)]
         return matched_arts, abs_sents[:1 if self._mono_abs else len(extracts)]
 
 
@@ -102,7 +104,7 @@ def build_batchers(word2id, cuda, debug, parallel, mono_abs):
         collate_fn=coll_fn
     )
     train_batcher = BucketedGenerater(train_loader, prepro, sort_key, batchify,
-                                      single_run=False, fork=not debug)
+                                      single_run=args.mono_abs, fork=not debug)
 
     val_loader = DataLoader(
         MatchDataset('val', mono_abs), batch_size=BUCKET_SIZE,
@@ -110,7 +112,7 @@ def build_batchers(word2id, cuda, debug, parallel, mono_abs):
         collate_fn=coll_fn
     )
     val_batcher = BucketedGenerater(val_loader, prepro, sort_key, batchify,
-                                    single_run=True, fork=not debug)
+                                    single_run=args.mono_abs, fork=not debug)
     return train_batcher, val_batcher
 
 def main(args):
@@ -229,7 +231,7 @@ if __name__ == '__main__':
     # length limit
     parser.add_argument('--max_art', type=int, action='store', default=100,
                         help='maximun words in a single article sentence')
-    parser.add_argument('--max_abs', type=int, action='store', default=30,
+    parser.add_argument('--max_abs', type=int, action='store', default=60,
                         help='maximun words in a single abstract sentence')
     # training options
     parser.add_argument('--lr', type=float, action='store', default=1e-3,

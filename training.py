@@ -120,8 +120,8 @@ class BasicPipeline(object):
         #print(f"fw_args.size : {[fw_args[i].size() if type(fw_args[i]) is torch.Tensor else len(fw_args[i]) for i in range(4)]}")
         net_out, XO = self._net(*fw_args)
         if self.count%50==0 and self.parallel:
-            print(f"XO[0]     : {XO[0]}")
-            print(f"inf XO[0] : {net_out[1][0].argmax(-1)}")
+            print(f"XO[0]     : {XO[0][:20]}")
+            print(f"inf XO[0] : {net_out[1][0][:20].argmax(-1)}")
         #print("one copy_summ process was done")
 
         # get logs and output for logging, backward
@@ -254,8 +254,9 @@ class BasicTrainer(object):
             start = time()
             print('Start training')
             while True:
-                log_dict = self._pipeline.train_step()
                 self._step += 1
+                #print(f"{self._step} step was started")
+                log_dict = self._pipeline.train_step()
                 self.log(log_dict)
 
                 if self._step % 50 == 0:

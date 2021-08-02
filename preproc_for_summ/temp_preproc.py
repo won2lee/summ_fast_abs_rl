@@ -16,5 +16,5 @@ if __name__ == "__main__":
     main(args)
     
     ## python temp_preproc.py --in_path=../test_path/in/ --out_path=../test_path/out/ --lang=ko
-    # python temp_preproc.py --in_path=/content/fast_abs_rl/corea_dailynews/finished_files/news_valid_mini.json \
-    # --out_path=/content/fast_abs_rl/corea_dailynews/finished_files/val --lang=ko
+    # python3 temp_preproc.py --in_path=/content/fast_abs_rl/corea_dailynews/finished_files/news_train_mini.json \
+    # --out_path=/content/fast_abs_rl/corea_dailynews/finished_files/train --lang=ko
