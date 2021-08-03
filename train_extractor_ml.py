@@ -178,7 +178,8 @@ def main(args):
             embedding, _ = make_embedding_from_pretrained(
                 {i: w for w, i in word2id.items()}, pre_trained)
             if parallel:
-                net._sent_enc = apply_sub_module_weight_from_pretrained(net._sent_enc,pre_trained, extr=True)
+                net._sent_enc = apply_sub_module_weight_from_pretrained(
+                                net._sent_enc,pre_trained, lang=args.lang, extr=True)
 
         net.set_embedding(embedding)
 
@@ -279,6 +280,8 @@ if __name__ == '__main__':
                         help='use pretrained-in-nmt embed')
     parser.add_argument('--continued', action='store_true',
                         help='use pretrained-extrator')
+    parser.add_argument('--lang', type=str, action='store', default='en',
+                        help='language to summ')
     args = parser.parse_args()
     args.bi = not args.no_bi
     args.cuda = torch.cuda.is_available() and not args.no_cuda

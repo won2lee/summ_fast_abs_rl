@@ -9,7 +9,7 @@ from glob import glob
 
 def main(args):
 
-    for i in range(3):
+    for i in range(20):
         pf_list = glob(args.in_path+"*")
         f_list = [f.split('/')[-1] for f in pf_list]
         ibest = sorted([(i,f) for i,f in enumerate(f_list)], key=lambda x:x[1])[0][0]
