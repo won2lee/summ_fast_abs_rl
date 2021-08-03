@@ -1,4 +1,5 @@
 import argparse
+import time
 #import json
 #import collections
 #import os
@@ -7,12 +8,15 @@ import shutil
 from glob import glob
 
 def main(args):
-    pf_list = glob(args.in_path+"*")
-    f_list = [f.split('/')[-1] for f in pf_list]
-    ibest = sorted([(i,f) for i,f in enumerate(f_list)], key=lambda x:x[1])[0][0]
-    print(pf_list[ibest])
 
-    shutil.copy(pf_list[ibest],args.out_path)
+    for i in range(3):
+        pf_list = glob(args.in_path+"*")
+        f_list = [f.split('/')[-1] for f in pf_list]
+        ibest = sorted([(i,f) for i,f in enumerate(f_list)], key=lambda x:x[1])[0][0]
+        print(pf_list[ibest])
+
+        shutil.copy(pf_list[ibest],args.out_path)
+        time.sleep(1800)
 
 if __name__ == '__main__':
     
