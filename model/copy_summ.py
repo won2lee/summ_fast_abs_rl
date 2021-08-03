@@ -468,7 +468,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
                 if len(k_tok) >k:
                     break
                 if tp in k_tok:
-                    continue:
+                    continue
                 else:
                     k_tok.append(tp)
                     k_xo.append(k_x[i])

@@ -70,7 +70,14 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         extrctd = [raw_arts[idx.item()]
                           for idx in inds if idx.item() < len(raw_arts)]
         if mono_abs:
-            ext_sents += [extrctd[:i+1] for i in range(len(extrctd))] # cumulate sentences            
+            k = len(extrctd)
+            ext_sent = [[] for _ in range(k)]
+            #print(k,ext_sent)
+            for i,ex in enumerate(extrctd):
+                for j in range(i,k):
+                    ext_sent[j] +=ex
+            ext_sents += ext_sent           
+         
         else:
             ext_sents += extrctd
 
