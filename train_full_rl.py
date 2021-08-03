@@ -175,7 +175,7 @@ def train(args):
                            optimizer, grad_fn,
                            reward_fn, args.gamma,
                            stop_reward_fn, args.stop,
-                           single_abs_snt)
+                           args.mono_abs)
     trainer = BasicTrainer(pipeline, args.path,
                            args.ckpt_freq, args.patience, scheduler,
                            val_mode='score')
@@ -227,6 +227,8 @@ if __name__ == '__main__':
                         help='enable sub lstm')
     parser.add_argument('--no-cuda', action='store_true',
                         help='disable GPU training')
+    parser.add_argument('--mono_abs', action='store_true',
+                        help='for kor summ data')
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available() and not args.no_cuda
 

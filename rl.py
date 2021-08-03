@@ -29,13 +29,18 @@ def a2c_validate(agent, abstractor, loader):
             for raw_arts in art_batch:
                 indices = agent(raw_arts)
                 ext_inds += [(len(ext_sents), len(indices)-1)]
-                ext_sents += [raw_arts[idx.item()]
-                              for idx in indices if idx.item() < len(raw_arts)]
+                extrctd = [raw_arts[idx.item()]
+                                for idx in inds if idx.item() < len(raw_arts)]
+                if mono_abs:
+                    ext_sents += [' '.join(extrctd)]
+                else:
+                    ext_sents += extrctd
+
             #print(f"first ext_sents: {ext_sents[0]}")
             #print(f"last ext_sents: {ext_sents[-1]}")
             all_summs = abstractor(ext_sents)
-            for (j, n), abs_sents in zip(ext_inds, abs_batch):
-                summs = all_summs[j:j+n]
+            for ibatch, (j, n), abs_sents in enumerate(zip(ext_inds, abs_batch)):
+                summs = all_summs[ibatch] if mono_abs else all_summs[j:j+n]
                 # python ROUGE-1 (not official evaluation)
                 avg_reward += compute_rouge_n(list(concat(summs)),
                                               list(concat(abs_sents)), n=1)
@@ -61,12 +66,14 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         baselines.append(bs)
         indices.append(inds)
         probs.append(ms)
-        if mono_abs:
-            ext_sents += [raw_arts[:idx.item()+1]
-                          for idx in inds if idx.item() < len(raw_arts)]  # cumulate sentences           
-        else:
-            ext_sents += [raw_arts[idx.item()]
+
+        extrctd = [raw_arts[idx.item()]
                           for idx in inds if idx.item() < len(raw_arts)]
+        if mono_abs:
+            ext_sents += [extrctd[:i+1] for i in range(len(extrctd))] # cumulate sentences            
+        else:
+            ext_sents += extrctd
+
     with torch.no_grad():
         summaries = abstractor(ext_sents)
     i = 0
@@ -165,7 +172,7 @@ class A2CPipeline(BasicPipeline):
                  optim, grad_fn,
                  reward_fn, gamma,
                  stop_reward_fn, stop_coeff,
-                 single_abs_snt):
+                 mono_abs):
         self.name = name
         self._net = net
         self._train_batcher = train_batcher
@@ -178,7 +185,7 @@ class A2CPipeline(BasicPipeline):
         self._reward_fn = reward_fn
         self._stop_reward_fn = stop_reward_fn
         self._stop_coeff = stop_coeff
-        self._single_abs_snt = single_abs_snt
+        self._mono_abs = mono_abs
 
         self._n_epoch = 0  # epoch not very useful?
 
@@ -194,7 +201,7 @@ class A2CPipeline(BasicPipeline):
             self._opt, self._grad_fn,
             self._gamma, self._reward_fn,
             self._stop_reward_fn, self._stop_coeff,
-            mono_abs=self._single_abs_snt
+            mono_abs=self._mono_abs
         )
         return log_dict
 
