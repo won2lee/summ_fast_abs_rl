@@ -16,7 +16,7 @@ from metric import compute_rouge_l, compute_rouge_n
 from training import BasicPipeline
 
 
-def a2c_validate(agent, abstractor, loader):
+def a2c_validate(agent, abstractor, loader, mono_abs):
     agent.eval()
     start = time()
     print('start running validation...', end='')
@@ -30,16 +30,19 @@ def a2c_validate(agent, abstractor, loader):
                 indices = agent(raw_arts)
                 ext_inds += [(len(ext_sents), len(indices)-1)]
                 extrctd = [raw_arts[idx.item()]
-                                for idx in inds if idx.item() < len(raw_arts)]
+                                for idx in indices if idx.item() < len(raw_arts)]
                 if mono_abs:
-                    ext_sents += [' '.join(extrctd)]
+                    ext_sent=[]
+                    for s in extrctd[:3]:
+                        ext_sent+=[s]
+                    ext_sents += ext_sent #[for s in extrctd[:3]]
                 else:
                     ext_sents += extrctd
 
             #print(f"first ext_sents: {ext_sents[0]}")
             #print(f"last ext_sents: {ext_sents[-1]}")
             all_summs = abstractor(ext_sents)
-            for ibatch, (j, n), abs_sents in enumerate(zip(ext_inds, abs_batch)):
+            for ibatch, ((j, n), abs_sents) in enumerate(zip(ext_inds, abs_batch)):
                 summs = all_summs[ibatch] if mono_abs else all_summs[j:j+n]
                 # python ROUGE-1 (not official evaluation)
                 avg_reward += compute_rouge_n(list(concat(summs)),
@@ -70,12 +73,22 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         extrctd = [raw_arts[idx.item()]
                           for idx in inds if idx.item() < len(raw_arts)]
         if mono_abs:
+            # ext_sent = []
+            # for i,ex in enumerate(extrctd):
+            #     ext_sent += [ex]
+            #     ext_sents +=[''.join(ext_sent)]
+
+            # if ex is list, then as follows
+
             k = len(extrctd)
             ext_sent = [[] for _ in range(k)]
             #print(k,ext_sent)
             for i,ex in enumerate(extrctd):
+                if i>2:break
                 for j in range(i,k):
-                    ext_sent[j] +=ex
+                    # ext_sent[j] +=ex
+                    ext_sent[j] +=ex #[ex]
+                #ext_sent[i]=[' '.join(ext_sent[i])]
             ext_sents += ext_sent           
          
         else:
@@ -213,7 +226,7 @@ class A2CPipeline(BasicPipeline):
         return log_dict
 
     def validate(self):
-        return a2c_validate(self._net, self._abstractor, self._val_batcher)
+        return a2c_validate(self._net, self._abstractor, self._val_batcher, self._mono_abs)
 
     def checkpoint(self, *args, **kwargs):
         # explicitly use inherited function in case I forgot :)

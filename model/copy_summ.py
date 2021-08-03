@@ -106,17 +106,17 @@ class CopySumm(Seq2SeqSumm):
                 toks, states, attn_score = self._decoder.decode_step(
                     tok, states, attention)
                 tok, xo = toks
-                #print(f'tok.size() : {tok.size()}, xo.size() : {xo.size()}')
-
-                idx, init_h, init_c  = ([list(k) for k in 
-                                        list(unzip([(ix, sb_init[0][:,x.item()-1],sb_init[1][:,x.item()-1])
-                                        for ix,x in enumerate(xo) if x.item() != 0]))])
-                # print(f"init_h[0] : {init_h[0].size()}") 
-                # print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
-                
-                idx = torch.LongTensor(idx)
-                init_vecs[0][:,idx] = torch.stack(init_h,1)
-                init_vecs[1][:,idx] = torch.stack(init_c,1)  #xo 값 에 따라 h,c update
+                print(f'tok.size() : {tok.size()}, xo.size() : {xo.size()}')
+                if len([x for x in xo if x.item() != 0])>0:
+                    idx, init_h, init_c  = ([list(k) for k in 
+                                            list(unzip([(ix, sb_init[0][:,x.item()-1],sb_init[1][:,x.item()-1])
+                                            for ix,x in enumerate(xo) if x.item() != 0]))])
+                    # print(f"init_h[0] : {init_h[0].size()}") 
+                    # print(f"idx : {torch.LongTensor(idx).size()}, cat : {torch.cat(list(init_h),1).size()}")
+                    
+                    idx = torch.LongTensor(idx)
+                    init_vecs[0][:,idx] = torch.stack(init_h,1)
+                    init_vecs[1][:,idx] = torch.stack(init_c,1)  #xo 값 에 따라 h,c update
 
                 attns.append(attn_score)
                 xos.append(xo[:, 0].clone())
