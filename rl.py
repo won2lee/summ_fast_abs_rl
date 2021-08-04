@@ -34,8 +34,8 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
                 if mono_abs:
                     ext_sent=[]
                     for s in extrctd[:3]:
-                        ext_sent+=[s]
-                    ext_sents += ext_sent #[for s in extrctd[:3]]
+                        ext_sent+=s
+                    ext_sents += [ext_sent] #[for s in extrctd[:3]]
                 else:
                     ext_sents += extrctd
 
