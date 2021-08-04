@@ -120,8 +120,9 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                   + [stop_coeff*stop_reward_fn(
                       list(concat(summaries[i:i+len(inds)-1])),
                       list(concat(abss)))])
-        print(f'rs:{len(rs)}, inds:{len(inds)}')
-        assert len(rs) == len(inds) +1 if mono_abs else len(inds)
+        #print(f'rs:{len(rs)}, inds:{len(inds)}')
+        #assert len(rs) == len(inds) +1 if mono_abs else len(inds)
+        assert len(rs) == len(inds) 
         avg_reward += rs[-1]/stop_coeff
         i += len(inds)-1
         # compute discounted rewards
@@ -146,6 +147,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         avg_advantage += advantage
         losses.append(-p.log_prob(action)
                       * (advantage/len(indices))) # divide by T*B
+    print(f"reward:{reward.size()}, baseline : {baseline.size()}")
     critic_loss = F.mse_loss(baseline, reward)
     #print(f"[critic_loss] + losses: ") #{[critic_loss] + losses}")
     #for mm in [critic_loss] + losses:

@@ -123,7 +123,7 @@ class PtrExtractorRLStop(PtrExtractorRL):
             lstm_in = attn_mem[out.item()].unsqueeze(0)
             lstm_states = (h, c)
             n_step+=1
-            if n_step>2 and n_ext==10000:
+            if n_step>3 and n_ext==10000:
                 break
         if dists:
             # return distributions only when not empty (trining)
@@ -207,7 +207,7 @@ class ActorCritic(nn.Module):
         else:
             outputs = self._ext(enc_art, n_abs)
         if self.training:
-            if n_abs is None:
+            if n_abs is None or n_abs==10000:
                 n_abs = len(outputs[0])
             scores = self._scr(enc_art, n_abs)
             return outputs, scores
