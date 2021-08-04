@@ -91,7 +91,7 @@ class PtrExtractorRLStop(PtrExtractorRL):
         """atten_mem: Tensor of size [num_sents, input_dim]"""
         if n_ext is not None and n_ext!=10000:
             return super().forward(attn_mem, n_ext)
-        max_step = 3 if n_ext==10000 else attn_mem.size(0) 
+        max_step = attn_mem.size(0) 
         attn_mem = torch.cat([attn_mem, self._stop.unsqueeze(0)], dim=0)
         attn_feat = torch.mm(attn_mem, self._attn_wm)
         hop_feat = torch.mm(attn_mem, self._hop_wm)
@@ -99,6 +99,7 @@ class PtrExtractorRLStop(PtrExtractorRL):
         dists = []
         lstm_in = self._init_i.unsqueeze(0)
         lstm_states = (self._init_h.unsqueeze(1), self._init_c.unsqueeze(1))
+        n_step=0
         while True:
             h, c = self._lstm_cell(lstm_in, lstm_states)
             query = h[:, -1, :]
@@ -121,6 +122,9 @@ class PtrExtractorRLStop(PtrExtractorRL):
                 break
             lstm_in = attn_mem[out.item()].unsqueeze(0)
             lstm_states = (h, c)
+            n_step+=1
+            if n_step>2 and n_ext==10000:
+                break
         if dists:
             # return distributions only when not empty (trining)
             return outputs, dists
