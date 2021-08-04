@@ -125,7 +125,7 @@ def train(args):
         os.makedirs(args.path)
 
     parallel = args.parallel
-    single_abs_snt = False
+    #single_abs_snt = False
     # make net
     agent, agent_vocab, abstractor, net_args = configure_net(
         args.abs_dir, args.ext_dir, args.cuda)

@@ -65,7 +65,10 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     ext_sents = []
     art_batch, abs_batch = next(loader)
     for raw_arts in art_batch:
-        (inds, ms), bs = agent(raw_arts)
+        if mono_abs:
+            (inds, ms), bs = agent(raw_art, n_abs=10000)
+        else:
+            (inds, ms), bs = agent(raw_arts)
         baselines.append(bs)
         indices.append(inds)
         probs.append(ms)
@@ -80,7 +83,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
 
             # if ex is list, then as follows
 
-            k = len(extrctd)
+            k = mini(len(extrctd),3)
             ext_sent = [[] for _ in range(k)]
             #print(k,ext_sent)
             for i,ex in enumerate(extrctd):
@@ -102,13 +105,13 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     for inds, abss in zip(indices, abs_batch):
         # print(f"inds:{type(inds)}, abss:{type(abss)}")
         if mono_abs:
-            cum_rwd = [0.]+[reward_fn(summaries[i+j], abss) # cumulated rewards
-                        for j in range(min(len(inds)-1, len(abss)))]
-            rs = ([cum_rwd[j+1]-cum_rwd[j] for j in range(min(len(inds)-1, len(abss)))  #contribution to total reward by one step action
-                  for j in range(min(len(inds)-1, len(abss)))]
-                  + [0 for _ in range(max(0, len(inds)-1-len(abss)))]
+            cum_rwd = [0.]+[reward_fn(summaries[i+j], abss[0]) # cumulated rewards
+                        for j in range(min(len(inds), 3))]
+            rs = ([cum_rwd[j+1]-cum_rwd[j]   #contribution to total reward by one step action
+                  for j in range(min(len(inds), 3))]
+                  #+ [0 for _ in range(max(0, len(inds)-1-3))]
                   + [stop_coeff*stop_reward_fn(
-                      list(concat(summaries[i:i+len(inds)-1])),
+                      list(concat([summaries[i+min(len(inds), 3)-1]])),
                       list(concat(abss)))])
         else:
             rs = ([reward_fn(summaries[i+j], abss[j])
@@ -117,7 +120,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                   + [stop_coeff*stop_reward_fn(
                       list(concat(summaries[i:i+len(inds)-1])),
                       list(concat(abss)))])
-        assert len(rs) == len(inds)
+        assert len(rs) == len(inds) +1 if mono_abs else len(inds)
         avg_reward += rs[-1]/stop_coeff
         i += len(inds)-1
         # compute discounted rewards
