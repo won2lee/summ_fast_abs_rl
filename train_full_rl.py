@@ -142,7 +142,10 @@ def train(args):
     stop_reward_fn = compute_rouge_n(n=1)
 
     # save abstractor binary
-    if args.abs_dir is not None:
+    if args.continued:
+        full_ckpt = load_best_ckpt(args.path)
+        agent.load_state_dict(full_ckpt)
+    elif args.abs_dir is not None:
         abs_ckpt = {}
         abs_ckpt['state_dict'] = load_best_ckpt(args.abs_dir)
         abs_vocab = pkl.load(open(join(args.abs_dir, 'vocab.pkl'), 'rb'))
@@ -164,9 +167,7 @@ def train(args):
         pkl.dump(agent_vocab, f)
 
 
-    if args.continued:
-        full_ckpt = load_best_ckpt(args.path)
-        agent.load_state_dict(full_ckpt)
+
 
     # prepare trainer
     grad_fn = get_grad_fn(agent, args.clip)
@@ -234,6 +235,9 @@ if __name__ == '__main__':
                         help='disable GPU training')
     parser.add_argument('--mono_abs', action='store_true',
                         help='for kor summ data')
+    parser.add_argument('--continued', action='store_true',
+                        help='use pretrained-abstrator')
+
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available() and not args.no_cuda
 
