@@ -29,8 +29,8 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
             for raw_arts in art_batch:
                 indices = agent(raw_arts)
                 ext_inds += [(len(ext_sents), len(indices)-1)]
-                extrctd = [raw_arts[idx.item()]
-                                for idx in indices if idx.item() < len(raw_arts)]
+                extrctd = ([raw_arts[idx.item()]
+                                for idx in indices if idx.item() < len(raw_arts)])
                 if mono_abs:
                     ext_sent=[]
                     for s in extrctd[:3]:
@@ -43,9 +43,11 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
             #print(f"last ext_sents: {ext_sents[-1]}")
             all_summs = abstractor(ext_sents)
             for ibatch, ((j, n), abs_sents) in enumerate(zip(ext_inds, abs_batch)):
-                summs = all_summs[ibatch] if mono_abs else all_summs[j:j+n]
+                summs = [all_summs[ibatch]] if mono_abs else all_summs[j:j+n]
                 # python ROUGE-1 (not official evaluation)
-                avg_reward += compute_rouge_n(list(concat([summs])),
+                # print(f"abs_sents: {list(concat(abs_sents))}")
+                # print(f"abs_sents: {list(concat([summs]))}")
+                avg_reward += compute_rouge_n(list(concat(summs)),
                                               list(concat(abs_sents)), n=1)
                 i += 1
     avg_reward /= (i/100)

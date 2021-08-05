@@ -453,25 +453,28 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
                 # self.copy_projection(torch.cat((context, states[0][-1]),-1))
                 # ),-1)),-1)
 
-            lp_all = lp.unsqueeze(-1).expand(-1,-1,-1,4) + lp2.unsqueeze(-2).expand(-1,-1,lp.size()[-1],-1)
+            # lp_all = lp.unsqueeze(-1).expand(-1,-1,-1,4) + lp2.unsqueeze(-2).expand(-1,-1,lp.size()[-1],-1)
             # k_lp, k_tok_x = lp_all.view(beam,batch,-1).topk(k=k, dim=-1)
             # k_tok = k_tok_x // 4
             # k_xo = k_tok_x % 4
 
-            k_lp, k_tok_x = lp_all.view(beam,batch,-1).topk(k=2*k, dim=-1)
-            k_tk = k_tok_x // 4
-            k_x = k_tok_x % 4
+            # k_lp, k_tok_x = lp_all.view(beam,batch,-1).topk(k=k, dim=-1) #2*k, dim=-1)
+            # k_tok = k_tok_x // 4
+            # k_xo = k_tok_x % 4
+            k_lp, k_tok = lp.view(beam,batch,-1).topk(k=k, dim=-1) #2*k, dim=-1)
+            _,k_xo = lp2.view(beam,batch,-1).topk(k=1, dim=-1)
+            k_xo = k_xo.expand_as(k_tok)
 
-            k_tok=[]
-            k_xo=[]
-            for i,tp in enumerate(k_tk):   # temporal code : to be modified
-                if len(k_tok) >k:
-                    break
-                if tp in k_tok:
-                    continue
-                else:
-                    k_tok.append(tp)
-                    k_xo.append(k_x[i])
+            # k_tok=[]
+            # k_xo=[]
+            # for i,tp in enumerate(k_tk):   # temporal code : to be modified
+            #     if len(k_tok) >k:
+            #         break
+            #     if tp in k_tok:
+            #         continue
+            #     else:
+            #         k_tok.append(tp)
+            #         k_xo.append(k_x[i])
 
 
 

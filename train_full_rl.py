@@ -163,6 +163,11 @@ def train(args):
     with open(join(args.path, 'agent_vocab.pkl'), 'wb') as f:
         pkl.dump(agent_vocab, f)
 
+
+    if args.continued:
+        full_ckpt = load_best_ckpt(args.path)
+        agent.load_state_dict(full_ckpt)
+
     # prepare trainer
     grad_fn = get_grad_fn(agent, args.clip)
     optimizer = optim.Adam(agent.parameters(), **train_params['optimizer'][1])

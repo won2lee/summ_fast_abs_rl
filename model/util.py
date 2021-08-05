@@ -115,7 +115,8 @@ def get_sents_lenth(source, seq_lens, tgt = False):
 
     if tgt:
         XX_R = [[k-1 for k in s[1:]] for s in XXi]
-        iXO = [[k for i,k in enumerate(s) if i not in XX_R[j]][1:]+[1] for j,s in enumerate(iXO)]
+        iXO = ([[k for i,k in enumerate(s) if i not in XX_R[j]][1:]+[1] # remove <start> add <end> 
+                    for j,s in enumerate(iXO)])
         return XX, iXO, XX_subtracted  #, XK  # XX: Cutter, XO: lookup target list
  
     else:
