@@ -100,7 +100,7 @@ def get_sents_lenth(source, seq_lens, tgt = False):
 
 
     iXO = [[k.item()-3 if k.item() in sbol else 0 for k in s[:seq_lens[i]]] for i,s in enumerate(source) ]
-    #   1 0 2  0  0  1  0  1  0  0  1  0  1  0       <= XO
+    #   1 0 2  0  0  1  0  1  0  0  1  0  1  0       <= iXO
     #   0   2        5     7        10   12   [14]   <= XX1
     #     1       4     6        9    11    13       <= XX_R
     #   2,  3,       2,    3,       2     2          <= XX      sum(XX) == len(s)

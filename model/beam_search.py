@@ -60,7 +60,7 @@ def pack_beam(hyps, device):
     token = token.to(device)
     states = ((hists[0], hists[1]), hists[2])
 
-    if hyps[0].init_vecs:
+    if hyps[0].init_vecs:  # if parallel
         xos = torch.LongTensor([h.xo[-1] for h in hyps])
         xos = xos.to(device)
         init_vecs = tuple(torch.stack([hyp.init_vecs[i] for hyp in hyps], dim=1) for i in range(2))

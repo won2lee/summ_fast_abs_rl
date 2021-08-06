@@ -34,7 +34,7 @@ def decode(save_path, model_dir, split, batch_size,
         assert beam_size == 1
         abstractor = identity
     else:
-        if beam_size == 1:
+        if beam_size == 0: # 1:  temporary
             abstractor = Abstractor(join(model_dir, 'abstractor'),
                                     max_len, cuda)
         else:
