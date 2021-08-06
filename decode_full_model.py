@@ -34,7 +34,7 @@ def decode(save_path, model_dir, split, batch_size,
         assert beam_size == 1
         abstractor = identity
     else:
-        if beam_size == 0: # 1:  temporary
+        if beam_size == 1:  
             abstractor = Abstractor(join(model_dir, 'abstractor'),
                                     max_len, cuda)
         else:
@@ -96,9 +96,14 @@ def decode(save_path, model_dir, split, batch_size,
                 # decoded_sents = ([' '.join(list(chain(*[[w] if dec[1][i] == 0 else [sb[dec[1][i]], w] 
                 #                 for i,w in enumerate(dec[0])])))
                 #                 for dec in dec_outs[j:j+n]])  #in zip(dec_outs[0][j:j+n],dec_outs[1][j:j+n])])))])
-                decoded_sents = ([' '.join(list(chain(*[[str(w)] if xs[i] == 0 else [sb[xs[i]], str(w)] 
-                                for i,w in enumerate(snt)])))
-                                for snt,xs in dec_outs[j:j+n]])
+                #print(f"dec_outs : {dec_outs[j:j+n]}")
+                if beam_size > 1:
+                    decoded_sents = ([' '.join(list(chain(*[[str(w)] if xs[i] == 0 else [sb[xs[i]], str(w)] 
+                                    for i,w in enumerate(snt)])))
+                                    for snt,xs in dec_outs[j:j+n]])
+                else:
+                    decoded_sents = ([' '.join(snt)
+                                    for snt in dec_outs[j:j+n]])
                 with open(join(save_path, 'output/{}.dec'.format(i)),
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
