@@ -59,11 +59,14 @@ class Seq2SeqSumm(nn.Module):
             nn.Linear(n_hidden, emb_dim, bias=False)  # emb_bin => n_hidden 으로 올리는 것 고려  
         )
         # functional object for easier usage
+
+        self._coverage = nn.Linear(2, 1, bias=False)
+
         self._decoder = AttentionalLSTMDecoder(
             self._embedding, self._dec_lstm,
-            self._attn_wq, self._projection
+            self._attn_wq, self._projection, self._coverage
         )
-        self._coverage = nn.Linear(2, 1, bias=False)
+        
         #self.parallel = parallel
         if self.parallel:
             self.sub_coder= nn.LSTM(emb_dim, n_hidden)  #(embed_size, self.hidden_size)
@@ -297,11 +300,11 @@ class AttentionalLSTMDecoder(object):
             tok = target[:, i:i+1]
             to_avoid = coverage[-1]
             logit, states, score = self._step(tok, states, attention, to_avoid)
-            coverage.append(to_avoid + score)
+            coverage.append(to_avoid + score if i>0 else score)
             scores.append(score)
             logits.append(logit) 
 
-        cover_loss = [sum(min((cvr,scr),-1) for cvr,scr in zip(coverage[:-1],scores))]
+        cover_loss = [torch.cat((cvr,scr),-2).min(-2)[0].sum(-1) for cvr,scr in zip(coverage[1:-1],scores[1:])]
 
         if self.parallel:
             logits = list(unzip(logits))
