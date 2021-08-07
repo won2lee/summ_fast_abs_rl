@@ -67,16 +67,17 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     ext_sents = []
     art_batch, abs_batch = next(loader)
     for raw_arts in art_batch:
-        if mono_abs:
-            (inds, ms), bs = agent(raw_arts, n_abs=10000)
-        else:
-            (inds, ms), bs = agent(raw_arts)
+        # if mono_abs:
+        #     (inds, ms), bs = agent(raw_arts, n_abs=10000)
+        # else:
+        #     (inds, ms), bs = agent(raw_arts)
+        (inds, ms), bs = agent(raw_arts)
         baselines.append(bs)
         indices.append(inds)
         probs.append(ms)
 
-        extrctd = [raw_arts[idx.item()] if idx.item() < len(raw_arts) else "_ 예정이 다 _ ."
-                          for idx in inds ]
+        extrctd = [raw_arts[idx.item()] if idx.item() < len(raw_arts)
+                          for idx in inds ] # idc.item() >= len(raw_arts) ---> End of Extraction 
         if mono_abs:
             # ext_sent = []
             # for i,ex in enumerate(extrctd):
@@ -89,11 +90,13 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             ext_sent = [[] for _ in range(k)]
             #print(k,ext_sent)
             for i,ex in enumerate(extrctd):
-                if i>2:break
-                for j in range(i,k):
-                    # ext_sent[j] +=ex
-                    ext_sent[j] +=ex #[ex]
-                #ext_sent[i]=[' '.join(ext_sent[i])]
+                if i<3:
+                    for j in range(i,k):
+                        # ext_sent[j] +=ex
+                        ext_sent[j] +=ex #[ex]
+                    #ext_sent[i]=[' '.join(ext_sent[i])]
+                else:
+                    ext_sent[i] = "_ 예정이 다 _ ."
             ext_sents += ext_sent           
          
         else:
@@ -103,18 +106,19 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         summaries = abstractor(ext_sents)
     i = 0
     rewards = []
-    avg_reward = 0
+    #avg_reward = 0
     for inds, abss in zip(indices, abs_batch):
         # print(f"inds:{type(inds)}, abss:{type(abss)}")
         if mono_abs:
             #print(f'i+j, summary.len : {i} , {min(len(inds), 3)},{len(summaries)}')
             cum_rwd = [0.]+[reward_fn(summaries[i+j], abss[0]) # cumulated rewards
-                        for j in range(min(len(inds), 3))]
+                        for j in range(min(len(inds)-1, 3))]
             rs = ([cum_rwd[j+1]-cum_rwd[j]   #contribution to total reward by one step action
-                  for j in range(min(len(inds)-1, 3))]
-                  #+ [0 for _ in range(max(0, len(inds)-1-3))]
+                  for j in range(min(len(inds), 3))]
+                  + [0 for _ in range(max(0, len(inds)-1-3))]
+            #if len(rs) < 4:  # 3개 보다 많이 추출 했을 경우 stop_reward 를 주지 않은 방식 적용 
                   + [stop_coeff*stop_reward_fn(
-                      list(concat([summaries[i+min(len(inds), 3)-1]])),
+                      list(concat([summaries[i+min(len(inds)-1, 3)-1]])),
                       list(concat(abss)))])
         else:
             rs = ([reward_fn(summaries[i+j], abss[j])
@@ -125,9 +129,9 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                       list(concat(abss)))])
         #print(f'rs:{len(rs)}, inds:{len(inds)}')
         #assert len(rs) == len(inds) +1 if mono_abs else len(inds)
-        assert len(rs) == len(inds) 
-        avg_reward += rs[-1]/stop_coeff
-        i += min(len(inds),3) if mono_abs else len(inds)-1
+        assert len(rs) == len(inds)
+        #avg_reward += rs[-1]/stop_coeff
+        i += len(inds)-1
         # compute discounted rewards
         R = 0
         disc_rs = []

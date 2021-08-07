@@ -29,7 +29,7 @@ def get_basic_grad_fn(net, clip_grad, max_grad=1e2):
 @curry
 def compute_loss(net, criterion, parallel,fw_args, loss_args):
     if parallel:
-        logit, XO = net(*fw_args)
+        logit, XO, cov_loss = net(*fw_args)
         loss1, mask = criterion(*((logit[0],) +  loss_args))
         #loss1, mask = criterion(*((logit[0],) +  loss_args))        
         loss2, _ = criterion(*((logit[1],) +  (XO,)), mask=mask)
@@ -136,9 +136,9 @@ class BasicPipeline(object):
             #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
-            loss = loss1.mean() + 5 * loss2.mean() + sum(cov_loss).mean()
+            loss = loss1.mean() + 5 * loss2.mean() + sum(cov_loss).sum()
             if self.count%50==0:
-                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {sum(cov_loss).mean()}")
+                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {sum(cov_loss).sum()}")
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )
