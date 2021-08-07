@@ -48,7 +48,7 @@ class CopySumm(Seq2SeqSumm):
 
             self._decoder = CopyLSTMDecoder(
                 self._copy, self._embedding, self._dec_lstm,
-                self._attn_wq, self._projection,
+                self._attn_wq, self._projection, self._coverage,
                 parallel=self.parallel, 
                 sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout),
                 target_ox=self.target_ox_projection, copy_proj=self.copy_projection
@@ -62,11 +62,11 @@ class CopySumm(Seq2SeqSumm):
     def forward(self, article, art_lens, abstract, extend_art, extend_vsize,tgt_lens):
         attention, init_dec_states, art_lens = self.encode(article, art_lens) ####### add art_lens in return 
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)
-        logit,XO = self._decoder(
+        logit,XO, cov_loss = self._decoder(
             (attention, mask, extend_art, extend_vsize),
             init_dec_states, abstract, tgt_lens 
         )
-        return logit, XO
+        return logit, XO, cov_loss
 
     def batch_decode(self, article, art_lens, extend_art, extend_vsize,
                      go, eos, unk, max_len):
@@ -303,7 +303,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         self._copy = copy
 
 
-    def _step(self, tok, states, attention):
+    def _step(self, tok, states, attention, to_avoid):
         prev_states, prev_out = states
 
         # lstm_in = torch.cat(
@@ -331,7 +331,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         query = torch.mm(lstm_out, self._attn_w)
         attention, attn_mask, extend_src, extend_vsize = attention
         context, score = step_attention(
-            query, attention, attention, attn_mask
+            query, attention, attention, attn_mask, cov=self.coverage, to_avoid=to_avoid
             )
         dec_out = self._projection(torch.cat([lstm_out, context], dim=1))
 

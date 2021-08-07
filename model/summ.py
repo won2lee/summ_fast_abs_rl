@@ -63,6 +63,7 @@ class Seq2SeqSumm(nn.Module):
             self._embedding, self._dec_lstm,
             self._attn_wq, self._projection
         )
+        self._coverage = nn.Linear(2, 1, bias=False)
         #self.parallel = parallel
         if self.parallel:
             self.sub_coder= nn.LSTM(emb_dim, n_hidden)  #(embed_size, self.hidden_size)
@@ -258,7 +259,7 @@ class Seq2SeqSumm(nn.Module):
 
 
 class AttentionalLSTMDecoder(object):
-    def __init__(self, embedding, lstm, attn_w, projection, parallel=False, sub_module=None, target_ox=None, copy_proj=None):
+    def __init__(self, embedding, lstm, attn_w, projection, cover, parallel=False, sub_module=None, target_ox=None, copy_proj=None):
         super().__init__()
         self._embedding = embedding
         self._lstm = lstm
@@ -267,6 +268,7 @@ class AttentionalLSTMDecoder(object):
         
         self.parallel = parallel
         self.vocab_size = self._embedding.weight.t().size()[-1]
+        self.coverage = cover
         self.sub_module = sub_module
         # if parallel:
         #     self.sub_coder = sub_module[0], 
@@ -288,19 +290,26 @@ class AttentionalLSTMDecoder(object):
         max_len = target.size(1)
         states = init_states
         logits = []
+        coverage = [0.0]
+        scores = []
 
         for i in range(max_len):
             tok = target[:, i:i+1]
-            logit, states, _ = self._step(tok, states, attention)
-            logits.append(logit)
+            to_avoid = coverage[-1]
+            logit, states, score = self._step(tok, states, attention, to_avoid)
+            coverage.append(to_avoid + score)
+            scores.append(score)
+            logits.append(logit) 
+
+        cover_loss = [sum(min((cvr,scr),-1) for cvr,scr in zip(coverage[:-1],scores))]
 
         if self.parallel:
             logits = list(unzip(logits))
             logit = [torch.stack(list(lgt), dim=1) for lgt in logits]
-            return logit, XO
+            return logit, XO, cover_loss
 
         logit = torch.stack(logits, dim=1)
-        return logit, None
+        return logit, None, cover_loss
 
     # def __call__(self, attention, init_states, target):
     #     max_len = target.size(1)

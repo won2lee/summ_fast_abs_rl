@@ -118,10 +118,11 @@ class BasicPipeline(object):
         fw_args, bw_args = next(self._batches)
         #print("got one batch")
         #print(f"fw_args.size : {[fw_args[i].size() if type(fw_args[i]) is torch.Tensor else len(fw_args[i]) for i in range(4)]}")
-        net_out, XO = self._net(*fw_args)
+        net_out, XO, cov_loss = self._net(*fw_args)
         if self.count%50==0 and self.parallel:
             print(f"XO[0]     : {XO[0][:20]}")
             print(f"inf XO[0] : {net_out[1][0][:20].argmax(-1)}")
+            print(f"len(cov_loss) : {len(cov_loss)}, {cov_loss[-1]}") 
         #print("one copy_summ process was done")
 
         # get logs and output for logging, backward
@@ -135,9 +136,9 @@ class BasicPipeline(object):
             #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
-            loss = loss1.mean() + 5 * loss2.mean()
+            loss = loss1.mean() + 5 * loss2.mean() + cov_loss.mean()
             if self.count%50==0:
-                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}")
+                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {cov_loss.mean()}")
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )
