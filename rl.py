@@ -76,8 +76,8 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         indices.append(inds)
         probs.append(ms)
 
-        extrctd = [raw_arts[idx.item()] if idx.item() < len(raw_arts)
-                          for idx in inds ] # idc.item() >= len(raw_arts) ---> End of Extraction 
+        extrctd = [raw_arts[idx.item()]
+                          for idx in inds if idx.item() < len(raw_arts)] # idc.item() >= len(raw_arts) ---> End of Extraction 
         if mono_abs:
             # ext_sent = []
             # for i,ex in enumerate(extrctd):

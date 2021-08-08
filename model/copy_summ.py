@@ -97,14 +97,17 @@ class CopySumm(Seq2SeqSumm):
 
         # print(f"init_vecs[0].size : {init_vecs[0].size()}")
 
+        coverage = [0.0]
+
         for i in range(max_len):
             if self.parallel:
                 # print(f"i : {i}, tok.size : {tok.size()}")
                 tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) #slang_is_tlang=False):
                 # print(f"i : {i}, tok.size : {tok.size()}")
-
+                to_avoid = coverage[-1]
                 toks, states, attn_score = self._decoder.decode_step(
-                    tok, states, attention)
+                    tok, states, attention, to_avoid)
+                coverage.append(to_avoid + attn_score if i>0 else attn_score)
                 tok, xo = toks
                 #print(f'tok.size() : {tok.size()}, xo.size() : {xo.size()}')
                 if len([x for x in xo if x.item() != 0])>0:

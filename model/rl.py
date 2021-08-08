@@ -89,7 +89,7 @@ class PtrExtractorRLStop(PtrExtractorRL):
 
     def forward(self, attn_mem, n_ext=None):
         """atten_mem: Tensor of size [num_sents, input_dim]"""
-        if n_ext is not None # and n_ext!=10000:
+        if n_ext is not None: # and n_ext!=10000:
             return super().forward(attn_mem, n_ext)
         max_step = attn_mem.size(0) 
         attn_mem = torch.cat([attn_mem, self._stop.unsqueeze(0)], dim=0)

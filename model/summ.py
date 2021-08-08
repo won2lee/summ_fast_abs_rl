@@ -350,7 +350,7 @@ class AttentionalLSTMDecoder(object):
         return logit, states, score
 
     def decode_step(self, tok, states, attention):
-        logit, states, score = self._step(tok, states, attention)
+        logit, states, score = self._step(tok, states, attention, to_avoid)
         if self.parallel:
             out = [torch.max(logit[i], dim=1, keepdim=True)[1] for i in range(2)]
         else:
