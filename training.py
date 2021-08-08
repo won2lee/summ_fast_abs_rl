@@ -33,7 +33,7 @@ def compute_loss(net, criterion, parallel,fw_args, loss_args):
         loss1, mask = criterion(*((logit[0],) +  loss_args))
         #loss1, mask = criterion(*((logit[0],) +  loss_args))        
         loss2, _ = criterion(*((logit[1],) +  (XO,)), mask=mask)
-        return (loss1, loss2)
+        return (loss1, loss2, cov_loss)
     else:
         loss, _ = criterion(*((net(*fw_args)[0],) + loss_args))
         return loss
@@ -42,7 +42,10 @@ def compute_loss(net, criterion, parallel,fw_args, loss_args):
 def val_step(loss_step, parallel, fw_args, loss_args):
     loss = loss_step(fw_args, loss_args)
     if parallel:
-        return (loss[0].size(0), loss[0].sum().item()), (loss[1].size(0), loss[1].sum().item())
+        return ((loss[0].size(0), loss[0].sum().item()), 
+                (loss[1].size(0), loss[1].sum().item()), 
+                (1, sum(loss[2]).mean())
+                ) 
     else:
         return loss.size(0), loss.sum().item()
 
@@ -55,10 +58,10 @@ def basic_validate(net, criterion, parallel, val_batches):
         validate_fn = val_step(compute_loss(net, criterion, parallel),parallel)
         # print(validate_fn(val_batches))
         if parallel:
-            lgt1,lgt2 = reduce(
-                lambda a, b: [(a[i][0]+b[i][0], a[i][1]+b[i][1]) for i in range(2)],
+            lgt1,lgt2,lgt3 = reduce(
+                lambda a, b: [(a[i][0]+b[i][0], a[i][1]+b[i][1]) for i in range(3)],
                 starmap(validate_fn, val_batches),
-                [(0, 0),(0, 0)]
+                [(0, 0),(0, 0),(0, 0)]
             )
         else:   
             n_data, tot_loss = reduce(
@@ -66,7 +69,7 @@ def basic_validate(net, criterion, parallel, val_batches):
                 starmap(validate_fn, val_batches),
                 (0, 0)
             )
-    val_loss = tot_loss / n_data if not parallel else lgt1[1]/lgt1[0] + 5 * lgt2[1]/lgt2[0]
+    val_loss = tot_loss / n_data if not parallel else lgt1[1]/lgt1[0] + 1 * lgt2[1]/lgt2[0] + 0.1*lgt3[1]/lgt3[0]
     print(
         'validation finished in {}                                    '.format(
             timedelta(seconds=int(time()-start)))
@@ -122,7 +125,7 @@ class BasicPipeline(object):
         if self.count%50==0 and self.parallel:
             print(f"XO[0]     : {XO[0][:20]}")
             print(f"inf XO[0] : {net_out[1][0][:20].argmax(-1)}")
-            print(f"len(cov_loss) : {len(cov_loss)}, {cov_loss[-1]}") 
+            print(f"len(cov_loss) : {len(cov_loss)}") #, {cov_loss[-1]}") 
         #print("one copy_summ process was done")
 
         # get logs and output for logging, backward
@@ -136,9 +139,9 @@ class BasicPipeline(object):
             #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
-            loss = loss1.mean() + 3 * loss2.mean() + 0.001 * sum(cov_loss).sum()
+            loss = loss1.mean() + 1 * loss2.mean() + 0.1 * sum(cov_loss).mean()
             if self.count%50==0:
-                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {sum(cov_loss).sum()}")
+                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {sum(cov_loss).mean()}")
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )
