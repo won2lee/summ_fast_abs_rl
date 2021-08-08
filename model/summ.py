@@ -217,7 +217,7 @@ class Seq2SeqSumm(nn.Module):
 
         #문장단위로 자르고 어절 단위로 자른 뒤 각 어절의 길이만 남기고 나머지는 버린 후 연결 (cat) 하여 문장으로 재구성         
         X_input = [torch.cat([ss[:Z_sub[i][j]] for j,ss in enumerate(
-          torch.split(sss,1,1))],0) for i,sss in enumerate(torch.split(X_way,Z_len,1))]
+                   torch.split(sss,1,1))],0) for i,sss in enumerate(torch.split(X_way,Z_len,1))]
         # print(f"X-input[0].size() : {X_input[0].size()}")
         
         # 재구성된 문장의 길이가 다르기 때문에 패딩
@@ -349,7 +349,7 @@ class AttentionalLSTMDecoder(object):
         logit = torch.mm(dec_out, self._embedding.weight.t())
         return logit, states, score
 
-    def decode_step(self, tok, states, attention):
+    def decode_step(self, tok, states, attention, to_avoid):
         logit, states, score = self._step(tok, states, attention, to_avoid)
         if self.parallel:
             out = [torch.max(logit[i], dim=1, keepdim=True)[1] for i in range(2)]

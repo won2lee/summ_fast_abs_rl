@@ -114,7 +114,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             cum_rwd = [0.]+[reward_fn(summaries[i+j], abss[0]) # cumulated rewards
                         for j in range(min(len(inds)-1, 3))]
             rs = ([cum_rwd[j+1]-cum_rwd[j]   #contribution to total reward by one step action
-                  for j in range(min(len(inds), 3))]
+                  for j in range(min(len(inds)-1, 3))]
                   + [0 for _ in range(max(0, len(inds)-1-3))]
             #if len(rs) < 4:  # 3개 보다 많이 추출 했을 경우 stop_reward 를 주지 않은 방식 적용 
                   + [stop_coeff*stop_reward_fn(
