@@ -86,7 +86,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
 
             # if ex is list, then as follows
 
-            k = min(len(extrctd),3)
+            k = len(extrctd) #min(len(extrctd),3)
             ext_sent = [[] for _ in range(k)]
             #print(k,ext_sent)
             for i,ex in enumerate(extrctd):
@@ -106,7 +106,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         summaries = abstractor(ext_sents)
     i = 0
     rewards = []
-    #avg_reward = 0
+    avg_reward = 0
     for inds, abss in zip(indices, abs_batch):
         # print(f"inds:{type(inds)}, abss:{type(abss)}")
         if mono_abs:
@@ -130,7 +130,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         #print(f'rs:{len(rs)}, inds:{len(inds)}')
         #assert len(rs) == len(inds) +1 if mono_abs else len(inds)
         assert len(rs) == len(inds)
-        #avg_reward += rs[-1]/stop_coeff
+        avg_reward += rs[-1]/stop_coeff
         i += len(inds)-1
         # compute discounted rewards
         R = 0

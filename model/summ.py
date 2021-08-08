@@ -304,7 +304,13 @@ class AttentionalLSTMDecoder(object):
             scores.append(score)
             logits.append(logit) 
 
-        cover_loss = [torch.cat((cvr,scr),-2).min(-2)[0].sum(-1) for cvr,scr in zip(coverage[1:-1],scores[1:])]
+
+        # cover_lss = [torch.cat((cvr.unsqueeze(-2),scr.unsqueeze(-2)),-2).min(-2)[0] for cvr,scr in zip(coverage[1:-1],scores[1:])]
+        # print(f"score : {scores[-1].size()},coverage : {coverage[-1].size()}")
+        # print(f"cover_loss : {cover_lss[-1].size()},{cover_lss[-1].sum(-1).size()}")
+        # cover_loss = [torch.cat((cvr,scr),-2).min(-2)[0].sum(-1) for cvr,scr in zip(coverage[1:-1],scores[1:])]
+        cover_loss = [torch.cat((cvr.unsqueeze(-2),scr.unsqueeze(-2)),-2).min(-2)[0].sum(-1) for cvr,scr in zip(coverage[1:-1],scores[1:])]
+        #print(f"cover_loss : {cover_loss[-1].size()}")
 
         if self.parallel:
             logits = list(unzip(logits))

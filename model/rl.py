@@ -89,7 +89,7 @@ class PtrExtractorRLStop(PtrExtractorRL):
 
     def forward(self, attn_mem, n_ext=None):
         """atten_mem: Tensor of size [num_sents, input_dim]"""
-        if n_ext is not None and n_ext!=10000:
+        if n_ext is not None # and n_ext!=10000:
             return super().forward(attn_mem, n_ext)
         max_step = attn_mem.size(0) 
         attn_mem = torch.cat([attn_mem, self._stop.unsqueeze(0)], dim=0)
@@ -99,7 +99,7 @@ class PtrExtractorRLStop(PtrExtractorRL):
         dists = []
         lstm_in = self._init_i.unsqueeze(0)
         lstm_states = (self._init_h.unsqueeze(1), self._init_c.unsqueeze(1))
-        n_step=0
+        #n_step=0
         while True:
             h, c = self._lstm_cell(lstm_in, lstm_states)
             query = h[:, -1, :]
@@ -122,9 +122,9 @@ class PtrExtractorRLStop(PtrExtractorRL):
                 break
             lstm_in = attn_mem[out.item()].unsqueeze(0)
             lstm_states = (h, c)
-            n_step+=1
-            if n_step>3 and n_ext==10000:
-                break
+            # n_step+=1
+            # if n_step>4 and n_ext==10000:
+            #     break
         if dists:
             # return distributions only when not empty (trining)
             return outputs, dists
@@ -200,6 +200,7 @@ class ActorCritic(nn.Module):
         article_sent = self._batcher(raw_article_sents)
         enc_sent = self._sent_enc(article_sent).unsqueeze(0)
         enc_art = self._art_enc(enc_sent).squeeze(0)
+
         if n_abs is not None and not self.training:
             n_abs = min(len(raw_article_sents), n_abs)
         if n_abs is None:
@@ -207,7 +208,7 @@ class ActorCritic(nn.Module):
         else:
             outputs = self._ext(enc_art, n_abs)
         if self.training:
-            if n_abs is None or n_abs==10000:
+            if n_abs is None:
                 n_abs = len(outputs[0])
             scores = self._scr(enc_art, n_abs)
             return outputs, scores

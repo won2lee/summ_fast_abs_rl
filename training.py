@@ -136,7 +136,7 @@ class BasicPipeline(object):
             #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
-            loss = loss1.mean() + 5 * loss2.mean() + sum(cov_loss).sum()
+            loss = loss1.mean() + 3 * loss2.mean() + 0.001 * sum(cov_loss).sum()
             if self.count%50==0:
                 print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {sum(cov_loss).sum()}")
         else:
