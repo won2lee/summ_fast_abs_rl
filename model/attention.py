@@ -22,13 +22,18 @@ def attention_aggregate(value, score):
 
 def coverage_score(key, query, cov, to_avoid):
     v, enc_proj, dec_proj, w_c = cov
-    print(f'key :{key.size()},  query : {query.size()}, to_avoid : {to_avoid.size()}')
-    return v(F.tanh(enc_proj(key) + dec_proj(query) + w_c(to_avoid)))
+    print(f'key :{key.size()},  query : {query.size()}, to_avoid : {0 if to_avoid ==0.0 else to_avoid.size()}')
+
+    if to_avoid ==0.0:
+        return v(F.tanh(enc_proj(key) + dec_proj(query.unsqueeze(-2))))
+    else:
+        return v(F.tanh(enc_proj(key) + dec_proj(query.unsqueeze(-2)) + w_c(to_avoid)))
     
 
 def step_attention(query, key, value, mem_mask=None, cov=None, to_avoid=None):
     """ query[(Bs), B, D], key[B, T, D], value[B, T, D]"""
     #print(f"key :{key.size()}, query :{query.size()}")
+    #print(f'cov ============================== {cov}')
     if cov is not None:
         score = coverage_score(key, query, cov, to_avoid)
     else:

@@ -72,7 +72,7 @@ class Seq2SeqSumm(nn.Module):
 
         self._decoder = AttentionalLSTMDecoder(
             self._embedding, self._dec_lstm,
-            self._attn_wq, self._projection, self._coverage if self.use_coverage else None
+            self._attn_wq, self._projection, cover=self._coverage if self.use_coverage else None
         )
         
         #self.parallel = parallel
