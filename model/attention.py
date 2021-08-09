@@ -20,14 +20,23 @@ def attention_aggregate(value, score):
     return output
 
 
+def coverage_score(key, query, cov, to_avoid):
+    v, enc_proj, dec_proj, w_c = cov
+    print(f'key :{key.size()},  query : {query.size()}, to_avoid : {to_avoid.size()}')
+    return v(F.tanh(enc_proj(key) + dec_proj(query) + w_c(to_avoid)))
+    
+
 def step_attention(query, key, value, mem_mask=None, cov=None, to_avoid=None):
     """ query[(Bs), B, D], key[B, T, D], value[B, T, D]"""
     #print(f"key :{key.size()}, query :{query.size()}")
-    score = dot_attention_score(key, query.unsqueeze(-2))
+    if cov is not None:
+        score = coverage_score(key, query, cov, to_avoid)
+    else:
+        score = dot_attention_score(key, query.unsqueeze(-2))
     # if type(to_avoid) is torch.Tensor:
     #     print(f"score :{score.size()}, to_void : {to_avoid.size()},mem_mask :{mem_mask.size()}")      
-    if type(to_avoid) is torch.Tensor:
-        score = cov(torch.cat((score,to_avoid.unsqueeze(1).expand_as(score)), -2).transpose(1,2)).transpose(1,2)
+    # if type(to_avoid) is torch.Tensor:
+    #     score = cov(torch.cat((score,to_avoid.unsqueeze(1).expand_as(score)), -2).transpose(1,2)).transpose(1,2)
 
     if mem_mask is None:
         norm_score = F.softmax(score, dim=-1)

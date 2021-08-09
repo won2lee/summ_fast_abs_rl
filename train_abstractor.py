@@ -56,7 +56,7 @@ class MatchDataset(CnnDmDataset):
 
 
 def configure_net(vocab_size, emb_dim,
-                  n_hidden, bidirectional, n_layer, parallel):
+                  n_hidden, bidirectional, n_layer, parallel, use_coverage):
     net_args = {}
     net_args['vocab_size']    = vocab_size
     net_args['emb_dim']       = emb_dim
@@ -64,6 +64,7 @@ def configure_net(vocab_size, emb_dim,
     net_args['bidirectional'] = bidirectional
     net_args['n_layer']       = n_layer
     net_args['parallel']      = parallel
+    net_args['use_coverage']  = use_coverage
 
     net = CopySumm(**net_args)
     return net, net_args
@@ -128,7 +129,7 @@ def main(args):
 
     # make net
     net, net_args = configure_net(len(word2id), args.emb_dim,
-                                  args.n_hidden, args.bi, args.n_layer, parallel)
+                                  args.n_hidden, args.bi, args.n_layer, parallel, args.use_coverage)
     
     if args.continued:
         # abs_meta = json.load(open(join(args.path, 'meta.json')))
@@ -263,6 +264,8 @@ if __name__ == '__main__':
                         help='use pretrained-abstrator')
     parser.add_argument('--mono_abs', action='store_true',
                         help='for kor summ data')
+    parser.add_argument('--use_coverage', action='store_true',
+                        help='for coverage')
     parser.add_argument('--lang', type=str, action='store', default='en',
                         help='language to summ')
 

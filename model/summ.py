@@ -16,12 +16,13 @@ INIT = 1e-2
 
 class Seq2SeqSumm(nn.Module):
     def __init__(self, vocab_size, emb_dim,
-                 n_hidden, bidirectional, n_layer, parallel, dropout=0.0):
+                 n_hidden, bidirectional, n_layer, parallel, dropout=0.0, use_coverage=False):
         super().__init__()
         # embedding weight parameter is shared between encoder, decoder,
         # and used as final projection layer to vocab logit
         # can initialize with pretrained word vectors
         self.parallel = parallel
+        self.use_coverage = use_coverage
         self._embedding = nn.Embedding(vocab_size, emb_dim, padding_idx=0)
         self._enc_lstm = nn.LSTM(
             n_hidden if self.parallel else emb_dim, n_hidden, n_layer,
@@ -60,7 +61,7 @@ class Seq2SeqSumm(nn.Module):
         )
         # functional object for easier usage
 
-        self._coverage = nn.Linear(2, 1, bias=False)
+        # self._coverage = nn.Linear(2, 1, bias=False)
 
         self._decoder = AttentionalLSTMDecoder(
             self._embedding, self._dec_lstm,
@@ -77,7 +78,12 @@ class Seq2SeqSumm(nn.Module):
 
             self.target_ox_projection = nn.Linear(emb_dim+n_hidden, 4, bias=False) #emb_dim, 4, bias=False)
             self.copy_projection = nn.Linear(2*n_hidden, emb_dim, bias=False)
-
+        
+        if self.use_coverage:
+            self.vT = nn.LSTM(n_hidden, 1, bias=False)  
+            self.enc_proj = nn.Linear(n_hidden, n_hidden, bias=False) 
+            self.dec_proj = nn.Linear(n_hidden, n_hidden) # add bias for use_coverage
+            self.w_cov = nn.Linear(1, n_hidden, bias=False) 
 
     def forward(self, article, art_lens, abstract):
         attention, init_dec_states, art_lens = self.encode(article, art_lens)
@@ -262,7 +268,7 @@ class Seq2SeqSumm(nn.Module):
 
 
 class AttentionalLSTMDecoder(object):
-    def __init__(self, embedding, lstm, attn_w, projection, cover, parallel=False, sub_module=None, target_ox=None, copy_proj=None):
+    def __init__(self, embedding, lstm, attn_w, projection, parallel=False, sub_module=None, target_ox=None, copy_proj=None, cover=None):
         super().__init__()
         self._embedding = embedding
         self._lstm = lstm
@@ -271,7 +277,6 @@ class AttentionalLSTMDecoder(object):
         
         self.parallel = parallel
         self.vocab_size = self._embedding.weight.t().size()[-1]
-        self.coverage = cover
         self.sub_module = sub_module
         # if parallel:
         #     self.sub_coder = sub_module[0], 
@@ -280,6 +285,7 @@ class AttentionalLSTMDecoder(object):
         #     self.sub_dropout = sub_module[3]
         self.target_ox_projection = target_ox 
         self.copy_projection = copy_proj
+        self.coverage = cover
 
 
     def __call__(self, attention, init_states, target, tgt_lens):

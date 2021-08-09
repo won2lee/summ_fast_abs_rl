@@ -37,7 +37,7 @@ class _CopyLinear(nn.Module):
 
 class CopySumm(Seq2SeqSumm):
     def __init__(self, vocab_size, emb_dim,
-                 n_hidden, bidirectional, n_layer, parallel, dropout=0.0):
+                 n_hidden, bidirectional, n_layer, parallel, dropout=0.0, use_coverage=False):
         super().__init__(vocab_size, emb_dim,
                          n_hidden, bidirectional, n_layer, parallel, dropout)
         self._copy = _CopyLinear(n_hidden, n_hidden, n_hidden+emb_dim if self.parallel else 2*emb_dim)
@@ -48,10 +48,13 @@ class CopySumm(Seq2SeqSumm):
 
             self._decoder = CopyLSTMDecoder(
                 self._copy, self._embedding, self._dec_lstm,
-                self._attn_wq, self._projection, self._coverage,
+                self._attn_wq, self._projection, 
                 parallel=self.parallel, 
                 sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout),
-                target_ox=self.target_ox_projection, copy_proj=self.copy_projection
+                target_ox=self.target_ox_projection, copy_proj=self.copy_projection,
+                self._coverage = (self.vT, self.enc_proj, 
+                                  self.dec_proj, self.w_cov
+                                  ) if self.use_coverage else None,
             )
         else:
             self._decoder = CopyLSTMDecoder(
