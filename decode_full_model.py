@@ -85,7 +85,7 @@ def decode(save_path, model_dir, split, batch_size,
                     ext = [i.item() for i in ext]
                 ext_inds += [(len(ext_arts), len(ext))]
                 if mono_abs:
-                    ext_abs.append(list(chain(*[raw_art_sents[i] for i in ext])))
+                    ext_arts.append(list(chain(*[raw_art_sents[i] for i in ext])))
                 else:
                     ext_arts += [raw_art_sents[i] for i in ext]
             if beam_size > 1:
@@ -120,7 +120,7 @@ def decode(save_path, model_dir, split, batch_size,
                         timedelta(seconds=int(time()-start))
                     )) #, end='')
             print(f"raw_art_sents : {raw_art_sents}")
-            print(f"ext_arts : {ext_arts[-len(ext):]}")
+            print(f"ext_arts : {ext_arts[-1] if mono_abs else ext_arts[-len(ext):]}")
             print(f"decoded_sents : {decoded_sents}")
 
                     
