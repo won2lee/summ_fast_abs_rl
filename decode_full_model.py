@@ -84,14 +84,17 @@ def decode(save_path, model_dir, split, batch_size,
                 else:
                     ext = [i.item() for i in ext]
                 ext_inds += [(len(ext_arts), len(ext))]
-                ext_arts += [raw_art_sents[i] for i in ext]
+                if mono_abs:
+                    ext_abs.append(list(chain(*[raw_art_sents[i] for i in ext])))
+                else:
+                    ext_arts += [raw_art_sents[i] for i in ext]
             if beam_size > 1:
                 all_beams = abstractor(ext_arts, beam_size, diverse)
                 dec_outs = rerank_mp(all_beams, ext_inds)
             else:
                 dec_outs = abstractor(ext_arts)
             assert i == batch_size*i_debug
-            for j, n in ext_inds:
+            for ibt, (j, n) in enumerate(ext_inds):
                 # decoded_sents = [' '.join(dec) for dec in dec_outs[j:j+n]]
                 # decoded_sents = ([' '.join(list(chain(*[[w] if dec[1][i] == 0 else [sb[dec[1][i]], w] 
                 #                 for i,w in enumerate(dec[0])])))
@@ -102,8 +105,11 @@ def decode(save_path, model_dir, split, batch_size,
                                     for i,w in enumerate(snt)])))
                                     for snt,xs in dec_outs[j:j+n]])
                 else:
-                    decoded_sents = ([' '.join(snt)
-                                    for snt in dec_outs[j:j+n]])
+                    if mono_abs:
+                        decoded_sents = ([' '.join(dec_outs[ibt])])
+                    else: 
+                        decoded_sents = ([' '.join(snt)
+                                        for snt in dec_outs[j:j+n]])
                 with open(join(save_path, 'output/{}.dec'.format(i)),
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
