@@ -52,7 +52,7 @@ class CopySumm(Seq2SeqSumm):
                 parallel=self.parallel, 
                 sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout),
                 target_ox=self.target_ox_projection, copy_proj=self.copy_projection,
-                self._coverage = (self.vT, self.enc_proj, 
+                coverage = (self.vT, self.enc_proj, 
                                   self.dec_proj, self.w_cov
                                   ) if self.use_coverage else None,
             )

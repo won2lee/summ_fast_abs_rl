@@ -63,9 +63,16 @@ class Seq2SeqSumm(nn.Module):
 
         # self._coverage = nn.Linear(2, 1, bias=False)
 
+        if self.use_coverage:
+            self.vT = nn.LSTM(n_hidden, 1, bias=False)  
+            self.enc_proj = nn.Linear(n_hidden, n_hidden, bias=False) 
+            self.dec_proj = nn.Linear(n_hidden, n_hidden) # add bias for use_coverage
+            self.w_cov = nn.Linear(1, n_hidden, bias=False) 
+            self._coverage = (self.vT, self.enc_proj, self.dec_proj, self.w_cov) 
+
         self._decoder = AttentionalLSTMDecoder(
             self._embedding, self._dec_lstm,
-            self._attn_wq, self._projection, self._coverage
+            self._attn_wq, self._projection, self._coverage if self.use_coverage else None
         )
         
         #self.parallel = parallel
@@ -79,11 +86,7 @@ class Seq2SeqSumm(nn.Module):
             self.target_ox_projection = nn.Linear(emb_dim+n_hidden, 4, bias=False) #emb_dim, 4, bias=False)
             self.copy_projection = nn.Linear(2*n_hidden, emb_dim, bias=False)
         
-        if self.use_coverage:
-            self.vT = nn.LSTM(n_hidden, 1, bias=False)  
-            self.enc_proj = nn.Linear(n_hidden, n_hidden, bias=False) 
-            self.dec_proj = nn.Linear(n_hidden, n_hidden) # add bias for use_coverage
-            self.w_cov = nn.Linear(1, n_hidden, bias=False) 
+
 
     def forward(self, article, art_lens, abstract):
         attention, init_dec_states, art_lens = self.encode(article, art_lens)
