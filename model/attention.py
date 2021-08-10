@@ -21,14 +21,20 @@ def attention_aggregate(value, score):
 
 
 def coverage_score(key, query, cov, to_avoid):
-    v, enc_proj, dec_proj, w_c = cov
-    print(f'key :{key.size()},  query : {query.size()}, to_avoid : {0 if to_avoid ==0.0 else to_avoid.size()}')
+    vT, enc_proj, dec_proj, w_c = cov
+    # if type(to_avoid) is torch.Tensor:
+    #     print(f'to_avoid : {to_avoid.size()}')
+    # print(f'key :{key.size()},  query : {query.size()}')
+    attn_proj = enc_proj(key) + dec_proj(query.unsqueeze(-2))
+    # print(f"attn_proj : {attn_proj.size()}")
 
-    if to_avoid ==0.0:
-        return v(F.tanh(enc_proj(key) + dec_proj(query.unsqueeze(-2))))
-    else:
-        return v(F.tanh(enc_proj(key) + dec_proj(query.unsqueeze(-2)) + w_c(to_avoid)))
-    
+    if type(to_avoid) is torch.Tensor:
+        attn_proj += w_c(to_avoid.unsqueeze(-1))
+    # score = vT(F.tanh(attn_proj))
+    # # print(f"score : {score.size()}")
+    # score = vT(score)
+    # # print(f"score : {score.size()}")
+    return vT(F.tanh(attn_proj)).transpose(1,2)
 
 def step_attention(query, key, value, mem_mask=None, cov=None, to_avoid=None):
     """ query[(Bs), B, D], key[B, T, D], value[B, T, D]"""
@@ -38,6 +44,8 @@ def step_attention(query, key, value, mem_mask=None, cov=None, to_avoid=None):
         score = coverage_score(key, query, cov, to_avoid)
     else:
         score = dot_attention_score(key, query.unsqueeze(-2))
+    # print(f"score :{type(score)}")
+    # print(f"score :{score.size()}")
     # if type(to_avoid) is torch.Tensor:
     #     print(f"score :{score.size()}, to_void : {to_avoid.size()},mem_mask :{mem_mask.size()}")      
     # if type(to_avoid) is torch.Tensor:

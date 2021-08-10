@@ -64,7 +64,7 @@ class Seq2SeqSumm(nn.Module):
         # self._coverage = nn.Linear(2, 1, bias=False)
 
         if self.use_coverage:
-            self.vT = nn.LSTM(n_hidden, 1, bias=False)  
+            self.vT = nn.Linear(n_hidden, 1, bias=False)  
             self.enc_proj = nn.Linear(n_hidden, n_hidden, bias=False) 
             self.dec_proj = nn.Linear(n_hidden, n_hidden) # add bias for use_coverage
             self.w_cov = nn.Linear(1, n_hidden, bias=False) 

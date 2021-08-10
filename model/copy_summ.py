@@ -340,6 +340,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         context, score = step_attention(
             query, attention, attention, attn_mask, cov=self.coverage, to_avoid=to_avoid
             )
+        #print(f"lstm_out : {lstm_out.size()}, context : {context.size()}")
         dec_out = self._projection(torch.cat([lstm_out, context], dim=1))
 
         # extend generation prob to extended vocabulary

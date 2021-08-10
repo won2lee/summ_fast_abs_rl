@@ -12,6 +12,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import tensorboardX
 
+cov_rate = 0.1
 
 def get_basic_grad_fn(net, clip_grad, max_grad=1e2):
     def f():
@@ -69,7 +70,7 @@ def basic_validate(net, criterion, parallel, val_batches):
                 starmap(validate_fn, val_batches),
                 (0, 0)
             )
-    val_loss = tot_loss / n_data if not parallel else lgt1[1]/lgt1[0] + 1 * lgt2[1]/lgt2[0] + 0.3*lgt3[1]/lgt3[0]
+    val_loss = tot_loss / n_data if not parallel else lgt1[1]/lgt1[0] + 1 * lgt2[1]/lgt2[0] + cov_rate*lgt3[1]/lgt3[0]
     print(
         'validation finished in {}                                    '.format(
             timedelta(seconds=int(time()-start)))
@@ -139,7 +140,7 @@ class BasicPipeline(object):
             #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
-            loss = loss1.mean() + 1 * loss2.mean() + 0.3 * sum(cov_loss).mean()
+            loss = loss1.mean() + 1 * loss2.mean() + cov_rate * sum(cov_loss).mean()
             if self.count%50==0:
                 print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {sum(cov_loss).mean()}")
         else:
