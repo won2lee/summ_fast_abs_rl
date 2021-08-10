@@ -33,7 +33,7 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
                                 for idx in indices if idx.item() < len(raw_arts)])
                 if mono_abs:
                     ext_sent=[]
-                    for s in extrctd[:3]:
+                    for s in extrctd: #[:3]:
                         ext_sent+=s
                     ext_sents += [ext_sent] #[for s in extrctd[:3]]
                 else:
@@ -66,6 +66,8 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     baselines = []
     ext_sents = []
     art_batch, abs_batch = next(loader)
+
+    max_abs = 4
     for raw_arts in art_batch:
         # if mono_abs:
         #     (inds, ms), bs = agent(raw_arts, n_abs=10000)
@@ -90,7 +92,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             ext_sent = [[] for _ in range(k)]
             #print(k,ext_sent)
             for i,ex in enumerate(extrctd):
-                if i<3:
+                if i<max_abs:
                     for j in range(i,k):
                         # ext_sent[j] +=ex
                         ext_sent[j] +=ex #[ex]
@@ -112,13 +114,13 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         if mono_abs:
             #print(f'i+j, summary.len : {i} , {min(len(inds), 3)},{len(summaries)}')
             cum_rwd = [0.]+[reward_fn(summaries[i+j], abss[0]) # cumulated rewards
-                        for j in range(min(len(inds)-1, 3))]
+                        for j in range(min(len(inds)-1, max_abs))]
             rs = ([cum_rwd[j+1]-cum_rwd[j]   #contribution to total reward by one step action
-                  for j in range(min(len(inds)-1, 3))]
-                  + [0 for _ in range(max(0, len(inds)-1-3))]
+                  for j in range(min(len(inds)-1, max_abs))]
+                  + [0 for _ in range(max(0, len(inds)-1-max_abs))]
             #if len(rs) < 4:  # 3개 보다 많이 추출 했을 경우 stop_reward 를 주지 않은 방식 적용 
                   + [stop_coeff*stop_reward_fn(
-                      list(concat([summaries[i+min(len(inds)-1, 3)-1]])),
+                      list(concat([summaries[i+min(len(inds)-1, max_abs)-1]])),
                       list(concat(abss)))])
         else:
             rs = ([reward_fn(summaries[i+j], abss[j])
