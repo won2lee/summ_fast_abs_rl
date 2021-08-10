@@ -12,7 +12,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import tensorboardX
 
-cov_rate = 0.1
+cov_rate = 1.25
 
 def get_basic_grad_fn(net, clip_grad, max_grad=1e2):
     def f():
@@ -45,7 +45,7 @@ def val_step(loss_step, parallel, fw_args, loss_args):
     if parallel:
         return ((loss[0].size(0), loss[0].sum().item()), 
                 (loss[1].size(0), loss[1].sum().item()), 
-                (1, sum(loss[2]).mean())
+                (1, (sum(loss[2])/len(loss[2])).mean())
                 ) 
     else:
         return loss.size(0), loss.sum().item()
@@ -140,9 +140,9 @@ class BasicPipeline(object):
             #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
-            loss = loss1.mean() + 1 * loss2.mean() + cov_rate * sum(cov_loss).mean()
+            loss = loss1.mean() + 1 * loss2.mean() + cov_rate * (sum(cov_loss)/len(loss[2])).mean()
             if self.count%50==0:
-                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {sum(cov_loss).mean()}")
+                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {(sum(cov_loss)/len(loss[2])).mean()}")
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )
