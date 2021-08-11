@@ -140,9 +140,9 @@ class BasicPipeline(object):
             #print("XO loss process")
             loss_args = self.get_loss_args(net_out[1], (XO,))
             loss2, _ = self._criterion(*loss_args, mask=mask)
-            loss = loss1.mean() + 1 * loss2.mean() + cov_rate * (sum(cov_loss)/len(loss[2])).mean()
+            loss = loss1.mean() + 1 * loss2.mean() + cov_rate * (sum(cov_loss)/len(cov_loss)).mean()
             if self.count%50==0:
-                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {(sum(cov_loss)/len(loss[2])).mean()}")
+                print(f"loss of step {self.count} -- loss1 : {loss1.mean()}, loss2 : {loss2.mean()}, loss3 : {(sum(cov_loss)/len(cov_loss)).mean()}")
         else:
             loss_args = self.get_loss_args(net_out, bw_args)
             # backward and update ( and optional gradient monitoring )

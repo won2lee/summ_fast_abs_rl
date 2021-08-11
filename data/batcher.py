@@ -8,7 +8,8 @@ from cytoolz import curried
 
 import torch
 import torch.multiprocessing as mp
-
+import re
+p = re.compile("\s{2,}")
 
 # Batching functions
 def coll_fn(data):
@@ -32,7 +33,7 @@ def coll_fn_extract(data):
 @curry
 def tokenize(max_len, texts, parallel=False):
     if parallel:
-        return [t.split()[:max_len] for t in texts]
+        return [p.sub(" ",t.strip()).split()[:max_len] for t in texts]
     else:
         return [t.lower().split()[:max_len] for t in texts]
 

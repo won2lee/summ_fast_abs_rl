@@ -224,7 +224,16 @@ class Seq2SeqSumm(nn.Module):
 
         X_way = sub_dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
 
-        #문장단위로 자르고 어절 단위로 자른 뒤 각 어절의 길이만 남기고 나머지는 버린 후 연결 (cat) 하여 문장으로 재구성         
+        #문장단위로 자르고 어절 단위로 자른 뒤 각 어절의 길이만 남기고 나머지는 버린 후 연결 (cat) 하여 문장으로 재구성    
+        for i,sss in enumerate(torch.split(X_way,Z_len,1)):
+            if i> len(Z_sub)-1:
+                print("###############list index out of range##################")
+                print(i, len(Z_sub), Z_sub)
+            for j,ss in enumerate(torch.split(sss,1,1)):
+                if j> len(Z_sub[i])-1:
+                    print("###############list index out of range##################")
+                    print(i,j, len(Z_sub[i]), Z_sub)
+
         X_input = [torch.cat([ss[:Z_sub[i][j]] for j,ss in enumerate(
                    torch.split(sss,1,1))],0) for i,sss in enumerate(torch.split(X_way,Z_len,1))]
         # print(f"X-input[0].size() : {X_input[0].size()}")
