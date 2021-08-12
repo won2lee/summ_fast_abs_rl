@@ -123,7 +123,7 @@ def _unpack_topk(topk, lp, hists, xok=None, sub_stts=None, attn=None):
         return topks, lps, k_hists, xoks, k_subs, attns
 
 
-def _clean_beam(finished, beam, end_tok, beam_size, remove_tri=True):
+def _clean_beam(finished, beam, end_tok, beam_size, remove_tri=False):
     """ remove completed sequence from beam """
     new_beam = []
     for h in sorted(beam, reverse=True,
@@ -132,7 +132,7 @@ def _clean_beam(finished, beam, end_tok, beam_size, remove_tri=True):
             h.logprob = -1e9
         if h.sequence[-1] == end_tok:
             finished_hyp = _Hypothesis(h.sequence[:-1], # remove EOS
-                                       h.logprob, h.hists, h.xo, attns = h.attns)
+                                       h.logprob, h.hists, h.xo[:-1], attns = h.attns)
             finished.append(finished_hyp)
         else:
             new_beam.append(h)

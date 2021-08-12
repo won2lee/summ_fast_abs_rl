@@ -88,12 +88,16 @@ def decode(save_path, model_dir, split, batch_size,
                     ext_arts.append(list(chain(*[raw_art_sents[i] for i in ext])))
                 else:
                     ext_arts += [raw_art_sents[i] for i in ext]
+
+            print('extracted was done')
             if beam_size > 1:
                 all_beams = abstractor(ext_arts, beam_size, diverse)
-                dec_outs = rerank_mp(all_beams, ext_inds)
+                dec_outs = rerank_mp(all_beams, ext_inds, mono_abs)
             else:
                 dec_outs = abstractor(ext_arts)
             assert i == batch_size*i_debug
+
+            print('abstracted was done')
             for ibt, (j, n) in enumerate(ext_inds):
                 # decoded_sents = [' '.join(dec) for dec in dec_outs[j:j+n]]
                 # decoded_sents = ([' '.join(list(chain(*[[w] if dec[1][i] == 0 else [sb[dec[1][i]], w] 
@@ -101,9 +105,14 @@ def decode(save_path, model_dir, split, batch_size,
                 #                 for dec in dec_outs[j:j+n]])  #in zip(dec_outs[0][j:j+n],dec_outs[1][j:j+n])])))])
                 #print(f"dec_outs : {dec_outs[j:j+n]}")
                 if beam_size > 1:
-                    decoded_sents = ([' '.join(list(chain(*[[str(w)] if xs[i] == 0 else [sb[xs[i]], str(w)] 
-                                    for i,w in enumerate(snt)])))
-                                    for snt,xs in dec_outs[j:j+n]])
+                    if mono_abs:
+                        xs = dec_outs[ibt][1][1:] # why [1:] ==>_process_beam 에서 첫번째 sequence(start) 제거  
+                        decoded_sents = ([' '.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
+                                        for iw,w in enumerate(dec_outs[ibt][0])])))])
+                    else:                     
+                        decoded_sents = ([' '.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
+                                        for iw,w in enumerate(snt)])))
+                                        for snt,xs in dec_outs[j:j+n]])
                 else:
                     if mono_abs:
                         decoded_sents = ([' '.join(dec_outs[ibt])])
@@ -136,8 +145,11 @@ def rerank(all_beams, ext_inds):
     beam_lists = (all_beams[i: i+n] for i, n in ext_inds if n > 0)
     return list(concat(map(rerank_one, beam_lists)))
 
-def rerank_mp(all_beams, ext_inds):
-    beam_lists = [all_beams[i: i+n] for i, n in ext_inds if n > 0]
+def rerank_mp(all_beams, ext_inds, mono_abs):
+    if mono_abs:
+        beam_lists = [[beams] for beams in all_beams]
+    else:
+        beam_lists = [all_beams[i: i+n] for i, n in ext_inds if n > 0]
     # with mp.Pool(8) as pool:
     #     reranked = pool.map(rerank_one, beam_lists)
     reranked = map(rerank_one, beam_lists)
