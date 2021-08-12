@@ -7,7 +7,7 @@ import torch
 
 
 class _Hypothesis(object):
-    def __init__(self, sequence, logprob, hists, xo=None, init_vecs=None, attns=[]):
+    def __init__(self, sequence, logprob, hists, xo=None, to_avoid=None, init_vecs=None, attns=[]):
         """
         seqence: list of int tokens
         logprob: current log probability
@@ -19,9 +19,11 @@ class _Hypothesis(object):
         self.hists = hists
         self.attns = attns  # for unk replacement
         self.xo = xo
+        self.to_avoid = to_avoid  #+=self.attns[-1]?
         self.init_vecs = init_vecs
 
     def extend_k(self, topk, logprobs, hists, xok=None, init_vecs=None, attn=None, diverse=1.0):
+        self.to_avoid+=attns
         if attn is None:
             attns = []
         else:
@@ -31,8 +33,8 @@ class _Hypothesis(object):
         # print(f"xok : {xok}")
         return [_Hypothesis(self.sequence+[t.item()],
                             self.logprob+lp.item()-diverse*i, hists, 
-                            self.xo+[x.item()], init_vecs, attns)
-                for i, (t, lp, x) in enumerate(zip(topk, logprobs, xok))]
+                            self.xo+[x.item()], self.to_avoid, init_vecs, attns)
+                for i, (t, lp, x) in enumerate(zip(topk, logprobs, xok))]   # 각 hypothesis를 topk 로 확장
 
     def __lt__(self, other):
         return (other.logprob/len(other.sequence)
@@ -59,15 +61,16 @@ def pack_beam(hyps, device):
                   for i, d in enumerate([1, 1, 0]))
     token = token.to(device)
     states = ((hists[0], hists[1]), hists[2])
+    to_avoids = torch.stack([h.to_avoid for h in hyps], dim=0)
 
     if hyps[0].init_vecs:  # if parallel
         xos = torch.LongTensor([h.xo[-1] for h in hyps])
         xos = xos.to(device)
         init_vecs = tuple(torch.stack([hyp.init_vecs[i] for hyp in hyps], dim=1) for i in range(2))
-        return token, states, xos, init_vecs
+        return token, states, xos, init_vecs, to_avoids
 
     else:
-        return token, states, None, None
+        return token, states, None, None, None
 
 
 def next_search_beam(beam, beam_size, finished,
@@ -76,9 +79,9 @@ def next_search_beam(beam, beam_size, finished,
     topks, lps, hists_list, xoks, sub_list, attns= _unpack_topk(topk, lp, hists, xok, sub_stts, attn)
     hyps_lists = [h.extend_k(topks[i], lps[i],
                              hists_list[i], xoks[i], sub_list[i], attns[i], diverse)
-                  for i, h in enumerate(beam)]
+                  for i, h in enumerate(beam)]  # 각 beam 내 각 hypothesis 에 대해 topk 확장 
     hyps = list(concat(hyps_lists))
-    finished, beam = _clean_beam(finished, hyps, end, beam_size)
+    finished, beam = _clean_beam(finished, hyps, end, beam_size)  # beam(5) x topk(5) ===> beam(5) 개로 정리 
 
     return finished, beam
 

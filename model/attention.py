@@ -34,7 +34,7 @@ def coverage_score(key, query, cov, to_avoid):
     # # print(f"score : {score.size()}")
     # score = vT(score)
     # # print(f"score : {score.size()}")
-    return vT(F.tanh(attn_proj)).transpose(1,2)
+    return vT(F.tanh(attn_proj)).transpose(-1,-2)
 
 def step_attention(query, key, value, mem_mask=None, cov=None, to_avoid=None):
     """ query[(Bs), B, D], key[B, T, D], value[B, T, D]"""

@@ -159,7 +159,8 @@ class CopySumm(Seq2SeqSumm):
 
     def batched_beamsearch(self, article, art_lens,
                            extend_art, extend_vsize,
-                           go, eos, unk, max_len, beam_size, diverse=1.0):
+                           go, eos, unk, max_len, use_coverage, 
+                           beam_size, diverse=1.0):
         batch_size = len(art_lens)
         vsize = self._embedding.num_embeddings
         attention, init_dec_states, art_lens = self.encode(article, art_lens)
@@ -167,6 +168,7 @@ class CopySumm(Seq2SeqSumm):
         all_attention = (attention, mask, extend_art, extend_vsize)
         attention = all_attention
         (h, c), prev = init_dec_states
+        to_avoid = torch.zeros(1)
 
         ###############################################################################################################
         if self.parallel:
@@ -178,7 +180,7 @@ class CopySumm(Seq2SeqSumm):
             #tok, init_vecs = self.parallel_beam_code(tok.squeeze(), init_vecs=init_vecs, device = article.device) 
         ###############################################################################################################
 
-        all_beams = [bs.init_beam(go, (h[:, i, :], c[:, i, :], prev[i]), [1], init_vecs if self.parallel else None)
+        all_beams = [bs.init_beam(go, (h[:, i, :], c[:, i, :], prev[i]), [1], to_avoid, init_vecs if self.parallel else None)
                      for i in range(batch_size)]
         finished_beams = [[] for _ in range(batch_size)]
 
@@ -188,14 +190,16 @@ class CopySumm(Seq2SeqSumm):
             all_states = []
             xos = []
             sub_states = []
+            avoids = []
 
-            for beam in filter(bool, all_beams):
+            for beam in filter(bool, all_beams):  # all_beams : list(batch_size) of list (beam_size Hypotheses)
 
-                token, states, xo, init_vecs = bs.pack_beam(beam, article.device)
+                token, states, xo, init_vecs, to_avoid = bs.pack_beam(beam, article.device)
                 toks.append(token)
                 all_states.append(states)
                 xos.append(xo)
                 sub_states.append(init_vecs)
+                avoids.append(to_avoid)
 
             token = torch.stack(toks, dim=1)
             states = ((torch.stack([h for (h, _), _ in all_states], dim=2),
@@ -204,6 +208,7 @@ class CopySumm(Seq2SeqSumm):
             xo_toks = torch.stack(xos, dim=1)
             sub_stts = (torch.stack([h for h, _ in sub_states], dim=2), 
                         torch.stack([c for _, c in sub_states], dim=2))
+            to_avoids = torch.stack(avoids, dim=1)
             token.masked_fill_(token >= vsize, unk)
 
             if self.parallel:
@@ -245,7 +250,7 @@ class CopySumm(Seq2SeqSumm):
             #####################################################################################################################
 
             topk, lp, states, attn_score, xok = self._decoder.topk_step(
-                token, states, attention, beam_size)
+                token, states, attention, beam_size, to_avoids)
 
             batch_i = 0
             for i, (beam, finished) in enumerate(zip(all_beams,
@@ -261,16 +266,16 @@ class CopySumm(Seq2SeqSumm):
                     xok[:,batch_i,:],
                     (sub_stts[0][:,:,batch_i,:],
                      sub_stts[1][:,:,batch_i,:]),
-                    attn_score[:, batch_i, :],
+                    attn_score[:, batch_i, :],  # attn_score 는 tok (h.sequence 가 unk일 때 sent 에서 copy )
                     diverse
                 )
 
                 for h in new_beam:
                     if h.xo[-1] != 0:
-                        h.init_vecs = ([sb_init[i][:,h.xo[-1]-1,:] #.unsqueeze(1) 
-                                        for i in range(2)])
-                        
+                        h.init_vecs = ([sb_init[i_hs][:,h.xo[-1]-1,:] 
+                                        for i_hs in range(2)])  # i 충돌 i=>i_hs                      
                 batch_i += 1
+
                 if len(finished) >= beam_size:
                     all_beams[i] = []
                     outputs[i] = finished[:beam_size]
@@ -300,7 +305,7 @@ class CopySumm(Seq2SeqSumm):
             for i, (o, f, b) in enumerate(zip(outputs,
                                               finished_beams, all_beams)):
                 if o is None:
-                    outputs[i] = (f+b)[:beam_size]
+                    outputs[i] = (f+b)[:beam_size]  # 끝까지 output을 다 채우지 못했을 때 현재까지 베스트로 채우기 
         return outputs
 
 
@@ -392,7 +397,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         return (lp, lp2), (states, dec_out), score
 
 
-    def topk_step(self, tok, states, attention, k):
+    def topk_step(self, tok, states, attention, k, to_avoids):
         """tok:[BB, B], states ([L, BB, B, D]*2, [BB, B, D])"""
         (h, c), prev_out = states
 
@@ -413,7 +418,7 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         query = torch.matmul(lstm_out, self._attn_w)
         attention, attn_mask, extend_src, extend_vsize = attention
         context, score = step_attention(
-            query, attention, attention, attn_mask)
+            query, attention, attention, attn_mask, cov=self.coverage, to_avoid=to_avoids)
         dec_out = self._projection(torch.cat([lstm_out, context], dim=-1))
 
         # copy mechanism is not beamable

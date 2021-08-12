@@ -67,7 +67,8 @@ class Abstractor(object):
         self._word2id = word2id
         self._id2word = {i: w for w, i in word2id.items()}
         self._max_len = max_len
-        self.parallel = abs_args['parallel']
+        self.parallel = abs_args['parallel'] 
+        self.use_coverage = abs_args['use_coverage'] 
 
     def _prepro(self, raw_article_sents):
         ext_word2id = dict(self._word2id)
@@ -91,7 +92,7 @@ class Abstractor(object):
                                         ).to(self._device)
         extend_vsize = len(ext_word2id)
         dec_args = (article, art_lens, extend_art, extend_vsize,
-                    START, END, UNK, self._max_len)
+                    START, END, UNK, self._max_len, self.use_coverage)
         return dec_args, ext_id2word, raw_arts if self.parallel else raw_article_sents 
 
     def __call__(self, raw_article_sents):
