@@ -23,7 +23,7 @@ class _Hypothesis(object):
         self.init_vecs = init_vecs
 
     def extend_k(self, topk, logprobs, hists, xok=None, init_vecs=None, attn=None, diverse=1.0):
-        self.to_avoid+=attns
+        self.to_avoid=self.to_avoid + attn
         if attn is None:
             attns = []
         else:
@@ -41,9 +41,9 @@ class _Hypothesis(object):
                 < self.logprob/len(self.sequence))
 
 
-def init_beam(start, hists, xo, init_vecs):
+def init_beam(start, hists, xo, to_avoid, init_vecs):
     """ get a initial beam to start beam search"""
-    return [_Hypothesis([start], 0, hists, xo, init_vecs)]
+    return [_Hypothesis([start], 0, hists, xo, to_avoid, init_vecs)]
 
 
 def create_beam(tok, lp, hists):

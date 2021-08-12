@@ -168,7 +168,7 @@ class CopySumm(Seq2SeqSumm):
         all_attention = (attention, mask, extend_art, extend_vsize)
         attention = all_attention
         (h, c), prev = init_dec_states
-        to_avoid = torch.zeros(1)
+        to_avoid = torch.zeros(1).to(attention[0].device)
 
         ###############################################################################################################
         if self.parallel:
