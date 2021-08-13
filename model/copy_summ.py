@@ -73,7 +73,7 @@ class CopySumm(Seq2SeqSumm):
         return logit, XO, cov_loss
 
     def batch_decode(self, article, art_lens, extend_art, extend_vsize,
-                     go, eos, unk, max_len):
+                     go, eos, unk, max_len, use_coverage):
         """ greedy decode support batching"""
         batch_size = len(art_lens)
         #print(f"article len : {len(article)}, {len(article[0])}")

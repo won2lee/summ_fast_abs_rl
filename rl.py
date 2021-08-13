@@ -31,6 +31,8 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
                 ext_inds += [(len(ext_sents), len(indices)-1)]
                 extrctd = ([raw_arts[idx.item()]
                                 for idx in indices if idx.item() < len(raw_arts)])
+                if len(extrctd) < 1:
+                    extrctd = ["_ 예정이 다 _ ."]
                 if mono_abs:
                     ext_sent=[]
                     for s in extrctd: #[:3]:

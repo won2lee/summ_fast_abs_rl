@@ -58,9 +58,11 @@ def load_ext_net(ext_dir):
     return ext, vocab
 
 
-def configure_net(abs_dir, ext_dir, cuda):
+def configure_net(abs_dir, ext_dir, cuda, mono_abs):
     """ load pretrained sub-modules and build the actor-critic network"""
     # load pretrained abstractor model
+    if mono_abs:
+        MAX_ABS_LEN = 90
     if abs_dir is not None:
         abstractor = Abstractor(abs_dir, MAX_ABS_LEN, cuda)
     else:
@@ -125,10 +127,11 @@ def train(args):
         os.makedirs(args.path)
 
     parallel = args.parallel
+    mono_abs = args.mono_abs
     #single_abs_snt = False
     # make net
     agent, agent_vocab, abstractor, net_args = configure_net(
-        args.abs_dir, args.ext_dir, args.cuda)
+        args.abs_dir, args.ext_dir, args.cuda, mono_abs)
 
     # configure training setting
     assert args.stop > 0
