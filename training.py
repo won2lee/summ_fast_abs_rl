@@ -12,7 +12,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import tensorboardX
 
-cov_rate = 1.25
+cov_rate = 5.00
 
 def get_basic_grad_fn(net, clip_grad, max_grad=1e2):
     def f():

@@ -94,13 +94,15 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             ext_sent = [[] for _ in range(k)]
             #print(k,ext_sent)
             for i,ex in enumerate(extrctd):
-                if i<max_abs:
-                    for j in range(i,k):
-                        # ext_sent[j] +=ex
-                        ext_sent[j] +=ex #[ex]
-                    #ext_sent[i]=[' '.join(ext_sent[i])]
-                else:
-                    ext_sent[i] = "_ 예정이 다 _ ."
+                for j in range(i,len(extrctd)):
+                    ext_sent[j] +=ex
+                # if i<max_abs:
+                #     for j in range(i,k):
+                #         # ext_sent[j] +=ex
+                #         ext_sent[j] +=ex #[ex]
+                #     #ext_sent[i]=[' '.join(ext_sent[i])]
+                # else:
+                #     ext_sent[i] = "_ 예정이 다 _ ."
             ext_sents += ext_sent           
          
         else:
@@ -117,7 +119,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             #print(f'i+j, summary.len : {i} , {min(len(inds), 3)},{len(summaries)}')
             cum_rwd = [0.]+[reward_fn(summaries[i+j], abss[0]) # cumulated rewards
                         for j in range(min(len(inds)-1, max_abs))]
-            rs = ([cum_rwd[j+1]-cum_rwd[j]   #contribution to total reward by one step action
+            rs = ([max(cum_rwd[j+1]-cum_rwd[j], 0.0)   #contribution to total reward by one step action
                   for j in range(min(len(inds)-1, max_abs))]
                   + [0 for _ in range(max(0, len(inds)-1-max_abs))]
             #if len(rs) < 4:  # 3개 보다 많이 추출 했을 경우 stop_reward 를 주지 않은 방식 적용 

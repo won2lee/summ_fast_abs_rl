@@ -151,7 +151,7 @@ class BeamAbstractor(Abstractor):
 def _process_beam(id2word, beam, art_sent):
     def process_hyp(hyp):
         seq = []
-        for i, attn in zip(hyp.sequence[1:], hyp.attns[:-1]):
+        for i, attn in zip(hyp.sequence[1:], hyp.attns[:-1]):  # why [1:] => remove start
             if i == UNK:
                 copy_word = art_sent[max(range(len(art_sent)),
                                          key=lambda j: attn[j].item())]

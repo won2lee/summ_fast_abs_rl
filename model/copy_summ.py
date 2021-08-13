@@ -214,12 +214,12 @@ class CopySumm(Seq2SeqSumm):
             if self.parallel:
                 # print(f"i : {i}, tok.size : {tok.size()}")
                 (nbeam, nbatch), nhddn = token.size()[:2], sub_stts[0].size()[-1]
-                token, sub_stts = self.parallel_beam_code(token.view(nbeam*nbatch, -1).squeeze(), 
-                                                        init_vecs=(sub_stts[0].view(-1,nbeam*nbatch,nhddn),
-                                                                    sub_stts[1].view(-1,nbeam*nbatch,nhddn)), 
+                token, sub_stts = self.parallel_beam_code(token.contiguous().view(nbeam*nbatch, -1).squeeze(), 
+                                                        init_vecs=(sub_stts[0].contiguous().view(-1,nbeam*nbatch,nhddn),
+                                                                    sub_stts[1].contiguous().view(-1,nbeam*nbatch,nhddn)), 
                                                         device = article.device)
                 token = token.view(nbeam,nbatch,-1)
-                sub_stts = (sub_stts[0].view(-1,nbeam,nbatch,nhddn), sub_stts[1].view(-1,nbeam,nbatch,nhddn))
+                sub_stts = (sub_stts[0].contiguous().view(-1,nbeam,nbatch,nhddn), sub_stts[1].contiguous().view(-1,nbeam,nbatch,nhddn))
             else:
                 token = self._embedding(token)
 
@@ -479,8 +479,8 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
             # k_lp, k_tok_x = lp_all.view(beam,batch,-1).topk(k=k, dim=-1) #2*k, dim=-1)
             # k_tok = k_tok_x // 4
             # k_xo = k_tok_x % 4
-            k_lp, k_tok = lp.view(beam,batch,-1).topk(k=k, dim=-1) #2*k, dim=-1)
-            _,k_xo = lp2.view(beam,batch,-1).topk(k=1, dim=-1)
+            k_lp, k_tok = lp.contiguous().view(beam,batch,-1).topk(k=k, dim=-1) #2*k, dim=-1)
+            _,k_xo = lp2.contiguous().view(beam,batch,-1).topk(k=1, dim=-1)
             k_xo = k_xo.expand_as(k_tok)
 
             # k_tok=[]
