@@ -166,7 +166,7 @@ def rerank_one(beams):
     dec_outs = [(h.sequence, h.xo) for h in best_hyps]
     return dec_outs
 
-def _make_n_gram(sequence, n=2):
+def _make_n_gram(sequence, n=3):  # n : 2 => 3 for parallel 
     return (tuple(sequence[i:i+n]) for i in range(len(sequence)-(n-1)))
 
 def _compute_score(hyps):

@@ -138,7 +138,7 @@ def main(args):
         abs_ckpt = load_best_ckpt(args.path)
         # word2id = pkl.load(open(join(args.path, 'vocab.pkl'), 'rb'))
         net.load_state_dict(abs_ckpt)
-        if args.lr < 0.0001:
+        if args.lr < 0.00001:  # temporary
             net.requires_grad_(requires_grad=True)
         # self._device = torch.device('cuda' if cuda else 'cpu')
         # self._net = abstractor.to(self._device)
