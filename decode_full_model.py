@@ -136,11 +136,10 @@ def decode(save_path, model_dir, split, batch_size,
     print()
     print("decoding was completed !!")
 
-# _PRUNE = defaultdict(
-#     lambda: 2,
-#     {1:5, 2:5, 3:5, 4:5, 5:5, 6:4, 7:3, 8:3}
-# )
-
+_PRUNE = defaultdict(
+    lambda: 2,
+    {1:5, 2:5, 3:5, 4:5, 5:5, 6:4, 7:3, 8:3}
+)            # key : num of extracted sents, value: num of beam to compute => to decrease computation burden of product (key * beam) 
 def rerank(all_beams, ext_inds):
     beam_lists = (all_beams[i: i+n] for i, n in ext_inds if n > 0)
     return list(concat(map(rerank_one, beam_lists)))
@@ -161,9 +160,9 @@ def rerank_one(beams):
         for b in beam[:n]:
             b.gram_cnt = Counter(_make_n_gram(b.sequence))
         return beam[:n]
-    # beams = map(process_beam(n=_PRUNE[len(beams)]), beams)
-    beams = map(process_beam(n=len(beams)), beams)
-    best_hyps = max(product(*beams), key=_compute_score)
+    beams = map(process_beam(n=_PRUNE[len(beams)]), beams)  # for example, if len(beam) == 7(extrctd snts ==7) 
+                                                            #       then consider only 3 of 5 beams
+    best_hyps = max(product(*beams), key=_compute_score)    #       i.e., prune 7 * 5 to 7 * 3  
     dec_outs = [(h.sequence, h.xo) for h in best_hyps]
     return dec_outs
 
