@@ -75,6 +75,7 @@ def decode(save_path, model_dir, split, batch_size,
             tokenized_article_batch = map(tokenize(None), raw_article_batch)
             ext_arts = []
             ext_inds = []
+            extrtd = []
             for raw_art_sents in tokenized_article_batch:
                 ext = extractor(raw_art_sents)[:-1]  # exclude EOE
                 if not ext:
@@ -84,6 +85,7 @@ def decode(save_path, model_dir, split, batch_size,
                 else:
                     ext = [i.item() for i in ext]
                 ext_inds += [(len(ext_arts), len(ext))]
+                extrtd.append(ext)
                 if mono_abs:
                     ext_arts.append(list(chain(*[raw_art_sents[i] for i in ext])))
                 else:
@@ -107,10 +109,10 @@ def decode(save_path, model_dir, split, batch_size,
                 if beam_size > 1:
                     if mono_abs:
                         xs = dec_outs[ibt][1][1:] # why [1:] ==>_process_beam 에서 첫번째 sequence(start) 제거  
-                        decoded_sents = ([' '.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
+                        decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
                                         for iw,w in enumerate(dec_outs[ibt][0])])))])
                     else:                     
-                        decoded_sents = ([' '.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
+                        decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
                                         for iw,w in enumerate(snt)])))
                                         for snt,xs in dec_outs[j:j+n]])
                 else:
@@ -122,6 +124,14 @@ def decode(save_path, model_dir, split, batch_size,
                 with open(join(save_path, 'output/{}.dec'.format(i)),
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
+
+                in_out = {}
+                in_out["article"] = [''.join(snt) for snt in tokenized_article_batch[ibt]]
+                in_out["extracted"] = [in_out["article"][idx] for idx in extrctd[ibt]]
+                in_out["abstract"] = decoded_sents
+                with open(join(save_path, 'in_out/{}.json'.format(i)),
+                          'w') as jsonf:
+                    json.dump(in_out,jsonf)
                 i += 1
                 if i%10 == 0:
                     print('{}/{} ({:.2f}%) decoded in {} seconds'.format(  #\r'.format(
