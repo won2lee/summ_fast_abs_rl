@@ -12,8 +12,8 @@ from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import tensorboardX
 
-seq_wgt = 0.5 
-cov_wgt = 2.00
+seq_wgt = 0.09 
+cov_wgt = 0.25
 
 def get_basic_grad_fn(net, clip_grad, max_grad=1e2):
     def f():
@@ -77,7 +77,7 @@ def basic_validate(net, criterion, parallel, val_batches):
             timedelta(seconds=int(time()-start)))
     )
     print('validation loss: {:.4f} ... '.format(val_loss))
-    print(" .... loss1 : {tot_loss / n_data if not parallel else lgt1[1]/lgt1[0]}, loss2 : {lgt2[1]/lgt2[0]}, loss3 : {lgt3[1]/lgt3[0]}")
+    print(f" .... loss1 : {tot_loss / n_data if not parallel else lgt1[1]/lgt1[0]}, loss2 : {lgt2[1]/lgt2[0]}, loss3 : {lgt3[1]/lgt3[0]}")
     return {'loss': val_loss}
 
 
@@ -128,7 +128,7 @@ class BasicPipeline(object):
         if self.count%50==0 and self.parallel:
             print(f"XO[0]     : {XO[0][:20]}")
             print(f"inf XO[0] : {net_out[1][0][:20].argmax(-1)}")
-            print(f"len(cov_loss) : {len(cov_loss)}") #, {cov_loss[-1]}") 
+            print(f"len(cov_loss) : {len(cov_loss)}") # max_abs 에서 XO 가 제거된 sequence 갯수 
         #print("one copy_summ process was done")
 
         # get logs and output for logging, backward
