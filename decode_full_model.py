@@ -56,6 +56,7 @@ def decode(save_path, model_dir, split, batch_size,
 
     # prepare save paths and logs
     os.makedirs(join(save_path, 'output'))
+    os.makedirs(join(save_path, 'in_out'))
     dec_log = {}
     dec_log['abstractor'] = meta['net_args']['abstractor']
     dec_log['extractor'] = meta['net_args']['extractor']
@@ -73,10 +74,12 @@ def decode(save_path, model_dir, split, batch_size,
         for i_debug, raw_article_batch in enumerate(loader):
             print(f"i_debug : {i_debug}")
             tokenized_article_batch = map(tokenize(None), raw_article_batch)
+            raw_arts = []
             ext_arts = []
             ext_inds = []
-            extrtd = []
+            extrctd = []
             for raw_art_sents in tokenized_article_batch:
+                raw_arts.append(raw_art_sents)
                 ext = extractor(raw_art_sents)[:-1]  # exclude EOE
                 if not ext:
                     # use top-5 if nothing is extracted
@@ -85,7 +88,7 @@ def decode(save_path, model_dir, split, batch_size,
                 else:
                     ext = [i.item() for i in ext]
                 ext_inds += [(len(ext_arts), len(ext))]
-                extrtd.append(ext)
+                extrctd.append(ext)
                 if mono_abs:
                     ext_arts.append(list(chain(*[raw_art_sents[i] for i in ext])))
                 else:
@@ -112,7 +115,7 @@ def decode(save_path, model_dir, split, batch_size,
                         decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
                                         for iw,w in enumerate(dec_outs[ibt][0])])))])
                     else:                     
-                        decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
+                        decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw+1] == 0 else [sb[xs[iw+1]], str(w)] 
                                         for iw,w in enumerate(snt)])))
                                         for snt,xs in dec_outs[j:j+n]])
                 else:
@@ -126,12 +129,12 @@ def decode(save_path, model_dir, split, batch_size,
                     f.write(make_html_safe('\n'.join(decoded_sents)))
 
                 in_out = {}
-                in_out["article"] = [''.join(snt) for snt in tokenized_article_batch[ibt]]
+                in_out["article"] = [''.join(snt) for snt in raw_arts[ibt]]
                 in_out["extracted"] = [in_out["article"][idx] for idx in extrctd[ibt]]
                 in_out["abstract"] = decoded_sents
                 with open(join(save_path, 'in_out/{}.json'.format(i)),
                           'w') as jsonf:
-                    json.dump(in_out,jsonf)
+                    json.dump(in_out,jsonf, ensure_ascii=False, indent=4)
                 i += 1
                 if i%10 == 0:
                     print('{}/{} ({:.2f}%) decoded in {} seconds'.format(  #\r'.format(
