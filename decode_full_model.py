@@ -197,7 +197,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_dec_word', type=int, action='store', default=30,
                         help='maximun words to be decoded for the abstractor')
 
-    parser.add_argument('--no-cuda', action='store_true',
+    parser.add_argument('--no_cuda', action='store_true',
                         help='disable GPU training')
     parser.add_argument('--mono_abs', action='store_true',
                         help='for kor summ data')
