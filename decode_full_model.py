@@ -73,9 +73,11 @@ def decode(save_path, model_dir, split, batch_size,
         sb = {1:"_",2:"^",3:"`"}
         for i_debug, raw_article_batch in enumerate(loader):
             print(f"i_debug : {i_debug}")
-            raw_ext = [bitem for bitem in raw_article_batch["extracted"]]
-            raw_abs = [bitem for bitem in raw_article_batch["abstracted"]]
-            tokenized_article_batch = map(tokenize(None), raw_article_batch["articles"])
+            raw_articles= [bt["article"] for bt in raw_article_batch]
+            raw_ext = [bt["extracted"] for bt in raw_article_batch]
+            raw_abs = [bt["abstract"] for bt in raw_article_batch]
+
+            tokenized_article_batch = map(tokenize(None), raw_articles)
             #tokenized_article_batch = map(tokenize(None), raw_article_batch)
             raw_arts = []
             ext_arts = []
@@ -134,9 +136,9 @@ def decode(save_path, model_dir, split, batch_size,
                 ######           added to check output's relevance          ##########
                 in_out = {}
                 in_out["raw_arts"] = [''.join(snt) for snt in raw_arts[ibt]]
-                in_out['raw_exts'] = [in_out["article"][idx] for idx in raw_ext[ibt]]
-                in_out["raw_abss"] = [''.join(snt) for snt in raw_abs[ibt]]
-                in_out["extracted"] = [in_out["article"][idx] for idx in extrctd[ibt]]
+                in_out['raw_exts'] = [in_out["raw_arts"][idx] for idx in raw_ext[ibt]]
+                in_out["raw_abss"] = [''.join(snt.split()) for snt in raw_abs[ibt]]
+                in_out["extracted"] = [in_out["raw_arts"][idx] for idx in extrctd[ibt]]
                 in_out["abstract"] = decoded_sents
                 
                 with open(join(save_path, 'in_out/{}.json'.format(i)),
