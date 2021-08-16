@@ -73,7 +73,10 @@ def decode(save_path, model_dir, split, batch_size,
         sb = {1:"_",2:"^",3:"`"}
         for i_debug, raw_article_batch in enumerate(loader):
             print(f"i_debug : {i_debug}")
-            tokenized_article_batch = map(tokenize(None), raw_article_batch)
+            raw_ext = [bitem for bitem in raw_article_batch["extracted"]]
+            raw_abs = [bitem for bitem in raw_article_batch["abstracted"]]
+            tokenized_article_batch = map(tokenize(None), raw_article_batch["articles"])
+            #tokenized_article_batch = map(tokenize(None), raw_article_batch)
             raw_arts = []
             ext_arts = []
             ext_inds = []
@@ -128,13 +131,19 @@ def decode(save_path, model_dir, split, batch_size,
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
 
+                ######           added to check output's relevance          ##########
                 in_out = {}
-                in_out["article"] = [''.join(snt) for snt in raw_arts[ibt]]
+                in_out["raw_arts"] = [''.join(snt) for snt in raw_arts[ibt]]
+                in_out['raw_exts'] = [in_out["article"][idx] for idx in raw_ext[ibt]]
+                in_out["raw_abss"] = [''.join(snt) for snt in raw_abs[ibt]]
                 in_out["extracted"] = [in_out["article"][idx] for idx in extrctd[ibt]]
                 in_out["abstract"] = decoded_sents
+                
                 with open(join(save_path, 'in_out/{}.json'.format(i)),
                           'w') as jsonf:
                     json.dump(in_out,jsonf, ensure_ascii=False, indent=4)
+                ######################################################################
+
                 i += 1
                 if i%10 == 0:
                     print('{}/{} ({:.2f}%) decoded in {} seconds'.format(  #\r'.format(

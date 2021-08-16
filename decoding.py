@@ -32,7 +32,7 @@ class DecodeDataset(CnnDmDataset):
     def __getitem__(self, i):
         js_data = super().__getitem__(i)
         art_sents = js_data['article']
-        return art_sents
+        return js_data  # art_sents ..... to get raw_extracted, raw_abstract
 
 
 def make_html_safe(s):
