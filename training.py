@@ -12,8 +12,8 @@ from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import tensorboardX
 
-seq_wgt = 0.09 
-cov_wgt = 0.25
+seq_wgt = 0.096 #0.09 
+cov_wgt = 0.1  #0.25
 
 def get_basic_grad_fn(net, clip_grad, max_grad=1e2):
     def f():
