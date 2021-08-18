@@ -122,6 +122,7 @@ def main(args):
     with open(join(DATA_DIR, 'vocab_cnt.pkl'), 'rb') as f:
         wc = pkl.load(f, encoding="bytes") 
     parallel = args.parallel
+    device = 'cuda' if args.cuda else 'cpu'
     print(f"main.parallel : {parallel}")
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(word2id,
@@ -135,9 +136,9 @@ def main(args):
         # abs_meta = json.load(open(join(args.path, 'meta.json')))
         # assert abs_meta['net'] == 'base_abstractor'
         # abs_args = abs_meta['net_args']
-        abs_ckpt = load_best_ckpt(args.path)
+        abs_ckpt = load_best_ckpt(args.path, device)
         # word2id = pkl.load(open(join(args.path, 'vocab.pkl'), 'rb'))
-        net.load_state_dict(abs_ckpt)
+        net.load_state_dict(abs_ckpt) #, device)
         if args.lr < 0.00001:  # temporary
             net.requires_grad_(requires_grad=True)
         # self._device = torch.device('cuda' if cuda else 'cpu')
