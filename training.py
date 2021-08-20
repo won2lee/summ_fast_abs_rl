@@ -71,13 +71,14 @@ def basic_validate(net, criterion, parallel, val_batches):
                 starmap(validate_fn, val_batches),
                 (0, 0)
             )
-    val_loss = seq_wgt * (tot_loss / n_data if not parallel else lgt1[1]/lgt1[0] + lgt2[1]/lgt2[0]) + cov_wgt * lgt3[1]/lgt3[0]
+    val_loss = tot_loss / n_data if not parallel else seq_wgt * (lgt1[1]/lgt1[0] + lgt2[1]/lgt2[0]) + cov_wgt * lgt3[1]/lgt3[0]
     print(
         'validation finished in {}                                    '.format(
             timedelta(seconds=int(time()-start)))
     )
     print('validation loss: {:.4f} ... '.format(val_loss))
-    print(f" .... loss1 : {tot_loss / n_data if not parallel else lgt1[1]/lgt1[0]}, loss2 : {lgt2[1]/lgt2[0]}, loss3 : {lgt3[1]/lgt3[0]}")
+    if parallel:
+        print(f" .... loss1 : {lgt1[1]/lgt1[0]}, loss2 : {lgt2[1]/lgt2[0]}, loss3 : {lgt3[1]/lgt3[0]}")
     return {'loss': val_loss}
 
 

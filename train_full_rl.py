@@ -47,10 +47,10 @@ class RLDataset(CnnDmDataset):
         abs_sents = js_data['abstract']
         return art_sents, abs_sents
 
-def load_ext_net(ext_dir):
+def load_ext_net(ext_dir, device):
     ext_meta = json.load(open(join(ext_dir, 'meta.json')))
     assert ext_meta['net'] == 'ml_rnn_extractor'
-    ext_ckpt = load_best_ckpt(ext_dir)
+    ext_ckpt = load_best_ckpt(ext_dir,device)
     ext_args = ext_meta['net_args']
     vocab = pkl.load(open(join(ext_dir, 'vocab.pkl'), 'rb'))
     ext = PtrExtractSumm(**ext_args)
@@ -58,7 +58,7 @@ def load_ext_net(ext_dir):
     return ext, vocab
 
 
-def configure_net(abs_dir, ext_dir, cuda, mono_abs):
+def configure_net(abs_dir, ext_dir, cuda, mono_abs,device):
     """ load pretrained sub-modules and build the actor-critic network"""
     # load pretrained abstractor model
     if mono_abs:
@@ -69,7 +69,7 @@ def configure_net(abs_dir, ext_dir, cuda, mono_abs):
         abstractor = identity
 
     # load ML trained extractor net and buiild RL agent
-    extractor, agent_vocab = load_ext_net(ext_dir)
+    extractor, agent_vocab = load_ext_net(ext_dir,device)
     agent = ActorCritic(extractor._sent_enc,
                         extractor._art_enc,
                         extractor._extractor,
@@ -128,10 +128,11 @@ def train(args):
 
     parallel = args.parallel
     mono_abs = args.mono_abs
+    device = 'cuda' if args.cuda else 'cpu'
     #single_abs_snt = False
     # make net
     agent, agent_vocab, abstractor, net_args = configure_net(
-        args.abs_dir, args.ext_dir, args.cuda, mono_abs)
+        args.abs_dir, args.ext_dir, args.cuda, mono_abs, device)
 
     # configure training setting
     assert args.stop > 0

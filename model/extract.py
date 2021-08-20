@@ -286,7 +286,7 @@ class PtrExtractSumm(nn.Module):
             enc_out, dim=1, index=target.unsqueeze(2).expand(bs, nt, d)
         )
         output = self._extractor(enc_out, sent_nums, ptr_in)
-        return output, None
+        return output, None, None
 
     def extract(self, article_sents, sent_nums=None, k=4):
         enc_out = self._encode(article_sents, sent_nums)
