@@ -147,8 +147,8 @@ def train(args):
 
     # save abstractor binary
     if args.continued:
-        full_ckpt = load_best_ckpt(args.path, reverse=True)
-        agent.load_state_dict(full_ckpt, device)
+        full_ckpt = load_best_ckpt(args.path, , device, reverse=True)
+        agent.load_state_dict(full_ckpt)
     elif args.abs_dir is not None:
         abs_ckpt = {}
         abs_ckpt['state_dict'] = load_best_ckpt(args.abs_dir, device)
