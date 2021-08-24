@@ -62,7 +62,7 @@ def configure_net(abs_dir, ext_dir, cuda, mono_abs,device):
     """ load pretrained sub-modules and build the actor-critic network"""
     # load pretrained abstractor model
     if mono_abs:
-        MAX_ABS_LEN = 90
+        MAX_ABS_LEN = 120
     if abs_dir is not None:
         abstractor = Abstractor(abs_dir, MAX_ABS_LEN, cuda)
     else:
@@ -147,7 +147,7 @@ def train(args):
 
     # save abstractor binary
     if args.continued:
-        full_ckpt = load_best_ckpt(args.path, , device, reverse=True)
+        full_ckpt = load_best_ckpt(args.path, device, reverse=True)
         agent.load_state_dict(full_ckpt)
     elif args.abs_dir is not None:
         abs_ckpt = {}
