@@ -116,7 +116,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     for inds, abss in zip(indices, abs_batch):
         # print(f"inds:{type(inds)}, abss:{type(abss)}")
         if mono_abs:
-            reward_fn = reward_fn(mode='p')
+            reward_fn = reward_fn(mode='r')
             #print(f'i+j, summary.len : {i} , {min(len(inds), 3)},{len(summaries)}')
             cum_rwd = [0.]+[reward_fn(summaries[i+j], abss[0]) # cumulated rewards
                         for j in range(min(len(inds)-1, max_abs))]
