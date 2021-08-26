@@ -13,14 +13,10 @@ sepf= to_sep(p=[re.compile("[\^\`]"), re.compile("\s+")])
 cwords = set("' . ' ( ) ·".split()+[""])
 print(f"cwords :{cwords}")
 
-def make_new_fileset():
-    in_path = "finished_files/val/"
-    out_path = "mono_abs_val/"
-    flist = glob(in_path +"*")
-    new_flist = []
-    ext_snts = []
-    abs_snts = []
-    all_abs_snts_len =[]
+def make_new_fileset(to_cut=False):
+    in_path = "/content/fast_abs_rl/corea_news/finished_files/"
+    out_path = "/content/fast_abs_rl/corea_news/finished_files/"
+
 
     """
     block to extract common words
@@ -31,42 +27,50 @@ def make_new_fileset():
     json.dump(counter,open("counter_small.json","w"),ensure_ascii=False,indent=4)
     print(counter.most_common(100))
     """
-    n_cut = 0
-    for fn in flist: #[:1000]:
-        jd = json.load(open(fn,"r"))
-        art = jd['article']
-        abss = sepf(jd["abstract"][0])
-        rnum = np.random.randint(10)
-        if len(abss) <30 or (len(abss) <40 and rnum >2) or (len(abss) <45 and rnum >6) or (len(abss) <50 and rnum >8) :
-            absset = set(abss) - cwords
-            ext = [(ix,(set(sepf(art[ix])) - cwords)) for ix in jd['extracted']]
-            new_ext = [ix for ix, exset in ext if len(absset & exset) / len(absset) > 0.05]
-            if len(new_ext) < len(jd["extracted"]):
-                n_cut += 1
-                jd["extracted"] = new_ext
-            new_flist.append(fn)
-            ext_snts.append(' '.join([art[i] for i in jd["extracted"]]))
-            abs_snts.append(abss)
-            
-            json.dump(jd, open(out_path+fn.split('/')[-1],"w"), ensure_ascii=False, indent=4)
-        """
-        if len(ext[i_match[0]]) > 1.2*len(abss) and len(set(ext[i_match[0]]) & set(abss)) / len(set(abss)) >0.65:
-            new_flist.append(fn)
-            ext_snts.append(ext[i_match[0]])
-            abs_snts.append(abss)
-            jd["extracted"] = [jd["extracted"][i_match[0]]]
-        """
-            #json.dump(jd, open(out_path+fn.split('/')[-1],"w"), ensure_ascii=False,indent=4)
-        all_abs_snts_len.append(len(abss))
+    for dset in ["train","val"]:
+        flist = glob(in_path +dset +"_origin/*")
+        new_flist = []
+        ext_snts = []
+        abs_snts = []
+        all_abs_snts_len =[]
+        n_cut = 0
 
-    ext_snt_len = [len(sepf(s)) for s in ext_snts]
-    abs_snt_len = [len(s) for s in abs_snts]   
-    print(f"extracted sent_len  : mean = {np.mean(ext_snt_len)},  std = {np.std(ext_snt_len)}")
-    print(f"abstracted sent_len : mean = {np.mean(abs_snt_len)},  std = {np.std(abs_snt_len)}")
-    print(f"tot num of flist      : {len(flist)}")
-    print(f"num of selected flist : {len(new_flist)}")
-    print(f"all abst sent_len : mean = {np.mean(all_abs_snts_len)},  std = {np.std(all_abs_snts_len)}")
-    print(f"num of cut flist : {n_cut}")
+        for fn in flist: #[:1000]:
+            jd = json.load(open(fn,"r"))
+            art = jd['article']
+            abss = sepf(jd["abstract"][0])
+            rnum = np.random.randint(10)
+            if len(abss) <30 or (len(abss) <40 and rnum >2) or (len(abss) <45 and rnum >6) or (len(abss) <50 and rnum >8) :
+                if to_cut:              
+                    absset = set(abss) - cwords
+                    ext = [(ix,set(sepf(art[ix])) - cwords) for ix in jd['extracted']]
+                    new_ext = [ix for ix, exset in ext if len(absset & exset) / len(absset) > 0.05]
+                    if len(new_ext) < len(jd["extracted"]):
+                        n_cut += 1
+                        jd["extracted"] = new_ext
+                new_flist.append(fn)
+                ext_snts.append(' '.join([art[i] for i in jd["extracted"]]))
+                abs_snts.append(abss)
+                
+                json.dump(jd, open(out_path+dset+"/"+fn.split('/')[-1],"w"), ensure_ascii=False, indent=4)
+            """
+            if len(ext[i_match[0]]) > 1.2*len(abss) and len(set(ext[i_match[0]]) & set(abss)) / len(set(abss)) >0.65:
+                new_flist.append(fn)
+                ext_snts.append(ext[i_match[0]])
+                abs_snts.append(abss)
+                jd["extracted"] = [jd["extracted"][i_match[0]]]
+            """
+                #json.dump(jd, open(out_path+fn.split('/')[-1],"w"), ensure_ascii=False,indent=4)
+            all_abs_snts_len.append(len(abss))
+
+        ext_snt_len = [len(sepf(s)) for s in ext_snts]
+        abs_snt_len = [len(s) for s in abs_snts]   
+        print(f"extracted sent_len  : mean = {np.mean(ext_snt_len)},  std = {np.std(ext_snt_len)}")
+        print(f"abstracted sent_len : mean = {np.mean(abs_snt_len)},  std = {np.std(abs_snt_len)}")
+        print(f"tot num of flist      : {len(flist)}")
+        print(f"num of selected flist : {len(new_flist)}")
+        print(f"all abst sent_len : mean = {np.mean(all_abs_snts_len)},  std = {np.std(all_abs_snts_len)}")
+        print(f"num of cut flist : {n_cut}")
 
 if __name__ == '__main__':
-    make_new_fileset()
+    make_new_fileset(to_cut=False)
