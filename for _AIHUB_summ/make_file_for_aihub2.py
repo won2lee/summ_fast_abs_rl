@@ -13,9 +13,9 @@ sepf= to_sep(p=[re.compile("[\^\`]"), re.compile("\s+")])
 cwords = set("' . ' ( ) ·".split()+[""])
 print(f"cwords :{cwords}")
 
-def make_new_fileset(to_cut=False):
-    in_path = "/content/fast_abs_rl/corea_news/finished_files/"
-    out_path = "/content/fast_abs_rl/corea_news/finished_files/"
+def make_new_fileset(to_shuffle=False, to_cut=False):
+    in_path = "/content/fast_abs_rl/corea_dailynews/finished_files/"
+    out_path = "/content/fast_abs_rl/corea_dailynews/finished_files/"
 
 
     """
@@ -27,7 +27,9 @@ def make_new_fileset(to_cut=False):
     json.dump(counter,open("counter_small.json","w"),ensure_ascii=False,indent=4)
     print(counter.most_common(100))
     """
-    for dset in ["train","val"]:
+    for dset in ["val", "train"]:
+        if to_shuffle and dset=='val':
+            continue
         flist = glob(in_path +dset +"_origin/*")
         new_flist = []
         ext_snts = []
@@ -73,4 +75,4 @@ def make_new_fileset(to_cut=False):
         print(f"num of cut flist : {n_cut}")
 
 if __name__ == '__main__':
-    make_new_fileset(to_cut=False)
+    make_new_fileset(to_shuffle=True, to_cut=False)
