@@ -33,5 +33,5 @@ if __name__ == '__main__':
     main(args)
 
 # python3 save_in_drive.py --in_path=../pathto/extractor/model/ckpt/ --out_path=../../drive/MyDrive/fast_abs_folder/extr/ko_model/ckpt
-# python3 save_in_drive.py --in_path=../pathto/abstractor/model/ckpt/ --out_path=../../drive/MyDrive/fast_abs_folder/abst/ko_model3/ckpt
+# python3 save_in_drive.py --in_path=../pathto/abstractor/model/ckpt/ --out_path=../../drive/MyDrive/fast_abs_folder/abst/ko_model5_256_small/ckpt
 # python3 save_in_drive.py --in_path=../pathto/save/model/ckpt/ --out_path=../../drive/MyDrive/fast_abs_folder/full/ko_model/ckpt --dscd
