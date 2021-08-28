@@ -46,7 +46,7 @@ def decode(save_path, model_dir, split, batch_size,
     def coll(batch):
         articles = list(filter(bool, batch))
         return articles
-    dataset = DecodeDataset(split, mono_abs)
+    dataset = DecodeDataset(split, mono_abs)  # mono_abs is not used
 
     n_data = len(dataset)
     loader = DataLoader(

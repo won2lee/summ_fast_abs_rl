@@ -25,7 +25,7 @@ except KeyError:
 
 class DecodeDataset(CnnDmDataset):
     """ get the article sentences only (for decoding use)"""
-    def __init__(self, split, mono_abs):
+    def __init__(self, split, mono_abs):  # mono_abs is not used 
         assert split in ['val', 'test']
         super().__init__(split, DATASET_DIR, mono_abs)
 

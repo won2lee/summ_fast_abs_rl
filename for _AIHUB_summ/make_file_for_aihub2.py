@@ -17,6 +17,8 @@ def make_new_fileset(to_shuffle=False, to_cut=False):
     in_path = "/content/fast_abs_rl/corea_dailynews/finished_files/"
     out_path = "/content/fast_abs_rl/corea_dailynews/finished_files/"
 
+    k_uniq = 1
+
 
     """
     block to extract common words
@@ -46,7 +48,16 @@ def make_new_fileset(to_shuffle=False, to_cut=False):
                 if to_cut:              
                     absset = set(abss) - cwords
                     ext = [(ix,set(sepf(art[ix])) - cwords) for ix in jd['extracted']]
-                    new_ext = [ix for ix, exset in ext if len(absset & exset) / len(absset) > 0.05]
+                    for ix, exset in ext:
+                        interset = list(absset & exset)
+                        if len(interset) / len(absset) > 0.1:
+                            new_ext.append(ix)
+                        else:
+                            u_set = list(concat([xset for ixt, xset in ext if ixt!=ix]))
+                            if len([w for w in interset if w not in u_set]) > k_uniq:
+                                new.ext.append(ix)
+
+                    #new_ext = [ix for ix, exset in ext if len(absset & exset) / len(absset) > 0.05]
                     if len(new_ext) < len(jd["extracted"]):
                         n_cut += 1
                         jd["extracted"] = new_ext
