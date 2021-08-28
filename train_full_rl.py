@@ -237,8 +237,8 @@ if __name__ == '__main__':
                         help='enable sub lstm')
     parser.add_argument('--no-cuda', action='store_true',
                         help='disable GPU training')
-    parser.add_argument('--mono_abs', action='store_true',
-                        help='for kor summ data')
+    parser.add_argument('--mono_abs', type=int, action='store', default=0,
+                        help='for kor summ data, 1:join extracted, 2:separate extracted')
     parser.add_argument('--continued', action='store_true',
                         help='use pretrained-abstrator')
 

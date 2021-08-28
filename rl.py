@@ -82,7 +82,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
 
         extrctd = [raw_arts[idx.item()]
                           for idx in inds if idx.item() < len(raw_arts)] # idc.item() >= len(raw_arts) ---> End of Extraction 
-        if mono_abs:
+        if mono_abs==1:
             # ext_sent = []
             # for i,ex in enumerate(extrctd):
             #     ext_sent += [ex]
@@ -118,14 +118,14 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         if mono_abs:
             reward_fn = reward_fn(mode='r')
             #print(f'i+j, summary.len : {i} , {min(len(inds), 3)},{len(summaries)}')
-            cum_rwd = [0.]+[reward_fn(summaries[i+j], abss[0]) # cumulated rewards
+            cum_rwd = [0.]+[reward_fn(summaries[i+j] if mono_abs==1 else concat([summaries[jsub] for jsub in range(i,i+j)]), abss[0]) # cumulated rewards
                         for j in range(min(len(inds)-1, max_abs))]
             rs = ([max(cum_rwd[j+1]-cum_rwd[j], 0.0)   #contribution to total reward by one step action
                   for j in range(min(len(inds)-1, max_abs))]
                   + [0 for _ in range(max(0, len(inds)-1-max_abs))]
             #if len(rs) < 4:  # 3개 보다 많이 추출 했을 경우 stop_reward 를 주지 않은 방식 적용 
                   + [stop_coeff*stop_reward_fn(
-                      list(concat([summaries[i+min(len(inds)-1, max_abs)-1]])),
+                      list(concat([summaries[i+min(len(inds)-1, max_abs)-1]] if mono_abs==1 else [summaries[jsub] for jsub in range(i,i+min(len(inds)-1, max_abs)-1)])),
                       list(concat(abss)))])
         else:
             rs = ([reward_fn(summaries[i+j], abss[j])
