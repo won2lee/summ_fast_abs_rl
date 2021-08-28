@@ -33,7 +33,7 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
                                 for idx in indices if idx.item() < len(raw_arts)])
                 if len(extrctd) < 1:
                     extrctd = ["_ 예정이 다 _ ."]
-                if mono_abs:
+                if mono_abs==1:
                     ext_sent=[]
                     for s in extrctd: #[:3]:
                         ext_sent+=s
@@ -45,7 +45,7 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
             #print(f"last ext_sents: {ext_sents[-1]}")
             all_summs = abstractor(ext_sents)
             for ibatch, ((j, n), abs_sents) in enumerate(zip(ext_inds, abs_batch)):
-                summs = [all_summs[ibatch]] if mono_abs else all_summs[j:j+n]
+                summs = [all_summs[ibatch]] if mono_abs==1 else all_summs[j:j+n]
                 # python ROUGE-1 (not official evaluation)
                 # print(f"abs_sents: {list(concat(abs_sents))}")
                 # print(f"abs_sents: {list(concat([summs]))}")
@@ -118,7 +118,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         if mono_abs:
             reward_fn = reward_fn(mode='r')
             #print(f'i+j, summary.len : {i} , {min(len(inds), 3)},{len(summaries)}')
-            cum_rwd = [0.]+[reward_fn(summaries[i+j] if mono_abs==1 else concat([summaries[jsub] for jsub in range(i,i+j)]), abss[0]) # cumulated rewards
+            cum_rwd = [0.]+[reward_fn(summaries[i+j] if mono_abs==1 else list(concat([summaries[jsub] for jsub in range(i,i+j)])), abss[0]) # cumulated rewards
                         for j in range(min(len(inds)-1, max_abs))]
             rs = ([max(cum_rwd[j+1]-cum_rwd[j], 0.0)   #contribution to total reward by one step action
                   for j in range(min(len(inds)-1, max_abs))]
