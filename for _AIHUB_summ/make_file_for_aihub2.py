@@ -4,7 +4,7 @@ import torch
 import re
 import numpy as np
 from collections import Counter
-from cytoolz import curry
+from cytoolz import curry, concat
 
 @curry
 def to_sep(s,p):
@@ -45,6 +45,7 @@ def make_new_fileset(to_shuffle=False, to_cut=False):
             abss = sepf(jd["abstract"][0])
             rnum = np.random.randint(10)
             if len(abss) <30 or (len(abss) <40 and rnum >2) or (len(abss) <45 and rnum >6) or (len(abss) <50 and rnum >8) :
+                new_ext = []
                 if to_cut:              
                     absset = set(abss) - cwords
                     ext = [(ix,set(sepf(art[ix])) - cwords) for ix in jd['extracted']]
@@ -55,7 +56,7 @@ def make_new_fileset(to_shuffle=False, to_cut=False):
                         else:
                             u_set = list(concat([xset for ixt, xset in ext if ixt!=ix]))
                             if len([w for w in interset if w not in u_set]) > k_uniq:
-                                new.ext.append(ix)
+                                new_ext.append(ix)
 
                     #new_ext = [ix for ix, exset in ext if len(absset & exset) / len(absset) > 0.05]
                     if len(new_ext) < len(jd["extracted"]):
@@ -86,4 +87,4 @@ def make_new_fileset(to_shuffle=False, to_cut=False):
         print(f"num of cut flist : {n_cut}")
 
 if __name__ == '__main__':
-    make_new_fileset(to_shuffle=True, to_cut=False)
+    make_new_fileset(to_shuffle=True, to_cut=True)
