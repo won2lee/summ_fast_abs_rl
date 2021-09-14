@@ -133,6 +133,7 @@ def main(args):
     with open(join(DATA_DIR, 'vocab_cnt.pkl'), 'rb') as f:
         wc = pkl.load(f, encoding="bytes") 
     parallel = args.parallel
+    device = 'cuda' if args.cuda else 'cpu'
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(args.net_type, word2id,
                                                 args.cuda, args.debug)
@@ -154,7 +155,7 @@ def main(args):
         # abs_meta = json.load(open(join(args.path, 'meta.json')))
         # assert abs_meta['net'] == 'base_abstractor'
         # abs_args = abs_meta['net_args']
-        extr_ckpt = load_best_ckpt(args.path)
+        extr_ckpt = load_best_ckpt(args.path, device)
         # word2id = pkl.load(open(join(args.path, 'vocab.pkl'), 'rb'))
         net.load_state_dict(extr_ckpt)
         if args.lr < 0.0001:

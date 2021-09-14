@@ -65,6 +65,15 @@ def sanitize_input(in_file, dataList = None):
     
     return X
 
+def pre_func(lang):     
+    pre_ko = preproc_ko2en()
+    en_vocs = pre_en()
+    return preProc(lang, to_start, pre_ko, preproc_en, en_vocs)
+
+def arts_preproc(X, lang):
+    preproc = pre_func(lang)
+    return preproc(sanitize_input(None, X))
+    
 def fast_preproc(in_path,out_path, lang):
     from glob import glob
     f_list = glob(in_path+"*")
@@ -78,9 +87,10 @@ def fast_preproc(in_path,out_path, lang):
     if not exists(out_path):
         os.makedirs(out_path)
      
-    pre_ko = preproc_ko2en()
-    en_vocs = pre_en()
-    preproc = preProc(lang, to_start, pre_ko, preproc_en, en_vocs)
+    # pre_ko = preproc_ko2en()
+    # en_vocs = pre_en()
+    # preproc = preProc(lang, to_start, pre_ko, preproc_en, en_vocs)
+    preproc = pre_func(lang)
         
     for i,fi in enumerate(f_list):
         #if i>100:

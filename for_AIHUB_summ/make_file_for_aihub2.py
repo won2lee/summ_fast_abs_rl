@@ -44,7 +44,8 @@ def make_new_fileset(to_shuffle=False, to_cut=False):
             art = jd['article']
             abss = sepf(jd["abstract"][0])
             rnum = np.random.randint(10)
-            if len(abss) <30 or (len(abss) <40 and rnum >2) or (len(abss) <45 and rnum >6) or (len(abss) <50 and rnum >8) :
+            #if len(abss) <30 or (len(abss) <40 and rnum >2) or (len(abss) <45 and rnum >6) or (len(abss) <50 and rnum >8) :
+            if len(abss) <100 :
                 new_ext = []
                 if to_cut:              
                     absset = set(abss) - cwords
@@ -87,4 +88,4 @@ def make_new_fileset(to_shuffle=False, to_cut=False):
         print(f"num of cut flist : {n_cut}")
 
 if __name__ == '__main__':
-    make_new_fileset(to_shuffle=True, to_cut=True)
+    make_new_fileset(to_shuffle=True, to_cut=False)
