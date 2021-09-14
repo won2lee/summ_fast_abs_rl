@@ -162,6 +162,8 @@ class CopySumm(Seq2SeqSumm):
                            go, eos, unk, max_len, use_coverage, 
                            beam_size, diverse=1.0):
         batch_size = len(art_lens)
+        print('############################################')
+        print(f'batch_size ; {batch_size}')
         vsize = self._embedding.num_embeddings
         attention, init_dec_states, art_lens = self.encode(article, art_lens)
         mask = len_mask(art_lens, attention.device).unsqueeze(-2)

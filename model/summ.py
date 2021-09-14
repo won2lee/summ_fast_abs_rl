@@ -263,9 +263,12 @@ class Seq2SeqSumm(nn.Module):
         X_embed = self._embedding(X) #.contiguous()  #.unsqueeze(0)
         if len(X_embed.size()) <3:
             X_embed = X_embed.unsqueeze(0)
+            if len(X_embed.size()) <3:
+                X_embed = X_embed.unsqueeze(0)
         # print(f"X_embed on cuda : {X_embed.is_cuda}, X_embed :{X_embed.size()}")
         if init_vecs:
             init_vecs = (init_vecs[0].contiguous(), init_vecs[1].contiguous())
+            #print(f'X_embed :{X_embed.size()}')
             out,(h,c) = self.sub_coder(X_embed, init_vecs)
         else:
             out,(h,c) = self.sub_coder(X_embed)

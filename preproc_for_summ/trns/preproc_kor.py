@@ -1,17 +1,17 @@
 import copy
 #from trns.NMT.xutils_for_sents_preproc import log_prob_by_len3,to_bpe_sents10, save_sents
-from trns.NMT.xutils_for_key_vars import make_key_vars
+from preproc_for_summ.trns.NMT.xutils_for_key_vars import make_key_vars
 #from trns.NMT.utils_etc import filter_chin_num, json_read, json_save
 
 
-from trns.NMT.xutils import json_read  #, json_save, voc_combined, special_to_normal
+from preproc_for_summ.trns.NMT.xutils import json_read  #, json_save, voc_combined, special_to_normal
 #from counter_vocab_tuning import dict_merge
-from trns.NMT.xutils_for_sents_v2 import log_prob_by_len3, to_bpe_sents10
-from trns.NMT.xutils_to_save import save_sents
+from preproc_for_summ.trns.NMT.xutils_for_sents_v2 import log_prob_by_len3, to_bpe_sents10
+from preproc_for_summ.trns.NMT.xutils_to_save import save_sents
 
 
 def get_data():
-    path = 'trns/NMT/Data/'
+    path = 'preproc_for_summ/trns/NMT/Data/'
     vocabs = json_read(path+'vocabs.json')
     extracted_vocs = json_read(path+'modified_extracted.json')
     en_vocs = json_read(path+'en_vocabs_to_apply_0615.json')

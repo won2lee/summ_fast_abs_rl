@@ -1,5 +1,5 @@
 import re
-from trns.NMT.xutils_for_key_vars import make_key_vars
+from preproc_for_summ.trns.NMT.xutils_for_key_vars import make_key_vars
 
 def to_start(X):
     p = re.compile('\s+')

@@ -154,7 +154,7 @@ def json_read(f_name):
 
 def pre_en(): 
     #vocs = json_read("trns/Data/en_vocabs_0409.json")
-    vocs = json_read("trns/NMT/Data/en_vocabs_to_apply_0615.json")
+    vocs = json_read("preproc_for_summ/trns/NMT/Data/en_vocabs_to_apply_0615.json")
     #X = preproc_en(X,vocs)
     
     return vocs #X

@@ -46,7 +46,9 @@ def decode(save_path, model_dir, split, batch_size,
 
     articles = ''
 
-    articles = [[arts_preproc(articles, 'ko')]]
+    #articles = [[arts_preproc(art, 'ko') for art in articles.split('.')]]
+    articles = [[arts_preproc([art] , 'ko')[0].split() for art in articles.split('.')]]
+    print(articles)
 
     # setup loader
 
@@ -143,8 +145,8 @@ def decode(save_path, model_dir, split, batch_size,
                 ######           added to check output's relevance          ##########
                 in_out = {}
                 in_out["raw_arts"] = [''.join(snt) for snt in raw_arts[ibt]]
-                in_out['raw_exts'] = [in_out["raw_arts"][idx] for idx in raw_ext[ibt]]
-                in_out["raw_abss"] = [''.join(snt.split()) for snt in raw_abs[ibt]]
+                # in_out['raw_exts'] = [in_out["raw_arts"][idx] for idx in raw_ext[ibt]]
+                # in_out["raw_abss"] = [''.join(snt.split()) for snt in raw_abs[ibt]]
                 in_out["extracted"] = [in_out["raw_arts"][idx] for idx in extrctd[ibt]]
                 in_out["abstract"] = decoded_sents
                 

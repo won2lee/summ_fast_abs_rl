@@ -6,10 +6,12 @@ from os.path import join, exists
 from tqdm.notebook import tqdm
 from itertools import chain
 from cytoolz import curry
-from utils import to_start, rid_blank, preproc_num, to_normal
-from trns.preproc_En import pre_en, preproc_en
-from trns.preproc_kor import preproc_ko2en
-
+# from utils import to_start, rid_blank, preproc_num, to_normal
+# from trns.preproc_En import pre_en, preproc_en
+# from trns.preproc_kor import preproc_ko2en
+from preproc_for_summ.utils import to_start, rid_blank, preproc_num, to_normal
+from preproc_for_summ.trns.preproc_En import pre_en, preproc_en
+from preproc_for_summ.trns.preproc_kor import preproc_ko2en
 @curry
 def preProc(lang, to_start, pre_ko, preproc_en, en_vocs, X):
     

@@ -2,7 +2,7 @@
 import re
 import numpy as np
 from itertools import chain
-from trns.NMT.xutils import normal_to_special,special_to_normal #, json_save, json_read, voc_combined, 
+from preproc_for_summ.trns.NMT.xutils import normal_to_special,special_to_normal #, json_save, json_read, voc_combined, 
 #from util_functions import insert_voc, counter_convert2
 
 
