@@ -15,7 +15,7 @@ from preproc_for_summ.trns.preproc_kor import preproc_ko2en
 @curry
 def preProc(lang, to_start, pre_ko, preproc_en, en_vocs, X):
     
-    #X = to_start(X)
+    X = to_start(X)
     
     if lang == 'en':
         #X = pre_en(X)
@@ -63,7 +63,7 @@ def sanitize_input(in_file, dataList = None):
         print("`^ id detected !!!!")
         print([(i,s) for i,s in enumerate(X) if p.search(s) is not None])
 
-    X = [p2.sub('ˆ',p1.sub("'",s)) for s in X] #if p.search(s) is None]
+    X = ' '.join([p2.sub('ˆ',p1.sub("'",s)) for s in X]) #if p.search(s) is None]
     
     return X
 

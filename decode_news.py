@@ -44,10 +44,12 @@ def decode(save_path, model_dir, split, batch_size,
                                         max_len, cuda)
     extractor = RLExtractor(model_dir, cuda=cuda)
 
-    articles = ''
+    articles = """
+    """
 
     #articles = [[arts_preproc(art, 'ko') for art in articles.split('.')]]
-    articles = [[arts_preproc([art] , 'ko')[0].split() for art in articles.split('.')]]
+    #articles = [[[arts_preproc([art] , 'ko')[0] for art in articles.split('.')]]]
+    articles = [[arts_preproc([articles] , 'ko')]] #[0] for art in articles.split('.')]]]
     print(articles)
 
     # setup loader
@@ -195,7 +197,7 @@ def rerank_one(beams):
         return beam[:n]
     beams = map(process_beam(n=_PRUNE[len(beams)]), beams)  # for example, if len(beam) == 7(extrctd snts ==7) 
                                                             #       then consider only 3 of 5 beams
-    best_hyps = max(product(*beams), key=_compute_score)    #       i.e., prune 7 * 5 to 7 * 3  
+    best_hyps = max(product(*beams), key=_compute_score2)    #       i.e., prune 7 * 5 to 7 * 3  
     dec_outs = [(h.sequence, h.xo) for h in best_hyps]
     return dec_outs
 
@@ -207,6 +209,10 @@ def _compute_score(hyps):
     repeat = sum(c-1 for g, c in all_cnt.items() if c > 1)
     lp = sum(h.logprob for h in hyps) / sum(len(h.sequence) for h in hyps)
     return -(repeat+3)**3.0 * (1/lp)  #(-repeat, lp)
+
+def _compute_score2(hyps):
+    lp = sum(h.logprob for h in hyps) / sum(len(h.sequence) for h in hyps)
+    return -lp  #(-repeat, lp)
 
 
 if __name__ == '__main__':

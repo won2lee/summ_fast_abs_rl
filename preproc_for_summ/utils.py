@@ -1,7 +1,30 @@
 import re
 from preproc_for_summ.trns.NMT.xutils_for_key_vars import make_key_vars
 
+
 def to_start(X):
+    p = re.compile('\s+')
+    p2 = re.compile('\_')
+    q = re.compile('\:')
+    q1 = re.compile('\[[\s\_0-9a-z]+\]')  #위키 등 주석 없애기
+    q2 = re.compile('(?P<xCap>[^A-Z])\s*(?P<xdot>[\.\?\!])[\s\_]+')  # 앞에 대문자 오는 경우  J. F. Kennedy 같은 경우 제외
+    #q3 = re.compile('(?P<dotw>\.[a-zA-Z0-9가-힣]+)\.\_') #0519추가  ???
+    #q4 = re.compile(r'\n')
+    q4 = re.compile('\s{3,}')
+    q5 = re.compile('\.\.') 
+    q6 = re.compile('\.(?P<qmark>[\"\'\’\”])\s*(?P<enC>[A-Z][a-z]+)') ## 고민해야 할 부분
+    q7 = re.compile('(?P<dotw>(Mr|[ap]\.m|Dr|Sen))\.\s')
+    q8 = re.compile('Æ')
+    q9 = re.compile('Ë')
+    #p10 = re.compile('\s{3,}')
+    Xa = q1.sub(' ',p.sub(' ',q4.sub('Ë',X))) #q4.sub('Ë',X)))
+    XX = p.sub(' ',q9.sub(' ',q5.sub('.',q6.sub('.\g<qmark>_\g<enC>',q8.sub('.',q2.sub('\g<xCap>\g<xdot>_',
+                        q7.sub('\g<dotw>Æ ',Xa))))))).split('_')
+    #XX = p.sub(' ',q9.sub('_Dawn of 2199._',q5.sub('.',q6.sub('.\g<qmark>_\g<enC>',q8.sub('.',q2.sub('\g<xCap>\g<xdot>_',
+    #                    q7.sub('\g<dotw>Æ ',Xa))))))).split('_')
+    return XX
+
+def to_start_depricated_0915(X):
     p = re.compile('\s+')
     p2 = re.compile('\_')
     q = re.compile('\:')
