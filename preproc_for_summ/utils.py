@@ -233,5 +233,9 @@ def to_normal(sents):
         snts.append(''.join(snt)) 
         
     snts = p1.sub(' ',' '.join(snts)) 
-    snts = z2.sub('\g<qt2> ',z1.sub(' \g<qt1>',snts))     
-    return p1.sub(' ',snts) 
+    snts = z2.sub('\g<qt2> ',z1.sub(' \g<qt1>',snts))   
+    #return p1.sub(' ',snts) 
+    p3 = re.compile('\_\. ') 
+    p4 = re.compile('\_')    
+    return [p4.sub(' ',s).strip() for s in p3.sub(' .Æ',p1.sub(' ',snts)).split('Æ')]
+    

@@ -22,6 +22,7 @@ from decoding import Abstractor, RLExtractor, DecodeDataset, BeamAbstractor
 from decoding import make_html_safe
 
 from preproc_for_summ.data_preproc import arts_preproc
+from preproc_for_summ.utils import to_normal
 
 
 def decode(save_path, model_dir, split, batch_size,
@@ -149,8 +150,9 @@ def decode(save_path, model_dir, split, batch_size,
                 in_out["raw_arts"] = [''.join(snt) for snt in raw_arts[ibt]]
                 # in_out['raw_exts'] = [in_out["raw_arts"][idx] for idx in raw_ext[ibt]]
                 # in_out["raw_abss"] = [''.join(snt.split()) for snt in raw_abs[ibt]]
-                in_out["extracted"] = [in_out["raw_arts"][idx] for idx in extrctd[ibt]]
-                in_out["abstract"] = decoded_sents
+                in_out["extracted"] = to_normal([in_out["raw_arts"][idx] for idx in extrctd[ibt]])
+                in_out["raw_arts"] = to_normal(in_out["raw_arts"])
+                in_out["abstract"] = to_normal(decoded_sents)
                 
                 with open(join(save_path, 'in_out/{}.json'.format(i)),
                           'w') as jsonf:
