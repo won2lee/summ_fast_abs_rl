@@ -333,12 +333,15 @@ class AttentionalLSTMDecoder(object):
         cover_loss = [torch.cat((cvr.unsqueeze(-2),scr.unsqueeze(-2)),-2).min(-2)[0].sum(-1) for cvr,scr in zip(coverage[1:-1],scores[1:])]
         #print(f"cover_loss : {cover_loss[-1].size()}")
 
+
         if self.parallel:
             logits = list(unzip(logits))
             logit = [torch.stack(list(lgt), dim=1) for lgt in logits]
             return logit, XO, cover_loss
+        print(len(logits), logits[0][0].size()) #, logits[0].size())
+        print(len(logits), logits[1]) #, logits[0].size())
 
-        logit = torch.stack(logits, dim=1)
+        logit = torch.stack([lgt[0] for lgt in logits], dim=1)
         return logit, None, cover_loss
 
     # def __call__(self, attention, init_states, target):

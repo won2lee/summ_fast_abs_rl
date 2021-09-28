@@ -93,6 +93,7 @@ def decode(save_path, model_dir, split, batch_size,
             #tokenized_article_batch = map(tokenize(None), raw_article_batch)
             raw_arts = []
             ext_arts = []
+            ext_sids = []
             ext_inds = []
             extrctd = []
             for raw_art_sents in tokenized_article_batch:
@@ -106,6 +107,7 @@ def decode(save_path, model_dir, split, batch_size,
                     ext = [i.item() for i in ext]
                 ext_inds += [(len(ext_arts), len(ext))]
                 extrctd.append(ext)
+                ext_sids.append(ext)
                 if mono_abs:
                     ext_arts.append(list(chain(*[raw_art_sents[i] for i in ext])))
                 else:
@@ -150,6 +152,7 @@ def decode(save_path, model_dir, split, batch_size,
                 in_out["raw_arts"] = [''.join(snt) for snt in raw_arts[ibt]]
                 # in_out['raw_exts'] = [in_out["raw_arts"][idx] for idx in raw_ext[ibt]]
                 # in_out["raw_abss"] = [''.join(snt.split()) for snt in raw_abs[ibt]]
+                in_out["extrtd_snts"] = [{"art_len":len(raw_arts[0])}] + ext_sids[0]
                 in_out["extracted"] = to_normal([in_out["raw_arts"][idx] for idx in extrctd[ibt]])
                 in_out["raw_arts"] = to_normal(in_out["raw_arts"])
                 in_out["abstract"] = to_normal(decoded_sents)

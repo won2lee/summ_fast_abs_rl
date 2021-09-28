@@ -188,6 +188,7 @@ def to_normal(sents):
     q1 = re.compile('\s+')
     q2 = re.compile('\_')
     q6 = re.compile('(?P<num1>[0-9][\,\.]*)\s+(?P<num2>[0-9])')
+    q7 = re.compile('(?P<cap>[\`\^\_])')
     
     q9 = re.compile('(?P<quo>[\‘\“])\s+')
     
@@ -197,8 +198,12 @@ def to_normal(sents):
     #sent = q2.sub(' ',q1.sub('',sent))
     
     #sents = [list(q6.sub('\g<num1>\g<num2>',q2.sub(' ',q1.sub('',p2.sub('?',s))))) for s in sents]
-    sents = [q6.sub('\g<num1>\g<num2>',q1.sub(' ',p2.sub('?',s))) for s in sents]
-    sents = [list(q9.sub('\g<quo>',rid_sbol(s, p1))) for s in sents if len(s.split(' ')) > 0]
+    #sents = [q6.sub('\g<num1>\g<num2>',q1.sub(' ',p2.sub('?',s))) for s in sents]
+    sents = [q7.sub(' \g<cap>',q6.sub('\g<num1>\g<num2>',q1.sub(' ',p2.sub('?',s)))) for s in sents]
+    #print("### 01", sents) 
+    #sents = [list(q9.sub('\g<quo>',rid_sbol(s, p1))) for s in sents if len(s.split(' ')) > 0]  
+    sents = [q9.sub('\g<quo>',rid_sbol(s, p1)) for s in sents if len(s.split(' ')) > 0]
+    #print("### 02", sents)
     
     snts = []
     for s in sents:
@@ -230,12 +235,9 @@ def to_normal(sents):
             else:
                 snt.append(keyword)
         
-        snts.append(''.join(snt)) 
+        #snts.append(''.join(snt)) 
+        snts.append(z2.sub('\g<qt2> ',z1.sub(' \g<qt1>',''.join(snt))))
         
-    snts = p1.sub(' ',' '.join(snts)) 
-    snts = z2.sub('\g<qt2> ',z1.sub(' \g<qt1>',snts))   
-    #return p1.sub(' ',snts) 
-    p3 = re.compile('\_\. ') 
-    p4 = re.compile('\_')    
-    return [p4.sub(' ',s).strip() for s in p3.sub(' .Æ',p1.sub(' ',snts)).split('Æ')]
-    
+    snts_to_1 = p1.sub(' ',' '.join(snts))    
+    #return p1.sub(' ',snts_to_1 ) 
+    return snts  
