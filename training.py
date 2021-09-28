@@ -58,7 +58,7 @@ def basic_validate(net, criterion, parallel, val_batches):
     start = time()
     with torch.no_grad():
         validate_fn = val_step(compute_loss(net, criterion, parallel),parallel)
-        # print(validate_fn(val_batches))
+        #print(validate_fn(val_batches))
         if parallel:
             lgt1,lgt2,lgt3 = reduce(
                 lambda a, b: [(a[i][0]+b[i][0], a[i][1]+b[i][1]) for i in range(3)],
@@ -71,6 +71,7 @@ def basic_validate(net, criterion, parallel, val_batches):
                 starmap(validate_fn, val_batches),
                 (0, 0)
             )
+    #print("got loss")
     val_loss = tot_loss / n_data if not parallel else seq_wgt * (lgt1[1]/lgt1[0] + lgt2[1]/lgt2[0]) + cov_wgt * lgt3[1]/lgt3[0]
     print(
         'validation finished in {}                                    '.format(

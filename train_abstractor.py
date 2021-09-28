@@ -105,7 +105,7 @@ def build_batchers(word2id, cuda, debug, parallel, mono_abs):
         collate_fn=coll_fn
     )
     train_batcher = BucketedGenerater(train_loader, prepro, sort_key, batchify,
-                                      single_run=args.mono_abs, fork=not debug)
+                                      single_run=False, fork=not debug)
 
     val_loader = DataLoader(
         MatchDataset('val', mono_abs), batch_size=BUCKET_SIZE,
@@ -113,7 +113,7 @@ def build_batchers(word2id, cuda, debug, parallel, mono_abs):
         collate_fn=coll_fn
     )
     val_batcher = BucketedGenerater(val_loader, prepro, sort_key, batchify,
-                                    single_run=args.mono_abs, fork=not debug)
+                                    single_run=True, fork=not debug)
     return train_batcher, val_batcher
 
 def main(args):
