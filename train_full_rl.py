@@ -61,10 +61,9 @@ def load_ext_net(ext_dir, device):
 def configure_net(abs_dir, ext_dir, cuda, mono_abs,device):
     """ load pretrained sub-modules and build the actor-critic network"""
     # load pretrained abstractor model
-    if mono_abs:
-        MAX_ABS_LEN = 120
+    max_abs = 120 if mono_abs else MAX_ABS_LEN
     if abs_dir is not None:
-        abstractor = Abstractor(abs_dir, MAX_ABS_LEN, cuda)
+        abstractor = Abstractor(abs_dir, max_abs, cuda)
     else:
         abstractor = identity
 

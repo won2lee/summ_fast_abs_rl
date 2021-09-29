@@ -91,17 +91,17 @@ class CopySumm(Seq2SeqSumm):
         #   File "/content/fast_abs_rl/model/summ.py", line 235, in parallel_beam_code
         #     X = torch.LongTensor(X)
         # TypeError: new(): data must be a sequence (got CopySumm)n]
-      
-        xx,sb_init = self.parallel_beam_code([[4,5,6]], device = article.device)
-        # print(f"sb_init : {sb_init[0].is_cuda}")
-        # print(f"xx.size : {xx.size()}, sb_init[0].size : {sb_init[0].size()}")
+        if self.parallel:
+            xx,sb_init = self.parallel_beam_code([[4,5,6]], device = article.device)
+            # print(f"sb_init : {sb_init[0].is_cuda}")
+            # print(f"xx.size : {xx.size()}, sb_init[0].size : {sb_init[0].size()}")
 
-        init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((-1,batch_size,-1)) #sb_init[0].size()[-1])) 
-            for i in range(2)])  # 초기 init_vector를 4('_')를 적용했을 떄를 값으로 
+            init_vecs= ([sb_init[i][:,0].unsqueeze(1).expand((-1,batch_size,-1)) #sb_init[0].size()[-1])) 
+                for i in range(2)])  # 초기 init_vector를 4('_')를 적용했을 떄를 값으로 
 
-        # print(f"init_vecs[0].size : {init_vecs[0].size()}")
+            # print(f"init_vecs[0].size : {init_vecs[0].size()}")
 
-        coverage = [0.0]
+            coverage = [0.0]
 
         for i in range(max_len):
             if self.parallel:
