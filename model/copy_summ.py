@@ -207,10 +207,11 @@ class CopySumm(Seq2SeqSumm):
             states = ((torch.stack([h for (h, _), _ in all_states], dim=2),
                        torch.stack([c for (_, c), _ in all_states], dim=2)),
                       torch.stack([prev for _, prev in all_states], dim=1))
-            xo_toks = torch.stack(xos, dim=1)
-            sub_stts = (torch.stack([h for h, _ in sub_states], dim=2), 
-                        torch.stack([c for _, c in sub_states], dim=2))
-            to_avoids = torch.stack(avoids, dim=1)
+            if xos[0] is not None:
+                xo_toks = torch.stack(xos, dim=1) 
+                sub_stts = (torch.stack([h for h, _ in sub_states], dim=2), 
+                            torch.stack([c for _, c in sub_states], dim=2))
+            to_avoids = torch.stack(avoids, dim=1) if to_avoid is not None else None
             token.masked_fill_(token >= vsize, unk)
 
             if self.parallel:
@@ -265,15 +266,15 @@ class CopySumm(Seq2SeqSumm):
                     (states[0][0][:, :, batch_i, :],
                      states[0][1][:, :, batch_i, :],
                      states[1][:, batch_i, :]),
-                    xok[:,batch_i,:],
+                    xok[:,batch_i,:] if xok is not None else None,
                     (sub_stts[0][:,:,batch_i,:],
-                     sub_stts[1][:,:,batch_i,:]),
+                     sub_stts[1][:,:,batch_i,:]) if xok is not None else None,
                     attn_score[:, batch_i, :],  # attn_score 는 tok (h.sequence 가 unk일 때 sent 에서 copy )
                     diverse
                 )
 
                 for h in new_beam:
-                    if h.xo[-1] != 0:
+                    if self.parallel and h.xo[-1] != 0:
                         h.init_vecs = ([sb_init[i_hs][:,h.xo[-1]-1,:] 
                                         for i_hs in range(2)])  # i 충돌 i=>i_hs                      
                 batch_i += 1

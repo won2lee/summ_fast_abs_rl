@@ -120,9 +120,11 @@ def decode(save_path, model_dir, split, batch_size,
                         decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
                                         for iw,w in enumerate(dec_outs[ibt][0])])))])
                     else:                     
-                        decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw+1] == 0 else [sb[xs[iw+1]], str(w)] 
-                                        for iw,w in enumerate(snt)])))
-                                        for snt,xs in dec_outs[j:j+n]])
+                        # decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw+1] == 0 else [sb[xs[iw+1]], str(w)] 
+                        #                 for iw,w in enumerate(snt)])))
+                        #                 for snt,xs in dec_outs[j:j+n]])
+                        decoded_sents = ([' '.join(snt)
+                                        for snt,xs in dec_outs[j:j+n]])                        
                 else:
                     if mono_abs:
                         decoded_sents = ([' '.join(dec_outs[ibt])])
@@ -134,16 +136,17 @@ def decode(save_path, model_dir, split, batch_size,
                     f.write(make_html_safe('\n'.join(decoded_sents)))
 
                 ######           added to check output's relevance          ##########
-                in_out = {}
-                in_out["raw_arts"] = [''.join(snt) for snt in raw_arts[ibt]]
-                in_out['raw_exts'] = [in_out["raw_arts"][idx] for idx in raw_ext[ibt]]
-                in_out["raw_abss"] = [''.join(snt.split()) for snt in raw_abs[ibt]]
-                in_out["extracted"] = [in_out["raw_arts"][idx] for idx in extrctd[ibt]]
-                in_out["abstract"] = decoded_sents
-                
-                with open(join(save_path, 'in_out/{}.json'.format(i)),
-                          'w') as jsonf:
-                    json.dump(in_out,jsonf, ensure_ascii=False, indent=4)
+                if mono_abs:
+                    in_out = {}
+                    in_out["raw_arts"] = [''.join(snt) for snt in raw_arts[ibt]]
+                    in_out['raw_exts'] = [in_out["raw_arts"][idx] for idx in raw_ext[ibt]]
+                    in_out["raw_abss"] = [''.join(snt.split()) for snt in raw_abs[ibt]]
+                    in_out["extracted"] = [in_out["raw_arts"][idx] for idx in extrctd[ibt]]
+                    in_out["abstract"] = decoded_sents
+                    
+                    with open(join(save_path, 'in_out/{}.json'.format(i)),
+                              'w') as jsonf:
+                        json.dump(in_out,jsonf, ensure_ascii=False, indent=4)
                 ######################################################################
 
                 i += 1

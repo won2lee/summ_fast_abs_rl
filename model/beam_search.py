@@ -77,9 +77,14 @@ def next_search_beam(beam, beam_size, finished,
                      end, topk, lp, hists, xok=None, sub_stts=None, attn=None, diverse=1.0):
     """generate the next beam(K-best hyps)"""
     topks, lps, hists_list, xoks, sub_list, attns= _unpack_topk(topk, lp, hists, xok, sub_stts, attn)
-    hyps_lists = [h.extend_k(topks[i], lps[i],
-                             hists_list[i], xoks[i], sub_list[i], attns[i], diverse)
-                  for i, h in enumerate(beam)]  # 각 beam 내 각 hypothesis 에 대해 topk 확장 
+    if xoks is not None:
+        hyps_lists = [h.extend_k(topks[i], lps[i],
+                                 hists_list[i], xoks[i], sub_list[i], attns[i], diverse)
+                      for i, h in enumerate(beam)]  # 각 beam 내 각 hypothesis 에 대해 topk 확장 
+    else:
+        hyps_lists = [h.extend_k(topks[i], lps[i],
+                                 hists_list[i], torch.zeros(topks[i].size()), None, attns[i], diverse)
+                      for i, h in enumerate(beam)]  # 빈 칸 채우기          
     hyps = list(concat(hyps_lists))
     finished, beam = _clean_beam(finished, hyps, end, beam_size)  # beam(5) x topk(5) ===> beam(5) 개로 정리 
 
