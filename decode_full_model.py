@@ -74,7 +74,7 @@ def decode(save_path, model_dir, split, batch_size,
         for i_debug, raw_article_batch in enumerate(loader):
             print(f"i_debug : {i_debug}")
             raw_articles= [bt["article"] for bt in raw_article_batch]
-            raw_ext = [bt["extracted"] for bt in raw_article_batch]
+            #raw_ext = [bt["extracted"] for bt in raw_article_batch]
             raw_abs = [bt["abstract"] for bt in raw_article_batch]
 
             tokenized_article_batch = map(tokenize(None), raw_articles)

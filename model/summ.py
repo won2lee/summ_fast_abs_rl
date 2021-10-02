@@ -338,8 +338,8 @@ class AttentionalLSTMDecoder(object):
             logits = list(unzip(logits))
             logit = [torch.stack(list(lgt), dim=1) for lgt in logits]
             return logit, XO, cover_loss
-        print(len(logits), logits[0][0].size()) #, logits[0].size())
-        print(len(logits), logits[1]) #, logits[0].size())
+        #print(len(logits), logits[0][0].size()) #, logits[0].size())
+        #print(len(logits), logits[1]) #, logits[0].size())
 
         logit = torch.stack([lgt[0] for lgt in logits], dim=1)
         return logit, None, cover_loss
