@@ -59,6 +59,9 @@ def sanitize_input(in_file, dataList = None):
     elif dataList:
         X = dataList
 
+    else:
+        print("dataList :", dataList )      
+
     if len([s for s in X if p.search(s) is not None])>0:
         print("`^ id detected !!!!")
         print([(i,s) for i,s in enumerate(X) if p.search(s) is not None])
@@ -93,6 +96,8 @@ def fast_preproc(in_path,out_path, lang):
     # en_vocs = pre_en()
     # preproc = preProc(lang, to_start, pre_ko, preproc_en, en_vocs)
     preproc = pre_func(lang)
+    f_ext = ".json" if lang == "ko" else ""
+    isNot = 0
         
     for i,fi in enumerate(f_list):
         #if i>100:
@@ -103,8 +108,14 @@ def fast_preproc(in_path,out_path, lang):
         else:
             js = fi
         for k in ["article", "abstract"]:
+            if js[k] == []:
+                isNot =1
+                break
             js[k] = preproc(sanitize_input(None, js[k]))
-        with open(join(out_path, fi.split('/')[-1]+".json" if to_load else fi['id']+".json"),"w") as f:
+        if isNot:
+            isNot = 0
+            continue          
+        with open(join(out_path, fi.split('/')[-1]+f_ext if to_load else fi['id']+f_ext),"w") as f:
             json.dump(js,f,indent=4,ensure_ascii=False) 
         if i%10000==0:
             print(f"{i}th file was done") 
