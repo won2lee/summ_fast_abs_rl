@@ -223,7 +223,9 @@ class BasicTrainer(object):
 
     def validate(self):
         print()
+        print("before pipeline ####################################")
         val_log = self._pipeline.validate()
+        print("after pipeline ####################################")
         for key, value in val_log.items():
             self._logger.add_scalar(
                 'val_{}_{}'.format(key, self._pipeline.name),
