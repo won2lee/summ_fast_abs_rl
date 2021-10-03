@@ -13,14 +13,15 @@ from preproc_for_summ.utils import to_start, rid_blank, preproc_num, to_normal
 from preproc_for_summ.trns.preproc_En import pre_en, preproc_en
 from preproc_for_summ.trns.preproc_kor import preproc_ko2en
 @curry
-def preProc(lang, to_start, pre_ko, preproc_en, en_vocs, X):
+def preProc(lang, to_start, pre_ko, preproc_en, en_vocs, X, for_cnn=False):
     
-    #X = to_start(X)
-    X = [' '.join(to_start(s)) for s in X]
+    if not for_cnn:
+        X = to_start(X)
+    #X = [' '.join(to_start(s)) for s in X]
     
     if lang == 'en':
         #X = pre_en(X)
-        X = preproc_en(X,en_vocs)
+        X = preproc_en(X,en_vocs, for_cnn)
         X = preproc_num(X)
        
     else:
@@ -113,7 +114,7 @@ def fast_preproc(in_path,out_path, lang):
             if js[k] == []:
                 isNot =1
                 break
-            js[k] = preproc(sanitize_input(None, js[k]))
+            js[k] = preproc(sanitize_input(None, js[k]), for_cnn=True if lang=='en' else False)
         if isNot:
             isNot = 0
             continue          

@@ -12,7 +12,7 @@ def w_recursive(w, X, iter_first=False):
     
     if iter_first and len(w) > 4:
         
-        if w[-2:] in ["'s","’s"]:
+        if w[-2:] in ["'s","’s"] and len(w)>2:
             if w[:-2] in X.keys(): 
                 return [w[:-2],w[-2:]]
             else:
@@ -64,12 +64,16 @@ def w_recursive(w, X, iter_first=False):
     return [w] # ['<unk>']  #6.20 changed
 
     
-def preproc_en(X_sents,vocs):
+def preproc_en(X_sents,vocs, for_cnn=False):
     
     p = re.compile('(?P<to_fix>[^A-Za-z0-9\'\-\.\˅])')  
-    p1 = re.compile('(?P<fix1>[A-Za-z]+)\’(?P<fix2>[sm])(?P<fix3>[^a-z0-1])')
-    p2 = re.compile('(?P<fix4>[A-Za-z]+)\’(?P<fix5>[rl][el])(?P<fix6>[^a-z0-1])')
-    p3 = re.compile('(?P<fix7>[A-Za-z]+)\’(?P<fix8>t)(?P<fix9>[^a-z0-1])')
+    p1 = re.compile('(?P<fix1>[A-Za-z]+)[\’\`](?P<fix2>[sm])(?P<fix3>[^a-z0-1])')
+    p2 = re.compile('(?P<fix4>[A-Za-z]+)[\’\`](?P<fix5>[rl][el])(?P<fix6>[^a-z0-1])')
+    p3 = re.compile('(?P<fix7>[A-Za-z]+)[\’\`](?P<fix8>t)(?P<fix9>[^a-z0-1])')
+
+    p4 = re.compile("\'(?P<apos>(re|m|ve|ll|d|s))\s+")
+    p5 = re.compile("n\'t")
+    p6 = re.compile('Ë')
    
     q1 = re.compile("\.\s*$")
     q2 = re.compile("\s+\'")
@@ -88,12 +92,20 @@ def preproc_en(X_sents,vocs):
     z2 = re.compile('\s+')
     z3 = re.compile('(?P<num1>[0-9]+[\.\˅]{,1}[0-9]*)')
     z4 = re.compile('(?P<num2>[0-9])\,(?P<num3>[0-9])')
+
+    if for_cnn:
+        X_sents = [q6.sub(' ',p6("'",q3.sub(" ' ",q2.sub(" ' ",p.sub(' \g<to_fix> ',
+                                z4.sub('\g<num2>˅\g<num3>',p5.sub('nËt',p4(' Ë\g<apos> ',
+                                p3.sub("\g<fix7>'\g<fix8>\g<fix9>",
+                                p2.sub("\g<fix4>'\g<fix5>\g<fix6>",p1.sub("\g<fix1>'\g<fix2>\g<fix3>",s)))))))))))
+                    for s in X_sents]    
     
-    X_sents = [q6.sub(' ',u1.sub('\g<to_add1> . \g<to_add3>',u2.sub('\g<to_add2> . \g<to_add3>',q5.sub(' . "',
-                             q4.sub(" . '",q3.sub(" ' ",q2.sub(" ' ",p.sub(' \g<to_fix> ',
-                            z4.sub('\g<num2>˅\g<num3>',(q1.sub(' .',p3.sub("\g<fix7>'\g<fix8>\g<fix9>",
-                            p2.sub("\g<fix4>'\g<fix5>\g<fix6>",p1.sub("\g<fix1>'\g<fix2>\g<fix3>",s))))))))))))))
-                for s in X_sents]
+    else:
+        X_sents = [q6.sub(' ',u1.sub('\g<to_add1> . \g<to_add3>',u2.sub('\g<to_add2> . \g<to_add3>',q5.sub(' . "',
+                                 q4.sub(" . '",q3.sub(" ' ",q2.sub(" ' ",p.sub(' \g<to_fix> ',
+                                z4.sub('\g<num2>˅\g<num3>',(q1.sub(' .',p3.sub("\g<fix7>'\g<fix8>\g<fix9>",
+                                p2.sub("\g<fix4>'\g<fix5>\g<fix6>",p1.sub("\g<fix1>'\g<fix2>\g<fix3>",s))))))))))))))
+                    for s in X_sents]
     
     sents =[]
 
