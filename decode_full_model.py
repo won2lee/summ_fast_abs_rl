@@ -21,9 +21,17 @@ from data.batcher import tokenize
 from decoding import Abstractor, RLExtractor, DecodeDataset, BeamAbstractor
 from decoding import make_html_safe
 
+import re
+p1 = re.compile("\_")
+q1 = re.compile("\_\'\_(?P<apos>(re|m|ve|ll|d|s))\_")
+q2 = re.compile("\_n\_\'\_t\s+")
+q3 = re.compile("˅")
+
+def for_cnn(s):
+    return p1.sub(" ",q3.sub(",",q1.sub("_'\g<apos>_",q2.sub("_n't_", s))))
 
 def decode(save_path, model_dir, split, batch_size,
-           beam_size, diverse, max_len, cuda, mono_abs):
+           beam_size, diverse, max_len, cuda, parallel, mono_abs):
     start = time()
     # setup model
     with open(join(model_dir, 'meta.json')) as f:
@@ -119,6 +127,10 @@ def decode(save_path, model_dir, split, batch_size,
                         xs = dec_outs[ibt][1][1:] # why [1:] ==>_process_beam 에서 첫번째 sequence(start) 제거  
                         decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
                                         for iw,w in enumerate(dec_outs[ibt][0])])))])
+                    elif parallel:
+                        decoded_sents = ([for_cnn(''.join(list(chain(*[[str(w)] if xo == 0 else [sb[xo], str(w)] 
+                                        for w,xo in zip(snt,xos[1:])]))))                      
+                                        for snt,xos in dec_outs[j:j+n]])                        
                     else:                     
                         # decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw+1] == 0 else [sb[xs[iw+1]], str(w)] 
                         #                 for iw,w in enumerate(snt)])))
@@ -226,6 +238,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--no_cuda', action='store_true',
                         help='disable GPU training')
+    parser.add_argument('--parallel', action='store_true',
+                        help='for parallel summ data')
     parser.add_argument('--mono_abs', action='store_true',
                         help='for kor summ data')
 
@@ -235,4 +249,4 @@ if __name__ == '__main__':
     data_split = 'test' if args.test else 'val'
     decode(args.path, args.model_dir,
            data_split, args.batch, args.beam, args.div,
-           args.max_dec_word, args.cuda, args.mono_abs)
+           args.max_dec_word, args.cuda, args.parallel, args.mono_abs)

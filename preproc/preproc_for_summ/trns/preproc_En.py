@@ -71,8 +71,8 @@ def preproc_en(X_sents,vocs, for_cnn=False):
     p2 = re.compile('(?P<fix4>[A-Za-z]+)[\’\`](?P<fix5>[rl][el])(?P<fix6>[^a-z0-1])')
     p3 = re.compile('(?P<fix7>[A-Za-z]+)[\’\`](?P<fix8>t)(?P<fix9>[^a-z0-1])')
 
-    p4 = re.compile("\'(?P<apos>(re|m|ve|ll|d|s))\s+")
-    p5 = re.compile("n\'t")
+    p4 = re.compile("\s+\'(?P<apos>(re|m|ve|ll|d|s))\s+")
+    p5 = re.compile("\s+n\'t\s+")
     p6 = re.compile('Ë')
    
     q1 = re.compile("\.\s*$")
@@ -94,8 +94,8 @@ def preproc_en(X_sents,vocs, for_cnn=False):
     z4 = re.compile('(?P<num2>[0-9])\,(?P<num3>[0-9])')
 
     if for_cnn:
-        X_sents = [q6.sub(' ',p6("'",q3.sub(" ' ",q2.sub(" ' ",p.sub(' \g<to_fix> ',
-                                z4.sub('\g<num2>˅\g<num3>',p5.sub('nËt',p4(' Ë\g<apos> ',
+        X_sents = [q6.sub(' ',p6.sub("'",q3.sub(" ' ",q2.sub(" ' ",p.sub(' \g<to_fix> ',
+                                z4.sub('\g<num2>˅\g<num3>',p5.sub('nËt ',p4.sub('Ë\g<apos> ',
                                 p3.sub("\g<fix7>'\g<fix8>\g<fix9>",
                                 p2.sub("\g<fix4>'\g<fix5>\g<fix6>",p1.sub("\g<fix1>'\g<fix2>\g<fix3>",s)))))))))))
                     for s in X_sents]    
