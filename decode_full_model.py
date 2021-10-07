@@ -31,7 +31,7 @@ def for_cnn(s):
     return p1.sub(" ",q3.sub(",",q1.sub("_'\g<apos>_",q2.sub("_n't_", s))))
 
 def decode(save_path, model_dir, split, batch_size,
-           beam_size, diverse, max_len, cuda, parallel, mono_abs):
+           beam_size, diverse, max_len, cuda, parallel, mono_abs, no_abst):
     start = time()
     # setup model
     with open(join(model_dir, 'meta.json')) as f:
@@ -108,11 +108,14 @@ def decode(save_path, model_dir, split, batch_size,
                     ext_arts += [raw_art_sents[i] for i in ext]
 
             print('extracted was done')
-            if beam_size > 1:
-                all_beams = abstractor(ext_arts, beam_size, diverse)
-                dec_outs = rerank_mp(all_beams, ext_inds, mono_abs)
+            if not no_abst:
+                if beam_size > 1:
+                    all_beams = abstractor(ext_arts, beam_size, diverse)
+                    dec_outs = rerank_mp(all_beams, ext_inds, mono_abs)
+                else:
+                    dec_outs = abstractor(ext_arts)
             else:
-                dec_outs = abstractor(ext_arts)
+                dec_outs = ext_arts
             assert i == batch_size*i_debug
 
             print('abstracted was done')
@@ -122,27 +125,31 @@ def decode(save_path, model_dir, split, batch_size,
                 #                 for i,w in enumerate(dec[0])])))
                 #                 for dec in dec_outs[j:j+n]])  #in zip(dec_outs[0][j:j+n],dec_outs[1][j:j+n])])))])
                 #print(f"dec_outs : {dec_outs[j:j+n]}")
-                if beam_size > 1:
-                    if mono_abs:
-                        xs = dec_outs[ibt][1][1:] # why [1:] ==>_process_beam 에서 첫번째 sequence(start) 제거  
-                        decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
-                                        for iw,w in enumerate(dec_outs[ibt][0])])))])
-                    elif parallel:
-                        decoded_sents = ([for_cnn(''.join(list(chain(*[[str(w)] if xo == 0 else [sb[xo], str(w)] 
-                                        for w,xo in zip(snt,xos[1:])]))))                      
-                                        for snt,xos in dec_outs[j:j+n]])                        
-                    else:                     
-                        # decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw+1] == 0 else [sb[xs[iw+1]], str(w)] 
-                        #                 for iw,w in enumerate(snt)])))
-                        #                 for snt,xs in dec_outs[j:j+n]])
-                        decoded_sents = ([' '.join(snt)
-                                        for snt,xs in dec_outs[j:j+n]])                        
+                if no_abst:
+                    decoded_sents = ([for_cnn(''.join(snt))
+                                    for snt in dec_outs[j:j+n]])                    
                 else:
-                    if mono_abs:
-                        decoded_sents = ([' '.join(dec_outs[ibt])])
-                    else: 
-                        decoded_sents = ([' '.join(snt)
-                                        for snt in dec_outs[j:j+n]])
+                    if beam_size > 1:
+                        if mono_abs:
+                            xs = dec_outs[ibt][1][1:] # why [1:] ==>_process_beam 에서 첫번째 sequence(start) 제거  
+                            decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw] == 0 else [sb[xs[iw]], str(w)] 
+                                            for iw,w in enumerate(dec_outs[ibt][0])])))])
+                        elif parallel:
+                            decoded_sents = ([for_cnn(''.join(list(chain(*[[str(w)] if xo == 0 else [sb[xo], str(w)] 
+                                            for w,xo in zip(snt,xos[1:])]))))                      
+                                            for snt,xos in dec_outs[j:j+n]])                        
+                        else:                     
+                            # decoded_sents = ([''.join(list(chain(*[[str(w)] if xs[iw+1] == 0 else [sb[xs[iw+1]], str(w)] 
+                            #                 for iw,w in enumerate(snt)])))
+                            #                 for snt,xs in dec_outs[j:j+n]])
+                            decoded_sents = ([' '.join(snt)
+                                            for snt,xs in dec_outs[j:j+n]])                        
+                    else:
+                        if mono_abs:
+                            decoded_sents = ([' '.join(dec_outs[ibt])])
+                        else: 
+                            decoded_sents = ([' '.join(snt)
+                                            for snt in dec_outs[j:j+n]])
                 with open(join(save_path, 'output/{}.dec'.format(i)),
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
@@ -242,6 +249,8 @@ if __name__ == '__main__':
                         help='for parallel summ data')
     parser.add_argument('--mono_abs', action='store_true',
                         help='for kor summ data')
+    parser.add_argument('--no_abst', action='store_true',
+                        help='only implement extractor')
 
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available() and not args.no_cuda
@@ -249,4 +258,4 @@ if __name__ == '__main__':
     data_split = 'test' if args.test else 'val'
     decode(args.path, args.model_dir,
            data_split, args.batch, args.beam, args.div,
-           args.max_dec_word, args.cuda, args.parallel, args.mono_abs)
+           args.max_dec_word, args.cuda, args.parallel, args.mono_abs, args.no_abst)

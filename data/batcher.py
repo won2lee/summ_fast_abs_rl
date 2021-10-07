@@ -9,7 +9,9 @@ from cytoolz import curried
 import torch
 import torch.multiprocessing as mp
 import re
+from decode_full_model import for_cnn
 p = re.compile("\s{2,}")
+q = re.compile("\s+")
 
 # Batching functions
 def coll_fn(data):
@@ -50,9 +52,11 @@ def prepro_fn(max_src_len, max_tgt_len, batch, parallel=False):
     return batch
 
 @curry
-def prepro_fn_extract(max_src_len, max_src_num, batch):
+def prepro_fn_extract(max_src_len, max_src_num, reverse_parallel, batch):
     def prepro_one(sample):
         source_sents, extracts = sample
+        if reverse_parallel:
+            source_sents = [for_cnn(q.sub('',s)) for s in source_sents]
         tokenized_sents = tokenize(max_src_len, source_sents)[:max_src_num]
         cleaned_extracts = list(filter(lambda e: e < len(tokenized_sents),
                                        extracts))

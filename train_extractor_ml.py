@@ -53,9 +53,9 @@ class ExtractDataset(CnnDmDataset):
         return art_sents, extracts
 
 
-def build_batchers(net_type, word2id, cuda, debug):
+def build_batchers(net_type, word2id, cuda, debug, max_word, max_sent, reverse_parallel):
     assert net_type in ['ff', 'rnn']
-    prepro = prepro_fn_extract(args.max_word, args.max_sent)
+    prepro = prepro_fn_extract(max_word, max_sent, reverse_parallel)
     def sort_key(sample):
         src_sents, _ = sample
         return len(src_sents)
@@ -136,7 +136,8 @@ def main(args):
     device = 'cuda' if args.cuda else 'cpu'
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(args.net_type, word2id,
-                                                args.cuda, args.debug)
+                                                args.cuda, args.debug, 
+                                                args.max_word, args.max_sent, args.reverse_parallel)
 
     # make net
     net, net_args = configure_net(args.net_type,
@@ -277,12 +278,15 @@ if __name__ == '__main__':
                         help='disable GPU training')
     parser.add_argument('--parallel', action='store_true',
                         help='enable sub lstm')
+    parser.add_argument('--reverse_parallel', action='store_true',
+                        help='paral_sent to normal_sent')
     parser.add_argument('--pretrained', action='store',
                         help='use pretrained-in-nmt embed')
     parser.add_argument('--continued', action='store_true',
                         help='use pretrained-extrator')
     parser.add_argument('--lang', type=str, action='store', default='en',
                         help='language to summ')
+
     args = parser.parse_args()
     args.bi = not args.no_bi
     args.cuda = torch.cuda.is_available() and not args.no_cuda
