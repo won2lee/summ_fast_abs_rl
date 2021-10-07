@@ -16,19 +16,12 @@ import torch
 from torch.utils.data import DataLoader
 from torch import multiprocessing as mp
 
-from data.batcher import tokenize
+from data.batcher import tokenize, for_cnn
 
 from decoding import Abstractor, RLExtractor, DecodeDataset, BeamAbstractor
 from decoding import make_html_safe
 
-import re
-p1 = re.compile("\_")
-q1 = re.compile("\_\'\_(?P<apos>(re|m|ve|ll|d|s))\_")
-q2 = re.compile("\_n\_\'\_t\s+")
-q3 = re.compile("˅")
 
-def for_cnn(s):
-    return p1.sub(" ",q3.sub(",",q1.sub("_'\g<apos>_",q2.sub("_n't_", s))))
 
 def decode(save_path, model_dir, split, batch_size,
            beam_size, diverse, max_len, cuda, parallel, mono_abs, no_abst):

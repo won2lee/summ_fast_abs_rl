@@ -9,9 +9,16 @@ from cytoolz import curried
 import torch
 import torch.multiprocessing as mp
 import re
-from decode_full_model import for_cnn
+
 p = re.compile("\s{2,}")
 q = re.compile("\s+")
+p1 = re.compile("\_")
+q1 = re.compile("\_\'\_(?P<apos>(re|m|ve|ll|d|s))\_")
+q2 = re.compile("\_n\_\'\_t\s+")
+q3 = re.compile("˅")
+
+def for_cnn(s):
+    return p1.sub(" ",q3.sub(",",q1.sub("_'\g<apos>_",q2.sub("_n't_", s))))
 
 # Batching functions
 def coll_fn(data):
