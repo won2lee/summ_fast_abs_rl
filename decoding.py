@@ -197,12 +197,15 @@ class Extractor(object):
 
 
 class ArticleBatcher(object):
-    def __init__(self, word2id, cuda=True):
+    def __init__(self, word2id, cuda=True, reverse_parallel=False):
         self._device = torch.device('cuda' if cuda else 'cpu')
         self._word2id = word2id
         self._device = torch.device('cuda' if cuda else 'cpu')
+        self.reverse_parallel = reverse_parallel
 
     def __call__(self, raw_article_sents):
+        if self.reverse_parallel:
+            raw_article_sents = [for_cnn(''.join(s)).split() for s in raw_article_sents]
         articles = conver2id(UNK, self._word2id, raw_article_sents)
         article = pad_batch_tensorize(articles, PAD, cuda=False
                                      ).to(self._device)

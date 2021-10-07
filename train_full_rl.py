@@ -58,7 +58,7 @@ def load_ext_net(ext_dir, device):
     return ext, vocab
 
 
-def configure_net(abs_dir, ext_dir, cuda, mono_abs,device):
+def configure_net(abs_dir, ext_dir, cuda, mono_abs, device, rev_paral):
     """ load pretrained sub-modules and build the actor-critic network"""
     # load pretrained abstractor model
     max_abs = 120 if mono_abs else MAX_ABS_LEN
@@ -72,7 +72,7 @@ def configure_net(abs_dir, ext_dir, cuda, mono_abs,device):
     agent = ActorCritic(extractor._sent_enc,
                         extractor._art_enc,
                         extractor._extractor,
-                        ArticleBatcher(agent_vocab, cuda))
+                        ArticleBatcher(agent_vocab, cuda, reverse_parallel=rev_paral))
     if cuda:
         agent = agent.cuda()
 
@@ -131,7 +131,7 @@ def train(args):
     #single_abs_snt = False
     # make net
     agent, agent_vocab, abstractor, net_args = configure_net(
-        args.abs_dir, args.ext_dir, args.cuda, mono_abs, device)
+        args.abs_dir, args.ext_dir, args.cuda, mono_abs, device, args.reverse_parallel)
 
     # configure training setting
     assert args.stop > 0
@@ -234,6 +234,8 @@ if __name__ == '__main__':
                         help='patience for early stopping')
     parser.add_argument('--parallel', action='store_true',
                         help='enable sub lstm')
+    parser.add_argument('--reverse_parallel', action='store_true',
+                        help='paral_sent to normal_sent')
     parser.add_argument('--no-cuda', action='store_true',
                         help='disable GPU training')
     parser.add_argument('--mono_abs', type=int, action='store', default=0,
