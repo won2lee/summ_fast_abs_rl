@@ -14,7 +14,7 @@ from utils import PAD, UNK, START, END
 from model.copy_summ import CopySumm
 from model.extract import ExtractSumm, PtrExtractSumm
 from model.rl import ActorCritic
-from data.batcher import conver2id, pad_batch_tensorize
+from data.batcher import conver2id, pad_batch_tensorize, for_cnn
 from data.data import CnnDmDataset
 
 

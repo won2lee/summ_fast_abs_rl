@@ -24,7 +24,7 @@ from decoding import make_html_safe
 
 
 def decode(save_path, model_dir, split, batch_size,
-           beam_size, diverse, max_len, cuda, parallel, mono_abs, no_abst):
+           beam_size, diverse, max_len, cuda, parallel, mono_abs, no_abst, reverse_parallel):
     start = time()
     # setup model
     with open(join(model_dir, 'meta.json')) as f:
@@ -86,7 +86,11 @@ def decode(save_path, model_dir, split, batch_size,
             extrctd = []
             for raw_art_sents in tokenized_article_batch:
                 raw_arts.append(raw_art_sents)
-                ext = extractor(raw_art_sents)[:-1]  # exclude EOE
+                if reverse_parallel:
+                    art_snts = [for_cnn(''.join(s)).split() for s in raw_art_sents]
+                else:
+                    art_snts = raw_art_sents
+                ext = extractor(art_snts)[:-1]  # exclude EOE
                 if not ext:
                     # use top-5 if nothing is extracted
                     # in some rare cases rnn-ext does not extract at all
@@ -240,6 +244,8 @@ if __name__ == '__main__':
                         help='disable GPU training')
     parser.add_argument('--parallel', action='store_true',
                         help='for parallel summ data')
+    parser.add_argument('--reverse_parallel', action='store_true',
+                        help='paral_sent to normal_sent')
     parser.add_argument('--mono_abs', action='store_true',
                         help='for kor summ data')
     parser.add_argument('--no_abst', action='store_true',
@@ -251,4 +257,5 @@ if __name__ == '__main__':
     data_split = 'test' if args.test else 'val'
     decode(args.path, args.model_dir,
            data_split, args.batch, args.beam, args.div,
-           args.max_dec_word, args.cuda, args.parallel, args.mono_abs, args.no_abst)
+           args.max_dec_word, args.cuda, args.parallel, args.mono_abs, 
+           args.no_abst, args.reverse_parallel)
