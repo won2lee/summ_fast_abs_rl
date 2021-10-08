@@ -28,7 +28,7 @@ from decoding import Abstractor, ArticleBatcher
 from metric import compute_rouge_l, compute_rouge_n
 
 
-MAX_ABS_LEN = 30
+MAX_ABS_LEN = 36
 
 try:
     DATA_DIR = os.environ['DATA']

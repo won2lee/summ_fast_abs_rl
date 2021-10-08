@@ -130,11 +130,15 @@ def main(args):
     assert args.net_type in ['ff', 'rnn']
     # create data batcher, vocabulary
     # batcher
-    with open(join(DATA_DIR, 'vocab_cnt.pkl'), 'rb') as f:
+    with open(join(DATA_DIR, 'vocab_cnt_rev.pkl' if args.reverse_parallel else 'vocab_cnt.pkl'), 'rb') as f:
         wc = pkl.load(f, encoding="bytes") 
     parallel = args.parallel
     device = 'cuda' if args.cuda else 'cpu'
     word2id = make_vocab(wc, args.vsize)
+
+    with open(join(DATA_DIR, "vocab.json"), 'w') as jsonf:
+        json.dump(word2id,jsonf, ensure_ascii=False, indent=4)
+
     train_batcher, val_batcher = build_batchers(args.net_type, word2id,
                                                 args.cuda, args.debug, 
                                                 args.max_word, args.max_sent, args.reverse_parallel)
