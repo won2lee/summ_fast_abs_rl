@@ -23,6 +23,8 @@ def _n_gram_match(summ, ref, n):
 def compute_rouge_n(output, reference, n=1, mode='f'):
     """ compute ROUGE-N for a single pair of summary and reference"""
     assert mode in list('fpr')  # F-1, precision, recall
+    output = ''.join(output).split('_')[1:]
+    reference = ''.join(reference).split('_')[1:]
     match = _n_gram_match(reference, output, n)
     if match == 0:
         score = 0.0

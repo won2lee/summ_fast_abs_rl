@@ -134,7 +134,13 @@ def main(args):
         wc = pkl.load(f, encoding="bytes") 
     parallel = args.parallel
     device = 'cuda' if args.cuda else 'cpu'
-    word2id = make_vocab(wc, args.vsize)
+
+    if args.continued:
+        word2id = pkl.load(open(join(args.path, 'vocab.pkl'), 'rb'))
+    else:
+        with open(join(DATA_DIR, 'vocab_cnt.pkl'), 'rb') as f:
+            wc = pkl.load(f, encoding="bytes") 
+        word2id = make_vocab(wc, args.vsize)
 
     with open(join(DATA_DIR, "vocab.json"), 'w') as jsonf:
         json.dump(word2id,jsonf, ensure_ascii=False, indent=4)
@@ -244,7 +250,7 @@ if __name__ == '__main__':
                         help='the dimension of word embedding')
     parser.add_argument('--w2v', action='store',
                         help='use pretrained word2vec embedding')
-    parser.add_argument('--conv_hidden', type=int, action='store', default=150,
+    parser.add_argument('--conv_hidden', type=int, action='store', default=100,
                         help='the number of hidden units of Conv')
     parser.add_argument('--lstm_hidden', type=int, action='store', default=256,
                         help='the number of hidden units of lSTM')
