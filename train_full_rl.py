@@ -142,7 +142,7 @@ def train(args):
     train_batcher, val_batcher = build_batchers(args.batch, parallel)
     # TODO different reward
     reward_fn = compute_rouge_l
-    stop_reward_fn = compute_rouge_n(n=1)
+    stop_reward_fn = compute_rouge_n(n=1, mode='r') # temporarily set mode = r
 
     # save abstractor binary
     if args.continued:
