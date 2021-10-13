@@ -14,7 +14,13 @@ from torch.nn.utils import clip_grad_norm_
 
 from metric import compute_rouge_l, compute_rouge_n
 from training import BasicPipeline
+from data.batcher import for_cnn
 
+def reverse_snts(snts):
+    if snts[0][0] in ['_','^','`']:
+        return [for_cnn(''.join(s)).split() for s in snts]
+    else:
+        return snts
 
 def a2c_validate(agent, abstractor, loader, mono_abs):
     agent.eval()
@@ -43,8 +49,11 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
 
             #print(f"first ext_sents: {ext_sents[0]}")
             #print(f"last ext_sents: {ext_sents[-1]}")
-            all_summs = abstractor(ext_sents)
+            all_summs = reverse_snts(abstractor(ext_sents))
+            #print(f"all_summs[0]: {all_summs[0]}")
             for ibatch, ((j, n), abs_sents) in enumerate(zip(ext_inds, abs_batch)):
+                abs_sents = reverse_snts(abs_sents)
+                #print(abs_sents)
                 summs = [all_summs[ibatch]] if mono_abs==1 else all_summs[j:j+n]
                 # python ROUGE-1 (not official evaluation)
                 # print(f"abs_sents: {list(concat(abs_sents))}")
@@ -109,11 +118,14 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             ext_sents += extrctd
 
     with torch.no_grad():
-        summaries = abstractor(ext_sents)
+        summaries = reverse_snts(abstractor(ext_sents))
+    #print(summaries[0])
     i = 0
     rewards = []
     avg_reward = 0
     for inds, abss in zip(indices, abs_batch):
+        abss = reverse_snts(abss)
+        #print(abss)
         # print(f"inds:{type(inds)}, abss:{type(abss)}")
         if mono_abs:
             reward_fn = reward_fn(mode='r')
