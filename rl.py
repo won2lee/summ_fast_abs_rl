@@ -61,6 +61,11 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
                 avg_reward += compute_rouge_n(list(concat(summs)),
                                               list(concat(abs_sents)), n=1)
                 i += 1
+                if i%200 ==0:
+                    print(f"{i}th summ : {summs[0]}")
+                    print(f"{i}th abs sents: {abs_sents[0]}")
+                    print()
+
     avg_reward /= (i/100)
     print('finished in {}! avg reward: {:.2f}'.format(
         timedelta(seconds=int(time()-start)), avg_reward))
