@@ -61,10 +61,10 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
                 avg_reward += compute_rouge_n(list(concat(summs)),
                                               list(concat(abs_sents)), n=1)
                 i += 1
-                if i%200 ==0:
-                    print(f"{i}th summ : {summs[0]}")
-                    print(f"{i}th abs sents: {abs_sents[0]}")
-                    print()
+                # if i%200 ==0:
+                #     print(f"{i}th summ : {summs[0]}")
+                #     print(f"{i}th abs sents: {abs_sents[0]}")
+                #     print()
 
     avg_reward /= (i/100)
     print('finished in {}! avg reward: {:.2f}'.format(
@@ -157,12 +157,15 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         avg_reward += rs[-1]/stop_coeff
         i += len(inds)-1
         # compute discounted rewards
+
         R = 0
         disc_rs = []
         for r in rs[::-1]:
             R = r + gamma * R
             disc_rs.insert(0, R)
         rewards += disc_rs
+        if i%100==0:
+            print(f"rewards : {disc_rs}    avg_rewards : {avg_reward}")
     indices = list(concat(indices))
     probs = list(concat(probs))
     baselines = list(concat(baselines))

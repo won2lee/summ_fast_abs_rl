@@ -18,7 +18,7 @@ q2 = re.compile("\_n\_\'\_t\s+")
 q3 = re.compile("˅")
 
 def for_cnn(s):
-    return p1.sub(" ",q3.sub("'",q1.sub("_'\g<apos>_",q2.sub("_n't_", s))))
+    return p1.sub(" ",q3.sub(",",q1.sub("_'\g<apos>_",q2.sub("_n't_", s))))
 
 # Batching functions
 def coll_fn(data):

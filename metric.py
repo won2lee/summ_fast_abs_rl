@@ -24,8 +24,8 @@ def compute_rouge_n(output, reference, n=1, mode='f'):
     """ compute ROUGE-N for a single pair of summary and reference"""
     assert mode in list('fpr')  # F-1, precision, recall
     ###### 추가로 보완할 것 ####
-    output = ''.join(output).split('_')[1:]
-    reference = ''.join(reference).split('_')[1:]
+    #output = ''.join(output).split('_')[1:]
+    #reference = ''.join(reference).split('_')[1:]
     ########################
     match = _n_gram_match(reference, output, n)
     if match == 0:
