@@ -143,7 +143,7 @@ def train(args):
     # TODO different reward
     reward_fn_origin = compute_rouge_l
     def reward_fn(s,r):
-        return (reward_fn_origin(s,r) + compute_rouge_n(s,r,n=2)) / 2
+        return (reward_fn_origin(s,r) + compute_rouge_n(s,r,n=2) + compute_rouge_n(s,r,n=3)) / 3
     stop_reward_fn = compute_rouge_n(n=1) # temporarily set mode = r
 
     # save abstractor binary

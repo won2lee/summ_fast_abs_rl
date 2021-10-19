@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import tensorboardX
 
 seq_wgt = 1. #0.096 #0.09 
-cov_wgt = 0.01 #0.1  #0.25
+cov_wgt = 0.0 #0.1  #0.25
 
 def get_basic_grad_fn(net, clip_grad, max_grad=1e2):
     def f():

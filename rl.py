@@ -164,8 +164,8 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             R = r + gamma * R
             disc_rs.insert(0, R)
         rewards += disc_rs
-        if i%100==0:
-            print(f"rewards : {disc_rs}    avg_rewards : {avg_reward}")
+        if i%50==0:
+            print(f"rewards : {len(disc_rs)}, {disc_rs[:3]}    avg_rewards : {avg_reward}")
     indices = list(concat(indices))
     probs = list(concat(probs))
     baselines = list(concat(baselines))
