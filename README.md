@@ -15,7 +15,7 @@ based on seq-to-seq attention model + copy mechanism
 Extractor로 문장 추출 - Abstractor로 요약 - rouge score - 문장 추출에 feedback
 
 
-![Alt text](/path/to/img.jpg)
+![Alt text](/images/fast_abs_rl.jpg)
 
 
 
