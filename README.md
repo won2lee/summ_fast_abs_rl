@@ -1,20 +1,21 @@
 
-
-fast_abs_rl 모델 Chen et al.(2018) 을 근간으로 한 영어 한글 요약 모델 modified model
-
-
-fast_abs_rl 모델    https://github.com/ChenRocks/fast_abs_rl.git
-
-      주요 프로세스
-Extractor   train_extractor_ml.py : 
+# Summ Model 
+#### based on Fast_Abs_RL Model 
+- [Fast Abstractive Summarization with Reinforce-Selected Sentence Rewriting (Chen et al., 2018)](https://arxiv.org/abs/1805.11080)
+- Source Code : [https://github.com/ChenRocks/fast_abs_rl.git](https://github.com/ChenRocks/fast_abs_rl.git)
+-----------------------------
+### Fast_Abs_RL Model
+##### 주요 프로세스
+- Extractor   (train_extractor_ml.py) : 
 article의 문장 중 주요 문장을 추출 (문장 분석 convolution, 문장 간 분석: LSTM)
-Abstractor  train_abstractor.py : 
+- Abstractor  (train_abstractor.py) : 
 추출된 문장을 1 to 1으로 요약 
 based on seq-to-seq attention model + copy mechanism
-Reinforce-guided extraction  train_full_rl.py :
+- Reinforce-guided extraction  (train_full_rl.py) :
 Extractor로 문장 추출 - Abstractor로 요약 - rouge score - 문장 추출에 feedback
 
 
+![Alt text](/path/to/img.jpg)
 
 
 
