@@ -1,24 +1,37 @@
 
 # Summ Model 
 #### based on Fast_Abs_RL Model 
-- [Fast Abstractive Summarization with Reinforce-Selected Sentence Rewriting (Chen et al., 2018)](https://arxiv.org/abs/1805.11080)
+- [Fast Abstractive Summarization with Reinforce-Selected Sentence Rewriting (Chen and Bansal, 2018)](https://arxiv.org/abs/1805.11080)
 - Source Code : [https://github.com/ChenRocks/fast_abs_rl.git](https://github.com/ChenRocks/fast_abs_rl.git)
------------------------------
-### Fast_Abs_RL Model
+----------------------------------------     
+### Fast_Abs_RL Model (원 모델 Chen and Bansal, 2018) 
 ##### 주요 프로세스
-- Extractor   (train_extractor_ml.py) : 
-article의 문장 중 주요 문장을 추출 (문장 분석 convolution, 문장 간 분석: LSTM)
-- Abstractor  (train_abstractor.py) : 
-추출된 문장을 1 to 1으로 요약 
-based on seq-to-seq attention model + copy mechanism
-- Reinforce-guided extraction  (train_full_rl.py) :
-Extractor로 문장 추출 - Abstractor로 요약 - rouge score - 문장 추출에 feedback
+- Extractor   (train_extractor_ml.py) :     
+... article의 문장 중 주요 문장을 추출 (문장 분석 convolution, 문장 간 분석: LSTM)
+- Abstractor  (train_abstractor.py) :     
+... 추출된 문장을 1 to 1으로 요약     
+... based on seq-to-seq attention model + copy mechanism
+- Reinforce-guided extraction  (train_full_rl.py) :    
+... Extractor로 문장 추출 - Abstractor로 요약 - rouge score - 문장 추출에 feedback
+     
+##### fast_abs_rl 모델 개요도 
 
+<img src="/images/fast_abs_rl.jpg" width="700px" title="모델 개요도" alt="fast_abs_rl"></img><br/>
 
-![Alt text](/images/fast_abs_rl.jpg)
+----------------------------------------
+### 본 요약 모델   modified model
 
+- added:    
+... sub-module    
+... coverage-loss
+- modified:    
+... tokenizing & embedding    
+... 1 to 1 요약 (문장 대 문장 요약)을  n to 1, n to k 요약으로 (전체 문장을 한개 혹은 k개 문장으로)  확장    
+... 이에 따른 Reinforce-guided extraction process 수정    
 
+##### 본 모델 개요도 
 
+<img src="/images/fast_abs_rl.jpg" width="700px" title="본 모델 개요도" alt="fast_abs_rl"></img><br/>
 
 
 
