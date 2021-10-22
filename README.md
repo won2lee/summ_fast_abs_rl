@@ -31,8 +31,31 @@
 
 ##### 본 모델 개요도 
 
-<img src="/images/fast_abs_rl.jpg" width="700px" title="본 모델 개요도" alt="fast_abs_rl"></img><br/>
+<img src="/images/modfied_fast_abs_rl.jpg" width="700px" title="본 모델 개요도" alt="modified_fast_abs_rl"></img><br/>
 
+    ❶❹❺ : modified   ❷❸ : added
+
+    ❶  tokenizing and embedding    
+          ... tokenizer : 직접 개발 (https://github.com/won2lee/preProc.git)     
+          ... embedding : pretrained on 첨부 1 번역모델 (https://github.com/won2lee/KorEn_NMT.git)      
+    ❷  sub-module :      
+          ... 한글 어절을 구분하여 어절 안에 있는 토큰 들의 의미와 기능을 연결 하는 LSTM sub-module,      
+          ... 영어의 경우 단어 단위로 토큰 구분하고 연결하며 및 대소 문자를 구분하는 기능     
+
+    ❸  coverage-mechanism     
+          ... 단어 중복 생성 방지를 위해 이미 누적 attention score 가 높은 토큰을 다시 선택하지 않도록 유도 
+
+    ❹  n to 1 abstract    
+          ... 추출(extracted) 된 모든 문장을 한개의 문장으로 요약한 AIHUB 의  한글 요약 데이터셋에 adjust
+
+    ❺  (n to 1) - (n-1 to 1) reward    
+          ... 원 논문에서는 개개 추출문장 마다 요약 문장을 1 to 1으로 생성하여 각각 rouge score를 reward로 사용했으나 
+
+          ... AIHUB 데이터셋은     
+          ... n개의 추출 문장에 대해 하나의 요약 문장 만 있기 때문에 (❹에서와 같이 n to 1 요약문)    
+          ... REINFORCE 를 학습할 때 한개의 문장을 추가로 추출 했을 때의 reward를    
+          ... 그 문장이 추가됨에 따른 요약 문장의 rouge score의 증가분으로 적용    
+          ... 즉 n 번째 문장 추출의 리워드 = (n to 1 요약문의 스코어) - (n-1 to 1 요약문의 스코어)     
 
 
 
