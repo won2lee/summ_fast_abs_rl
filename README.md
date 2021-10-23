@@ -54,6 +54,49 @@
           ... 그 문장이 추가됨에 따른 요약 문장의 rouge score의 증가분으로 적용    
           ... 즉 n 번째 문장 추출의 리워드 = (n to 1 요약문의 스코어) - (n-1 to 1 요약문의 스코어)     
 
+------------------------------------------------------------------
+### To Train
+#### My Colab Example
+
+*[here](https://github.com/ChenRocks/cnn-dailymail)*
+for downloading and preprocessing the CNN/DailyMail dataset.
+
+    !pip install cytoolz
+    !pip install pyrouge
+    !pip install tensorboardX
+
+    import os
+    os.environ["DATA"]="/content/fast_abs_rl/cnn-dailymail/finished_files"
+    os.environ["ROUGE"] = "/content/fast_abs_rl/pyrouge/tools/ROUGE-1.5.5"
+
+1. pretrained a *word2vec* word embedding
+```
+!python3 temp_preproc.py --in_path=../cnn-dailymail/finished_files/test-origin/ --out_path=../cnn-dailymail/finished_files/test/ --lang=en
+!python3 make_vocab_file.py --in_path=../cnn-dailymail/finished_files/train/ --out_path=../cnn-dailymail/finished_files/ 
+!python3 train_word2vec.py --path=pathto/word2vec/ --dim=128
+```
+2. make the pseudo-labels
+```
+!python3 make_extraction_labels.py
+```
+3. train *abstractor* and *extractor* using ML objectives
+```
+!python3 train_abstractor.py --path=pathto/abstractor/model --w2v=/content/fast_abs_rl/pathto/word2vec/word2vec.128d.51k.bin --emb_dim=128 --max_abs=45 --ckpt_freq=1500 --lr=0.00002 --n_layer=1  --decay=0.7 --lr_p=1 --parallel --lang=en --use_coverage (--continued)
+!python3 train_extractor_ml.py --path=pathto/extractor/model  --w2v=pathto/word2vec/word2vec.128d.198k.bin --emb_dim=128 --ckpt_freq=1500 --lr=0.00007 --max_word=150 --lr_p=1 --lang=en --reverse_parallel (--continued)
+```
+4. train the *full RL model*
+```
+!python3 train_full_rl.py --path=pathto/save/model --abs_dir=pathto/abstractor/model --ext_dir=pathto/extractor/model --batch=16 --lr=0.0001 --lr_p=1 --decay=0.7 --patience=10 --ckpt_freq=500 --gamma=0.95 --reverse_parallel (--continued)
+```
+
+After the training finishes you will be able to run the decoding and evaluation following the instructions in the previous section.
+
+    !python3 decode_full_model.py --path=pathto/save/decoded/files --model_dir=pathto/save/model --max_dec_word=45 --parallel --beam=5 --test --reverse_parallel
+    !python3 make_eval_references.py
+    !python3 eval_full_model.py --rouge --decode_dir=pathto/save/decoded/files
+    
+The above will use the best hyper-parameters we used in the paper as default.
+Please refer to the respective source code for options to set the hyper-parameters.
 
 
 # Fast Abstractive Summarization-RL
