@@ -1,11 +1,11 @@
 
 # Summ Model 
 #### Modified Model based on      
-### Fast_Abs_RL Model (원 모델 Chen and Bansal, 2018) 
+### Fast_Abs_RL Model (원 모델) 
 - [Fast Abstractive Summarization with Reinforce-Selected Sentence Rewriting (Chen and Bansal, 2018)](https://arxiv.org/abs/1805.11080)
 - Source Code : [https://github.com/ChenRocks/fast_abs_rl.git](https://github.com/ChenRocks/fast_abs_rl.git)
 ---------------------------------------------------------------------
-#### 3 Main Training Processes in Chen and Bansal Model (원 모델)
+#### 3 Main Training Processes in Fast_Abs_RL Model (원 모델)
 - Extractor   (train_extractor_ml.py) :     
 ... article의 문장 중 주요 문장을 추출 (문장 분석 convolution, 문장 간 분석: LSTM)
 - Abstractor  (train_abstractor.py) :     
@@ -14,7 +14,7 @@
 - Reinforce-guided extraction  (train_full_rl.py) :    
 ... Extractor로 문장 추출 - Abstractor로 요약 - rouge score - 문장 추출에 feedback
 
-#### Added and Modified in this Modified Model (본 요약 모델) 
+#### Added and Modified in this Modified Model (본 요약 모델에서 추가/수정된 부분) 
 - added:    
 ... sub-module    
 ... coverage-loss
@@ -69,22 +69,25 @@ for downloading and preprocessing the CNN/DailyMail dataset.
     os.environ["DATA"]="/content/fast_abs_rl/cnn-dailymail/finished_files"
     os.environ["ROUGE"] = "/content/fast_abs_rl/pyrouge/tools/ROUGE-1.5.5"
 
-1. pretrained a *word2vec* word embedding
+1. preprocess for this Modified Model
 ```
 !python3 temp_preproc.py --in_path=../cnn-dailymail/finished_files/test-origin/ --out_path=../cnn-dailymail/finished_files/test/ --lang=en
 !python3 make_vocab_file.py --in_path=../cnn-dailymail/finished_files/train/ --out_path=../cnn-dailymail/finished_files/ 
+```
+2. pretrain a *word2vec* word embedding
+```
 !python3 train_word2vec.py --path=pathto/word2vec/ --dim=128
 ```
-2. make the pseudo-labels
+3. make the pseudo-labels
 ```
 !python3 make_extraction_labels.py
 ```
-3. train *abstractor* and *extractor* using ML objectives
+4. train *abstractor* and *extractor* using ML objectives
 ```
 !python3 train_abstractor.py --path=pathto/abstractor/model --w2v=/content/fast_abs_rl/pathto/word2vec/word2vec.128d.51k.bin --emb_dim=128 --max_abs=45 --ckpt_freq=1500 --lr=0.00002 --n_layer=1  --decay=0.7 --lr_p=1 --parallel --lang=en --use_coverage (--continued)
 !python3 train_extractor_ml.py --path=pathto/extractor/model  --w2v=pathto/word2vec/word2vec.128d.198k.bin --emb_dim=128 --ckpt_freq=1500 --lr=0.00007 --max_word=150 --lr_p=1 --lang=en --reverse_parallel (--continued)
 ```
-4. train the *full RL model*
+5. train the *full RL model*
 ```
 !python3 train_full_rl.py --path=pathto/save/model --abs_dir=pathto/abstractor/model --ext_dir=pathto/extractor/model --batch=16 --lr=0.0001 --lr_p=1 --decay=0.7 --patience=10 --ckpt_freq=500 --gamma=0.95 --reverse_parallel (--continued)
 ```
