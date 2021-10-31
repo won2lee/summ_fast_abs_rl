@@ -25,7 +25,8 @@ class Seq2SeqSumm(nn.Module):
         self.use_coverage = use_coverage
         self._embedding = nn.Embedding(vocab_size, emb_dim, padding_idx=0)
         self._enc_lstm = nn.LSTM(
-            n_hidden if self.parallel else emb_dim, n_hidden, n_layer,
+            emb_dim, #n_hidden if self.parallel else emb_dim, 
+            n_hidden, n_layer,
             bidirectional=bidirectional, dropout=dropout
         )
         # initial encoder LSTM states are learned parameters
@@ -41,7 +42,8 @@ class Seq2SeqSumm(nn.Module):
 
         # vanillat lstm / LNlstm
         self._dec_lstm = MultiLayerLSTMCells(
-            n_hidden+emb_dim if parallel else 2*emb_dim, n_hidden, n_layer, dropout=dropout
+            2*emb_dim, n_hidden, n_layer, dropout=dropout
+            #n_hidden+emb_dim if parallel else 2*emb_dim, n_hidden, n_layer, dropout=dropout
         )
         # project encoder final states to decoder initial states
         enc_out_dim = n_hidden * (2 if bidirectional else 1)
@@ -77,10 +79,11 @@ class Seq2SeqSumm(nn.Module):
         
         #self.parallel = parallel
         if self.parallel:
-            self.sub_coder= nn.LSTM(emb_dim, n_hidden)  #(embed_size, self.hidden_size)
-            self.sub_gate = nn.Linear(2*n_hidden, 1, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
-            #self.sub_gate = nn.Linear(emb_dim, n_hidden, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
-            self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
+            self.sub_coder= nn.LSTM(emb_dim, emb_dim) #n_hidden)  #(embed_size, self.hidden_size)
+            #self.sub_gate = nn.Linear(2*n_hidden, 1, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+            self.sub_gate = nn.Linear(2*emb_dim, emb_dim, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+            #self.sub_projection = nn.Linear(n_hidden, emb_dim, bias=False) 
+            #self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
             self.sub_dropout = nn.Dropout(p=0.2)
 
             self.target_ox_projection = nn.Linear(emb_dim+n_hidden, 4, bias=False) #emb_dim, 4, bias=False)
@@ -217,10 +220,12 @@ class Seq2SeqSumm(nn.Module):
 
         out,(last_h1,last_c1) = sub_coder(X_embed)
         #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
-        X_proj = sub_projection(X_embed[1:])
+
+        X_proj = X_embed[1:]
+        # X_proj = sub_projection(X_embed[1:])
+        #out = sub_projection(out)
         #X_gate = torch.sigmoid(sub_gate(X_embed[1:]))
         X_gate = torch.sigmoid(sub_gate(torch.cat((X_proj,out[1:]),-1))) 
-
 
         X_way = sub_dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
 
@@ -273,7 +278,11 @@ class Seq2SeqSumm(nn.Module):
         else:
             out,(h,c) = self.sub_coder(X_embed)
         #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
-        X_proj = self.sub_projection(X_embed)
+        X_proj = X_embed
+        # X_proj = sub_projection(X_embed[1:])
+        #out = sub_projection(out)
+
+        #X_proj = self.sub_projection(X_embed)
         #X_gate = torch.sigmoid(self.sub_gate(X_embed))
         X_gate = torch.sigmoid(self.sub_gate(torch.cat((X_proj,out),-1))) 
 
