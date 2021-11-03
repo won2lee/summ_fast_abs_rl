@@ -52,7 +52,8 @@ class MatchDataset(CnnDmDataset):
         matched_arts = [art_sents[i] for i in extracts]
         if self._mono_abs:
             matched_arts = [" ".join(matched_arts)]
-        return matched_arts, abs_sents[:1 if self._mono_abs else len(extracts)]
+            abs_sents = [" ".join(abs_sents)]
+        return matched_arts, abs_sents #abs_sents[:1 if self._mono_abs else len(extracts)]
 
 
 def configure_net(vocab_size, emb_dim,
