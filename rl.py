@@ -16,7 +16,7 @@ from metric import compute_rouge_l, compute_rouge_n
 from training import BasicPipeline
 from data.batcher import for_cnn
 
-k_ceiling = 12
+k_ceiling = 40
 abs_ceiling = 5
 
 def reverse_snts(snts):
@@ -31,7 +31,7 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
     print('start running validation...', end='')
     avg_reward = 0
     i = 0
-    max_k = k_ceiling
+    max_k = min(k_ceiling,15)
     with torch.no_grad():
         for art_batch, abs_batch in loader:
             ext_sents = []
@@ -97,7 +97,10 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         #     (inds, ms), bs = agent(raw_arts, n_abs=10000)
         # else:
         #     (inds, ms), bs = agent(raw_arts)
-        (inds, ms), bs = agent(raw_arts)      
+        (inds, ms), bs = agent(raw_arts)  
+        inds = inds[:max_k]
+        ms = ms[:max_k]
+        bs = bs[:max_k]    
 
         if mono_abs==1:
             i_stop=1000
