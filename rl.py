@@ -16,6 +16,9 @@ from metric import compute_rouge_l, compute_rouge_n
 from training import BasicPipeline
 from data.batcher import for_cnn
 
+k_ceiling = 12
+abs_ceiling = 5
+
 def reverse_snts(snts):
     if snts[0][0] in ['_','^','`']:
         return [for_cnn(''.join(s)).split() for s in snts]
@@ -28,7 +31,7 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
     print('start running validation...', end='')
     avg_reward = 0
     i = 0
-    max_k = 12
+    max_k = k_ceiling
     with torch.no_grad():
         for art_batch, abs_batch in loader:
             ext_sents = []
@@ -78,7 +81,7 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
 def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                    gamma=0.99, reward_fn=compute_rouge_l,
                    stop_reward_fn=compute_rouge_n(n=1), stop_coeff=1.0,
-                   mono_abs=False):
+                   mono_abs=False, join_abs=False):
     opt.zero_grad()
     indices = []
     probs = []
@@ -86,22 +89,16 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     ext_sents = []
     art_batch, abs_batch = next(loader)
 
-    max_abs = 5
-    max_k = 12
+    max_abs = abs_ceiling
+
     for raw_arts in art_batch:
+        max_k = k_ceiling
         # if mono_abs:
         #     (inds, ms), bs = agent(raw_arts, n_abs=10000)
         # else:
         #     (inds, ms), bs = agent(raw_arts)
         (inds, ms), bs = agent(raw_arts)      
         inds = inds[:max_k]
-        ms = ms[:max_k]
-        bs = bs[:max_k]
-        baselines.append(bs)
-        indices.append(inds)
-        probs.append(ms)
-
-
 
         if mono_abs==1:
             i_stop=1000
@@ -111,6 +108,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                     break
             extrctd = [raw_arts[idx.item()]
                               for ix,idx in enumerate(inds) if idx.item() < len(raw_arts) and ix < i_stop ] 
+            max_k = min(len(extrctd) + 1, max_k)
             # ext_sent = []
             # for i,ex in enumerate(extrctd):
             #     ext_sent += [ex]
@@ -131,12 +129,21 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                 #     #ext_sent[i]=[' '.join(ext_sent[i])]
                 # else:
                 #     ext_sent[i] = "_ 예정이 다 _ ."
-            ext_sents += [snts if ix < max_abs else "_ it _ is _ nothing ." for ix,snts in enumerate(ext_sent)]           
+            ext_sents += [snts if ix < max_abs else "_ it _ is _ nothing ." for ix,snts in enumerate(ext_sent)]  
+
          
         else:
             extrctd = [raw_arts[idx.item()]
                   for idx in inds if idx.item() < len(raw_arts)] # idc.item() >= len(raw_arts) ---> End of Extraction 
             ext_sents += extrctd
+
+        inds = inds[:max_k]
+        ms = ms[:max_k]
+        bs = bs[:max_k]
+        baselines.append(bs)
+        indices.append(inds)
+        probs.append(ms)
+
 
     with torch.no_grad():
         summaries = reverse_snts(abstractor(ext_sents))
@@ -166,7 +173,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                       list(concat([summaries[i+min(len(inds)-1, max_abs)-1]] if mono_abs==1 else [summaries[jsub] for jsub in range(i,i+min(len(inds)-1, max_abs)-1)])),
                       abss)]) # list(concat(abss)))])
         else:
-            rs = ([reward_fn(summaries[i+j], abss[j])
+            rs = ([reward_fn(summaries[i+j], abss[j] if not join_abs else list(concat(abss)))
                   for j in range(min(len(inds)-1, len(abss)))]
                   + [0 for _ in range(max(0, len(inds)-1-len(abss)))]
                   + [stop_coeff*stop_reward_fn(
@@ -185,9 +192,9 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             R = r + gamma * R
             disc_rs.insert(0, R)
         rewards += disc_rs
-        if i%50==0:
-            drs = [f"{dr:.3f}" for dr in disc_rs[:15]]
-            print(f"rewards : {len(disc_rs)},  avg_rewards : {rs[-1]}, {drs}") #" {avg_reward}")
+        if i%30==0:
+            drs = [f"{dr:.2f}" for dr in disc_rs[:15]]
+            print(f"rewards : {len(disc_rs)},  avg_rewards : {rs[-1]:.2f}, {drs}") #" {avg_reward}")
     indices = list(concat(indices))
     probs = list(concat(probs))
     baselines = list(concat(baselines))
