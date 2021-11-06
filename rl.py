@@ -81,7 +81,7 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
 def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                    gamma=0.99, reward_fn=compute_rouge_l,
                    stop_reward_fn=compute_rouge_n(n=1), stop_coeff=1.0,
-                   mono_abs=False, join_abs=False):
+                   mono_abs=0, join_abs=False):
     opt.zero_grad()
     indices = []
     probs = []
@@ -98,7 +98,6 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         # else:
         #     (inds, ms), bs = agent(raw_arts)
         (inds, ms), bs = agent(raw_arts)      
-        inds = inds[:max_k]
 
         if mono_abs==1:
             i_stop=1000
@@ -131,15 +130,15 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                 #     ext_sent[i] = "_ 예정이 다 _ ."
             ext_sents += [snts if ix < max_abs else "_ it _ is _ nothing ." for ix,snts in enumerate(ext_sent)]  
 
+            inds = inds[:max_k]
+            ms = ms[:max_k]
+            bs = bs[:max_k]
          
         else:
             extrctd = [raw_arts[idx.item()]
                   for idx in inds if idx.item() < len(raw_arts)] # idc.item() >= len(raw_arts) ---> End of Extraction 
             ext_sents += extrctd
 
-        inds = inds[:max_k]
-        ms = ms[:max_k]
-        bs = bs[:max_k]
         baselines.append(bs)
         indices.append(inds)
         probs.append(ms)
@@ -261,7 +260,7 @@ class A2CPipeline(BasicPipeline):
                  optim, grad_fn,
                  reward_fn, gamma,
                  stop_reward_fn, stop_coeff,
-                 mono_abs):
+                 mono_abs, join_abs):
         self.name = name
         self._net = net
         self._train_batcher = train_batcher
@@ -275,6 +274,7 @@ class A2CPipeline(BasicPipeline):
         self._stop_reward_fn = stop_reward_fn
         self._stop_coeff = stop_coeff
         self._mono_abs = mono_abs
+        self._join_abs = join_abs
 
         self._n_epoch = 0  # epoch not very useful?
 
@@ -290,7 +290,7 @@ class A2CPipeline(BasicPipeline):
             self._opt, self._grad_fn,
             self._gamma, self._reward_fn,
             self._stop_reward_fn, self._stop_coeff,
-            mono_abs=self._mono_abs
+            mono_abs=self._mono_abs, join_abs=self._join_abs 
         )
         return log_dict
 

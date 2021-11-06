@@ -242,7 +242,7 @@ if __name__ == '__main__':
                         help='disable GPU training')
     parser.add_argument('--mono_abs', type=int, action='store', default=0,
                         help='for kor summ data, 1:join extracted, 2:separate extracted')
-    parser.add_argument('--join_abs', action='store', default=store_true,
+    parser.add_argument('--join_abs', action='store_true',
                         help='join abstract sents')
     parser.add_argument('--continued', action='store_true',
                         help='use pretrained-abstrator')
