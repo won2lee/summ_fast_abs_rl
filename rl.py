@@ -28,6 +28,7 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
     print('start running validation...', end='')
     avg_reward = 0
     i = 0
+    max_k = 12
     with torch.no_grad():
         for art_batch, abs_batch in loader:
             ext_sents = []
@@ -41,7 +42,9 @@ def a2c_validate(agent, abstractor, loader, mono_abs):
                     extrctd = ["_ 예정이 다 _ ."]
                 if mono_abs==1:
                     ext_sent=[]
-                    for s in extrctd: #[:3]:
+                    for ix,s in enumerate(extrctd): #[:3]:
+                        if ix> max_k:
+                            break
                         ext_sent+=s
                     ext_sents += [ext_sent] #[for s in extrctd[:3]]
                 else:
@@ -83,14 +86,14 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     ext_sents = []
     art_batch, abs_batch = next(loader)
 
-    max_abs = 4
+    max_abs = 5
+    max_k = 12
     for raw_arts in art_batch:
         # if mono_abs:
         #     (inds, ms), bs = agent(raw_arts, n_abs=10000)
         # else:
         #     (inds, ms), bs = agent(raw_arts)
-        (inds, ms), bs = agent(raw_arts)
-        max_k = 15
+        (inds, ms), bs = agent(raw_arts)      
         inds = inds[:max_k]
         ms = ms[:max_k]
         bs = bs[:max_k]
@@ -98,10 +101,16 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         indices.append(inds)
         probs.append(ms)
 
-        extrctd = [raw_arts[idx.item()]
-                          for idx in inds if idx.item() < len(raw_arts)] # idc.item() >= len(raw_arts) ---> End of Extraction 
+
 
         if mono_abs==1:
+            i_stop=1000
+            for ix,idx in enumerate(inds):
+                if idx.item() > len(raw_arts) -1:
+                    i_stop=ix
+                    break
+            extrctd = [raw_arts[idx.item()]
+                              for ix,idx in enumerate(inds) if idx.item() < len(raw_arts) and ix < i_stop ] 
             # ext_sent = []
             # for i,ex in enumerate(extrctd):
             #     ext_sent += [ex]
@@ -122,9 +131,11 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
                 #     #ext_sent[i]=[' '.join(ext_sent[i])]
                 # else:
                 #     ext_sent[i] = "_ 예정이 다 _ ."
-            ext_sents += ext_sent           
+            ext_sents += [snts if ix < max_abs else "_ it _ is _ nothing ." for ix,snts in enumerate(ext_sent)]           
          
         else:
+            extrctd = [raw_arts[idx.item()]
+                  for idx in inds if idx.item() < len(raw_arts)] # idc.item() >= len(raw_arts) ---> End of Extraction 
             ext_sents += extrctd
 
     with torch.no_grad():
@@ -143,6 +154,10 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             #print(f'i+j, summary.len : {i} , {min(len(inds), 3)},{len(summaries)}')
             cum_rwd = [0.]+[reward_fn(summaries[i+j] if mono_abs==1 else list(concat([summaries[jsub] for jsub in range(i,i+j)])), abss) #abss[0]) # cumulated rewards
                         for j in range(min(len(inds)-1, max_abs))]
+            # if i%50==0:
+            #     cumrwd = [f"{dr:.3f}" for dr in cum_rwd[:15]]
+            #     print(f"cum_rwd : {cumrwd}") #" {avg_reward}")
+
             rs = ([max(cum_rwd[j+1]-cum_rwd[j], 0.0)   #contribution to total reward by one step action
                   for j in range(min(len(inds)-1, max_abs))]
                   + [0 for _ in range(max(0, len(inds)-1-max_abs))]
@@ -171,7 +186,8 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             disc_rs.insert(0, R)
         rewards += disc_rs
         if i%50==0:
-            print(f"rewards : {len(disc_rs)}, {disc_rs[:3]}    avg_rewards : {avg_reward}")
+            drs = [f"{dr:.3f}" for dr in disc_rs[:15]]
+            print(f"rewards : {len(disc_rs)},  avg_rewards : {rs[-1]}, {drs}") #" {avg_reward}")
     indices = list(concat(indices))
     probs = list(concat(probs))
     baselines = list(concat(baselines))
