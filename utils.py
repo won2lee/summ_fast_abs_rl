@@ -15,7 +15,7 @@ def count_data(path):
     match = lambda name: bool(matcher.match(name))
     names = os.listdir(path)
     n_data = len(list(filter(match, names)))
-    return n_data
+    return n_data, names
 
 
 PAD = 0

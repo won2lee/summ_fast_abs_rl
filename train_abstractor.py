@@ -53,7 +53,9 @@ class MatchDataset(CnnDmDataset):
         if self._mono_abs:
             matched_arts = [" ".join(matched_arts)]
             abs_sents = [" ".join(abs_sents)]
-        return matched_arts, abs_sents #abs_sents[:1 if self._mono_abs else len(extracts)]
+            return matched_arts, abs_sents
+
+        return matched_arts+[" ".join(matched_arts)], abs_sents+[" ".join(abs_sents)] #abs_sents[:1 if self._mono_abs else len(extracts)]
 
 
 def configure_net(vocab_size, emb_dim,
@@ -234,7 +236,7 @@ if __name__ == '__main__':
     # length limit
     parser.add_argument('--max_art', type=int, action='store', default=100,
                         help='maximun words in a single article sentence')
-    parser.add_argument('--max_abs', type=int, action='store', default=60,
+    parser.add_argument('--max_abs', type=int, action='store', default=30,
                         help='maximun words in a single abstract sentence')
     # training options
     parser.add_argument('--lr', type=float, action='store', default=1e-3,

@@ -81,7 +81,7 @@ class Seq2SeqSumm(nn.Module):
         if self.parallel:
             self.sub_coder= nn.LSTM(emb_dim, emb_dim) #n_hidden)  #(embed_size, self.hidden_size)
             #self.sub_gate = nn.Linear(2*n_hidden, 1, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
-            self.sub_gate = nn.Linear(2*emb_dim, emb_dim, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+            self.sub_gate = nn.Linear(2*emb_dim, 1, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
             self.sub_projection = nn.Linear(n_hidden, emb_dim, bias=False) 
             #self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
             self.sub_dropout = nn.Dropout(p=0.2)

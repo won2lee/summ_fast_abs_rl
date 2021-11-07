@@ -41,6 +41,7 @@ def get_extract_label(art_sents, abs_sents):
 @curry
 def process(split, i):
     data_dir = join(DATA_DIR, split)
+    i = i.split('.')[0]
     with open(join(data_dir, '{}.json'.format(i))) as f:
         data = json.loads(f.read())
     tokenize = compose(list, _split_words)
@@ -60,19 +61,22 @@ def label_mp(split):
     start = time()
     print('start processing {} split...'.format(split))
     data_dir = join(DATA_DIR, split)
-    n_data = count_data(data_dir)
+    n_data, names = count_data(data_dir)
     with mp.Pool() as pool:
         list(pool.imap_unordered(process(split),
-                                 list(range(n_data)), chunksize=1024))
+                                names, chunksize=1024))
+                                # list(range(n_data)), chunksize=1024))
     print('finished in {}'.format(timedelta(seconds=time()-start)))
 
 def label(split):
     start = time()
     print('start processing {} split...'.format(split))
     data_dir = join(DATA_DIR, split)
-    n_data = count_data(data_dir)
-    for i in range(n_data):
-        print('processing {}/{} ({:.2f}%%)\r'.format(i, n_data, 100*i/n_data),
+    n_data, names = count_data(data_dir)
+    #for i in range(n_data):
+    for ix,nm in enumerate(names):
+        i = int(nm.split('.')[0])
+        print('processing {}/{} ({:.2f}%%)\r'.format(ix, n_data, 100*ix/n_data),
               end='')
         with open(join(data_dir, '{}.json'.format(i))) as f:
             data = json.loads(f.read())
@@ -90,6 +94,7 @@ def label(split):
 def main():
     for split in ['val', 'train']:  # no need of extraction label when testing
         label_mp(split)
+        #label(split)
 
 if __name__ == '__main__':
     main()
