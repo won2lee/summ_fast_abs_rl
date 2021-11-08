@@ -46,16 +46,13 @@
           ... 추출(extracted) 된 모든 문장을 한개의 문장으로 요약한 AIHUB의 한글 요약 데이터세트를 사용하기 위한 옵션
 
     ❺  reward option added
-          ... n_th extraction -> n_th abstract => ROUGE(n_th abst, n_th target)
-          ... n_th extraction -> ROUGE 의 증가분 = ROUGE([1:n] abst, 1 (big target)) - ROUGE([1:n-1] abst, 1 (big target)) 
+          . origin model
+          ... n_th extraction -> n_th abstract => ROUGE(n_th abst, n_th target)         
+          . added options
+          ... opt 1 : n_th extraction -> ROUGE 의 증가분 = ROUGE([1:n] abst, 1 (big target)) - ROUGE([1:n-1] abst, 1 (big target)) 
           ......where [1:n] abst is 1 abstracted sentence from [1:n] extracted sentences
-          ... 원 논문에서는 개개 추출문장 마다 요약 문장을 1 to 1으로 생성하여 각각 rouge score를 reward로 사용했으나 
-
-          ... AIHUB 데이터셋은     
-          ... n개의 추출 문장에 대해 하나의 요약 문장 만 있기 때문에 (❹에서와 같이 n to 1 요약문)    
-          ... REINFORCE 를 학습할 때 한개의 문장을 추가로 추출 했을 때의 reward를    
-          ... 그 문장이 추가됨에 따른 요약 문장의 rouge score의 증가분으로 적용    
-          ... 즉 n 번째 문장 추출의 리워드 = (n to 1 요약문의 스코어) - (n-1 to 1 요약문의 스코어)     
+          ... opt 2 : n_th extraction -> ROUGE 의 증가분 = ROUGE([n] abst, 1 (big target))
+          ......where [n] abst is 1 abstracted sentence from n_th extracted sentence   
 
 ------------------------------------------------------------------
 ### To Train
