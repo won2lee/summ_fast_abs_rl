@@ -25,7 +25,7 @@ class Seq2SeqSumm(nn.Module):
         self.use_coverage = use_coverage
         self._embedding = nn.Embedding(vocab_size, emb_dim, padding_idx=0)
         self._enc_lstm = nn.LSTM(
-            emb_dim, #n_hidden if self.parallel else emb_dim, 
+            n_hidden if self.parallel else emb_dim, #emb_dim, #
             n_hidden, n_layer,
             bidirectional=bidirectional, dropout=dropout
         )
@@ -42,8 +42,8 @@ class Seq2SeqSumm(nn.Module):
 
         # vanillat lstm / LNlstm
         self._dec_lstm = MultiLayerLSTMCells(
-            2*emb_dim, n_hidden, n_layer, dropout=dropout
-            #n_hidden+emb_dim if parallel else 2*emb_dim, n_hidden, n_layer, dropout=dropout
+            #2*emb_dim, n_hidden, n_layer, dropout=dropout
+            n_hidden+emb_dim if parallel else 2*emb_dim, n_hidden, n_layer, dropout=dropout
         )
         # project encoder final states to decoder initial states
         enc_out_dim = n_hidden * (2 if bidirectional else 1)
@@ -80,13 +80,13 @@ class Seq2SeqSumm(nn.Module):
         #self.parallel = parallel
         if self.parallel:
             self.sub_coder= nn.LSTM(emb_dim, emb_dim) #n_hidden)  #(embed_size, self.hidden_size)
-            #self.sub_gate = nn.Linear(2*n_hidden, 1, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
-            self.sub_gate = nn.Linear(2*emb_dim, 1, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
-            self.sub_projection = nn.Linear(n_hidden, emb_dim, bias=False) 
-            #self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
+            self.sub_gate = nn.Linear(2*n_hidden, 1, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+            #self.sub_gate = nn.Linear(2*emb_dim, 1, bias=False) #(self.hidden_size, self.hidden_size, bias=False)
+            #self.sub_projection = nn.Linear(n_hidden, emb_dim, bias=False) 
+            self.sub_projection = nn.Linear(emb_dim, n_hidden, bias=False) 
             self.sub_dropout = nn.Dropout(p=0.2)
 
-            self.target_ox_projection = nn.Linear(emb_dim+emb_dim, 4, bias=False) #nn.Linear(emb_dim+n_hidden, 4, bias=False) #emb_dim, 4, bias=False)
+            self.target_ox_projection = nn.Linear(emb_dim+n_hidden, 4, bias=False) #nn.Linear(emb_dim+emb_dim, 4, bias=False)  emb_dim, 4, bias=False)
             self.copy_projection = nn.Linear(2*n_hidden, emb_dim, bias=False)
         
 

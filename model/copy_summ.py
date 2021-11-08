@@ -40,7 +40,7 @@ class CopySumm(Seq2SeqSumm):
                  n_hidden, bidirectional, n_layer, parallel, dropout=0.0, use_coverage=False):
         super().__init__(vocab_size, emb_dim,
                          n_hidden, bidirectional, n_layer, parallel, dropout, use_coverage)
-        self._copy = _CopyLinear(n_hidden, n_hidden, 2*emb_dim) #n_hidden+emb_dim if self.parallel else 2*emb_dim)
+        self._copy = _CopyLinear(n_hidden+emb_dim if self.parallel else 2*emb_dim) #n_hidden, n_hidden, 2*emb_dim) 
         # print(f"parallel : {parallel}")
         # print(f"self.parallel : {self.parallel}")
 
