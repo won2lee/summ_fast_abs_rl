@@ -12,22 +12,22 @@
 ... 추출된 문장을 1 to 1으로 요약     
 ... based on seq-to-seq attention model + copy mechanism
 - Reinforce-guided extraction  (train_full_rl.py) :    
-... Extractor로 문장 추출 - Abstractor로 요약 - rouge score - 문장 추출에 feedback
+... Extractor로 문장 추출 - Abstractor로 요약 (1 to 1) - rouge score - 문장 추출에 feedback
 
 #### Added and Modified in this Modified Model (본 요약 모델에서 추가/수정된 부분) 
 - added:    
-... sub-module    
-... coverage-loss
+... sub-module (한글은 어절 단위로, 영어는 단어 단위로 토큰을 연계해 주는 역할)   
+... coverage-loss (중복된 단어 생성을 억제하기 위해 누적 어텐션 스코어가 큰 토큰을 다시 어텐션 할 경우 페널티)
 - modified:    
-... tokenizing & embedding    
-... 1 to 1 요약 (문장 대 문장 요약)을  n to 1, n to k 요약으로 (전체 문장을 한개 혹은 k개 문장으로)  확장    
-... 이에 따른 Reinforce-guided extraction process 수정    
+... self-developed tokenizer   
+... 1 to 1 요약 (1 extracted -> 1 abstract)을  n to 1, n to k 요약으로 (전체 문장을 한개 혹은 k개 문장으로) 확장  
+
 -------------------------------------------------------------------------    
 ### fast_abs_rl Model (원 모델) vs. Modified Model 
 #### 원 모델 개요도 
 <img src="/images/fast_abs_rl.jpg" width="700px" title="모델 개요도" alt="fast_abs_rl"></img><br/>
-#### 본 모델 개요도 
 
+#### 본 모델 개요도 
 <img src="/images/modfied_fast_abs_rl.jpg" width="700px" title="본 모델 개요도" alt="modified_fast_abs_rl"></img><br/>
 
     ❶❹❺ : modified (blue-colored number in the above figure)   ❷❸ : added (red-colored number)
@@ -42,10 +42,13 @@
     ❸  coverage-mechanism     
           ... 단어 중복 생성 방지를 위해 이미 누적 attention score 가 높은 토큰을 다시 선택하지 않도록 유도 
 
-    ❹  n to 1 abstract    
-          ... 추출(extracted) 된 모든 문장을 한개의 문장으로 요약한 AIHUB 의  한글 요약 데이터셋에 adjust
+    ❹  n (extracted) to 1 (big abstract) : option   
+          ... 추출(extracted) 된 모든 문장을 한개의 문장으로 요약한 AIHUB의 한글 요약 데이터세트를 사용하기 위한 옵션
 
-    ❺  (n to 1) - (n-1 to 1) reward    
+    ❺  reward option added
+          ... n_th extraction -> n_th abstract => ROUGE(n_th abst, n_th target)
+          ... n_th extraction -> ROUGE 의 증가분 = ROUGE([1:n] abst, 1 (big target)) - ROUGE([1:n-1] abst, 1 (big target)) 
+          ......where [1:n] abst is 1 abstracted sentence from [1:n] extracted sentences
           ... 원 논문에서는 개개 추출문장 마다 요약 문장을 1 to 1으로 생성하여 각각 rouge score를 reward로 사용했으나 
 
           ... AIHUB 데이터셋은     
