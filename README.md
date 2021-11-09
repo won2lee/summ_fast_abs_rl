@@ -32,7 +32,8 @@
 
     ❶❹❺ : modified (blue-colored number in the above figure)   ❷❸ : added (red-colored number)
 
-    ❶  tokenizer : self-developed mainly for korean language (https://github.com/won2lee/preProc.git)    
+    ❶  tokenizer : self-developed mainly for korean language 
+                   (https://github.com/won2lee/preProc.git)    
     
     ❷  sub-module :      
           ... 한글 어절을 구분하여 어절 안에 있는 토큰 들의 의미와 기능을 연결 하는 LSTM sub-module,      
