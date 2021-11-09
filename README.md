@@ -32,9 +32,8 @@
 
     ❶❹❺ : modified (blue-colored number in the above figure)   ❷❸ : added (red-colored number)
 
-    ❶  tokenizing and embedding    
-          ... tokenizer : 직접 개발 (https://github.com/won2lee/preProc.git)     
-          ... embedding : pretrained on 첨부 1 번역모델 (https://github.com/won2lee/KorEn_NMT.git)      
+    ❶  tokenizer : self-developed mainly for korean language (https://github.com/won2lee/preProc.git)    
+    
     ❷  sub-module :      
           ... 한글 어절을 구분하여 어절 안에 있는 토큰 들의 의미와 기능을 연결 하는 LSTM sub-module,      
           ... 영어의 경우 단어 단위로 토큰 구분하고 연결하며 및 대소 문자를 구분하는 기능     
@@ -42,19 +41,21 @@
     ❸  coverage-mechanism     
           ... 단어 중복 생성 방지를 위해 이미 누적 attention score 가 높은 토큰을 다시 선택하지 않도록 유도 
 
-    ❹  n (extracted) to 1 (big abstract) : option   
+    ❹  abstraction option added : n (extracted) to 1 (big abstract) 
           ... 추출(extracted) 된 모든 문장을 한개의 문장으로 요약한 AIHUB의 한글 요약 데이터세트를 사용하기 위한 옵션
 
     ❺  reward option added
           ... reward in fast_abs_rl model
-                 n_th extraction -> n_th abstract => 1 to 1 ROUGE score : ROUGE(n_th abst, n_th target)         
+                      n_th extraction -> n_th abstract => 1 to 1 ROUGE score : ROUGE(n_th abst, n_th target),
+                      where n_th abst is 1 abstract sentence from n_th extracted sentence
           ... added options in this model
               opt 1 : n_th extraction -> increased ROUGE score : 
                       ROUGE([1:n] abst, 1 (big target)) - ROUGE([1:n-1] abst, 1 (big target)), 
                       where [1:n] abst is 1 abstract sentence from [1:n] extracted sentences,
-                            i big target is [1:n] targets or 1 target sentence of the current article
-              opt 2 : n_th extraction -> ROUGE 의 증가분 = ROUGE([n] abst, 1 (big target)),
-                      where [n] abst is 1 abstract sentence from n_th extracted sentence   
+                            i big target is concat([1:n] target summarized sentences) 
+                            or 1 target summarized sentence covering all sentences of the current article
+              opt 2 : n_th extraction -> ROUGE 의 증가분 = ROUGE([n_th abst, 1 (big target))
+                         
 
 ------------------------------------------------------------------
 ### To Train
