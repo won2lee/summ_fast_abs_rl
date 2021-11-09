@@ -46,15 +46,15 @@
           ... 추출(extracted) 된 모든 문장을 한개의 문장으로 요약한 AIHUB의 한글 요약 데이터세트를 사용하기 위한 옵션
 
     ❺  reward option added
-          . reward in fast_abs_rl model
-          ... n_th extraction -> n_th abstract => 1 to 1 ROUGE score : ROUGE(n_th abst, n_th target)         
-          . added options in this model
-          ... opt 1 : n_th extraction -> increased ROUGE score : 
-          ...             ROUGE([1:n] abst, 1 (big target)) - ROUGE([1:n-1] abst, 1 (big target)) 
-          ...             where [1:n] abst is 1 abstract sentence from [1:n] extracted sentences,
-                                i big target is [1:n] targets or 1 target sentence of the current article
-          ... opt 2 : n_th extraction -> ROUGE 의 증가분 = ROUGE([n] abst, 1 (big target))
-          ...             where [n] abst is 1 abstract sentence from n_th extracted sentence   
+          ... reward in fast_abs_rl model
+                 n_th extraction -> n_th abstract => 1 to 1 ROUGE score : ROUGE(n_th abst, n_th target)         
+          ... added options in this model
+              opt 1 : n_th extraction -> increased ROUGE score : 
+                      ROUGE([1:n] abst, 1 (big target)) - ROUGE([1:n-1] abst, 1 (big target)), 
+                      where [1:n] abst is 1 abstract sentence from [1:n] extracted sentences,
+                            i big target is [1:n] targets or 1 target sentence of the current article
+              opt 2 : n_th extraction -> ROUGE 의 증가분 = ROUGE([n] abst, 1 (big target)),
+                      where [n] abst is 1 abstract sentence from n_th extracted sentence   
 
 ------------------------------------------------------------------
 ### To Train
