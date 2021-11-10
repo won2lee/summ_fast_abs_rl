@@ -30,16 +30,16 @@
 #### 본 모델 개요도 
 <img src="/images/modfied_fast_abs_rl.jpg" width="700px" title="본 모델 개요도" alt="modified_fast_abs_rl"></img><br/>
 
-    ❶❹❺ : modified (blue-colored number in the above figure)   ❷❸ : added (red-colored number)
+    ❶❹❺ : modified (blue-colored number in the above figure)   ②③ : added (red-colored number)
 
     ❶  tokenizer : self-developed mainly for korean language 
                    (https://github.com/won2lee/preProc.git)    
     
-    ❷  sub-module :      
+    ②  sub-module :      
           ... 한글 어절을 구분하여 어절 안에 있는 토큰 들의 의미와 기능을 연결 하는 LSTM sub-module,      
           ... 영어의 경우 단어 단위로 토큰 구분하고 연결하며 및 대소 문자를 구분하는 기능     
 
-    ❸  coverage-mechanism     
+    ③  coverage-mechanism     
           ... 단어 중복 생성 방지를 위해 이미 누적 attention score 가 높은 토큰을 다시 선택하지 않도록 유도 
 
     ❹  abstraction option added : n (extracted) to 1 (big abstract) 
