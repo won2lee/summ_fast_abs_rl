@@ -23,7 +23,7 @@
 ... 1 to 1 요약 (1 extracted -> 1 abstract)을  n to 1, n to k 요약으로 (전체 문장을 한개 혹은 k개 문장으로) 확장  
 
 -------------------------------------------------------------------------    
-### fast_abs_rl Model (원 모델) vs. Modified Model ( 
+### fast_abs_rl Model (원 모델) vs. Modified Model (본 모델)
 #### 원 모델 개요도 
 <img src="/images/fast_abs_rl.jpg" width="700px" title="모델 개요도" alt="fast_abs_rl"></img><br/>
 
