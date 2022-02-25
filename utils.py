@@ -38,13 +38,14 @@ def make_vocab(wc, vocab_size):
     word2id['^'] = TTL
     word2id['`'] = CAP
 
-    i = 7
+    i = len(word2id)
+
     for (w, _) in wc.most_common(vocab_size):
         if w in ['_','^','`']:
             continue
-    # for i, (w, _) in enumerate(wc.most_common(vocab_size), 7):
         word2id[w] = i
         i += 1
+
     return word2id
 
 
