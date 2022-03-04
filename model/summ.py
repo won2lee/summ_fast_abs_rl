@@ -172,7 +172,7 @@ class Seq2SeqSumm(nn.Module):
         self._embedding.weight.data.copy_(embedding)
 
     @staticmethod
-    def parallel_encode(source,seq_lens,embedding,sub_module,tgt=False): #slang_is_tlang=False):
+    def parallel_encode(source,seq_lens,embedding,sub_module,tgt=False): 
 
         if type(source[0]) is not torch.Tensor and type(source[0]) is not list:
            source = [source]       
@@ -181,52 +181,27 @@ class Seq2SeqSumm(nn.Module):
             Z, XO, Z_sub = get_sents_lenth(source,seq_lens,tgt)
         else:
             source_lengths, Z, Z_sub = get_sents_lenth(source,seq_lens) # Z:각 sentence 내의 각 어절의 길이로 구성  list[list]
-        #s_len = seq_lens #[len(s) for s in source]  # 원래의 문장 길이
+        
         Z_len = [len(s) for s in Z]    # 문장의 어절 갯수
 
         max_Z = max(chain(*Z))  # 최대로 긴 어절
-        
-        
+                
         max_l = max(seq_lens)           
         XX =  [s+[max_l-seq_lens[i]] if max_l>seq_lens[i] else s for i,s in enumerate(Z)] # total(interval lenth) to be source lenth 
         
-        #src_padded = source # ? self.vocab.vocs.to_input_tensor(source, device=self.device)  
-
-        # print(f"source.size : {source.size()}")
-
-        """
-        for i,sss in enumerate(torch.split(source,1,0)):
-            print(f"len of sss : {len(sss)}, size of sss: {sss.size()}")
-            print(sum(XX[i]), len(XX[i]), Z_len[i])
-            print(torch.split(sss,XX[i], -1)[:Z_len[i]])
-        """
-
         X = list(chain(*[torch.split(sss.squeeze(0),XX[i])[:Z_len[i]] for i,sss in enumerate(
             torch.split(source,1,0))]))     #각 문장(batch)으로 자른 뒤 문장내 어절 단위로 자른다 
-        # print(f"X[:4]: {[x.size() for x in X[:4]]}")    
-        # print(f"pad_seqed_size: {pad_sequence(X).size()}")
-        #X = pad_sequence(X)  #.squeeze(-1)
+
         X = pad_sequence(X).to(source.device) 
         
-
-        #if lang =='en':
-        #    cap_id, len_X = get_X_cap(source, self.sbol)
-
-        #X_embed = (embedding(sequence) if embedding is not None else sequence)    
-        #X_embed = self.model_embeddings.vocabs(X)
         X_embed = embedding(X)
 
         sub_coder, sub_gate,sub_projection,sub_dropout = sub_module
 
         out,(last_h1,last_c1) = sub_coder(X_embed)
-        #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
 
-        #X_proj = X_embed[1:]
         X_proj = sub_projection(X_embed[1:])
-        #out = sub_projection(out)
-        #X_gate = torch.sigmoid(sub_gate(X_embed[1:]))
         X_gate = torch.sigmoid(sub_gate(torch.cat((X_proj,out[1:]),-1))) 
-
         X_way = sub_dropout(X_gate * X_proj + (1-X_gate) * out[1:]) #X_proj)       
 
         #문장단위로 자르고 어절 단위로 자른 뒤 각 어절의 길이만 남기고 나머지는 버린 후 연결 (cat) 하여 문장으로 재구성    
@@ -241,14 +216,12 @@ class Seq2SeqSumm(nn.Module):
 
         X_input = [torch.cat([ss[:Z_sub[i][j]] for j,ss in enumerate(
                    torch.split(sss,1,1))],0) for i,sss in enumerate(torch.split(X_way,Z_len,1))]
-        # print(f"X-input[0].size() : {X_input[0].size()}")
-        
-        # 재구성된 문장의 길이가 다르기 때문에 패딩
-            
+      
+        # 재구성된 문장의 길이가 다르기 때문에 패딩          
         if tgt:
-            emb_sequence = pad_sequence(X_input).squeeze(-2) #[:-1]
+            emb_sequence = pad_sequence(X_input).squeeze(-2) 
             XO = [torch.tensor(x) for x in XO]
-            XO = torch.tensor(pad_sequence(XO)) #.to(self.device) #,device = self.device) #<=[:-1]
+            XO = torch.tensor(pad_sequence(XO)) 
             
             return emb_sequence, XO.transpose(0,1)
 
@@ -263,7 +236,6 @@ class Seq2SeqSumm(nn.Module):
         if type(X) is not torch.Tensor:
             X = torch.LongTensor(X)
 
-
         X = X.to(device)
         X_embed = self._embedding(X) #.contiguous()  #.unsqueeze(0)
         if len(X_embed.size()) <3:
@@ -277,16 +249,11 @@ class Seq2SeqSumm(nn.Module):
             out,(h,c) = self.sub_coder(X_embed, init_vecs)
         else:
             out,(h,c) = self.sub_coder(X_embed)
-        #X_proj = self.sub_en_projection(out[1:])               #sbol 부분 제거
-        #X_proj = X_embed
-        #X_proj = sub_projection(X_embed[1:])
-        #out = sub_projection(out)
 
         X_proj = self.sub_projection(X_embed)
-        #X_gate = torch.sigmoid(self.sub_gate(X_embed))
         X_gate = torch.sigmoid(self.sub_gate(torch.cat((X_proj,out),-1))) 
 
-        X_way = (X_gate * X_proj + (1-X_gate) * out).squeeze(0) #X_proj)  
+        X_way = (X_gate * X_proj + (1-X_gate) * out).squeeze(0) 
 
         return X_way, (h,c)
 
@@ -302,11 +269,7 @@ class AttentionalLSTMDecoder(object):
         self.parallel = parallel
         self.vocab_size = self._embedding.weight.t().size()[-1]
         self.sub_module = sub_module
-        # if parallel:
-        #     self.sub_coder = sub_module[0], 
-        #     self.sub_gate = sub_module[1], 
-        #     self.sub_projection = sub_module[2], 
-        #     self.sub_dropout = sub_module[3]
+
         self.target_ox_projection = target_ox 
         self.copy_projection = copy_proj
         self.coverage = cover
@@ -316,8 +279,6 @@ class AttentionalLSTMDecoder(object):
 
         if self.parallel:
             target, XO = Seq2SeqSumm.parallel_encode(target,tgt_lens,self._embedding, self.sub_module, tgt=True)
-            # target, XO = Seq2SeqSumm.parallel_encode(target,tgt_lens,self._embedding,
-            #     sub_module = (self.sub_coder, self.sub_gate, self.sub_projection, self.sub_dropout), tgt=True)
             target = target.transpose(0,1)
             
         max_len = target.size(1)
@@ -334,21 +295,14 @@ class AttentionalLSTMDecoder(object):
             scores.append(score)
             logits.append(logit) 
 
-
-        # cover_lss = [torch.cat((cvr.unsqueeze(-2),scr.unsqueeze(-2)),-2).min(-2)[0] for cvr,scr in zip(coverage[1:-1],scores[1:])]
-        # print(f"score : {scores[-1].size()},coverage : {coverage[-1].size()}")
-        # print(f"cover_loss : {cover_lss[-1].size()},{cover_lss[-1].sum(-1).size()}")
-        # cover_loss = [torch.cat((cvr,scr),-2).min(-2)[0].sum(-1) for cvr,scr in zip(coverage[1:-1],scores[1:])]
-        cover_loss = [torch.cat((cvr.unsqueeze(-2),scr.unsqueeze(-2)),-2).min(-2)[0].sum(-1) for cvr,scr in zip(coverage[1:-1],scores[1:])]
-        #print(f"cover_loss : {cover_loss[-1].size()}")
-
+        cover_loss = (
+            [torch.cat((cvr.unsqueeze(-2),scr.unsqueeze(-2)),-2).min(-2)[0].sum(-1) 
+            for cvr,scr in zip(coverage[1:-1],scores[1:])])
 
         if self.parallel:
             logits = list(unzip(logits))
             logit = [torch.stack(list(lgt), dim=1) for lgt in logits]
             return logit, XO, cover_loss
-        #print(len(logits), logits[0][0].size()) #, logits[0].size())
-        #print(len(logits), logits[1]) #, logits[0].size())
 
         logit = torch.stack([lgt[0] for lgt in logits], dim=1)
         return logit, None, cover_loss
