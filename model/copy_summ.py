@@ -321,20 +321,9 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
     def _step(self, tok, states, attention, to_avoid):
         prev_states, prev_out = states
 
-        # lstm_in = torch.cat(
-        #     [self._embedding(tok).squeeze(1), prev_out],
-        #     dim=1
-        # )
-
-        #####################################################################
         if self.parallel==False:
             tok = self._embedding(tok)
 
-        # lstm_in = torch.cat(
-        #     [self._embedding(tok).squeeze(1), prev_out],
-        #     dim=1
-        # )
-        # print(f"tok.size() : {tok.size()}, prev_out.size :{prev_out.size()}")
         lstm_in = torch.cat(
             [tok.squeeze(1), prev_out],
             dim=1
@@ -365,18 +354,21 @@ class CopyLSTMDecoder(AttentionalLSTMDecoder):
         # print(f"copy_prob ; {(len(copy_prob),copy_prob[0].size()) if type(copy_prob) is list else copy_prob.size()}")
         # print(f"extend_src ; {(len(extend_src),extend_src[0].size()) if type(extend_src) is list else extend_src.size()}")
         """
+        ############  이 부분  지우지 말 것   ############
+
         context ; torch.Size([32, 256])
         score ; torch.Size([32, 46])
         dec_out ; torch.Size([32, 128])
         gen_prob ; torch.Size([32, 30550])
         copy_prob ; torch.Size([32, 1])
         extend_src ; torch.Size([32, 86])
+
         """
         lp = torch.log(
             ((-copy_prob + 1) * gen_prob
             ).scatter_add(
                 dim=1,
-                index=extend_src.expand_as(score),
+                index=extend_src.expand_as(score),  # expand_as(score) 의 추가 역할 없는 듯 ..추가 확인 !!
                 src=score * copy_prob
         ) + 1e-8)  # numerical stability for log
 
